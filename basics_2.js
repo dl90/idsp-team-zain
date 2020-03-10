@@ -1,7 +1,20 @@
+// phaser events
+
 let gameState = {
   palette: [0xa7f66c, 0x844cc5, 0x66e2e2, 0x4c7df3, 0xffc836, 0xec32fc],
   selectedColor: 0x844cc5,
 }
+
+const config = {
+  type: Phaser.WEBGL,
+  parent: 'phaser-game',
+  backgroundColor: 0xffc836,
+  width: 440,
+  height: 550,
+  scene: { create }
+};
+
+const game = new Phaser.Game(config);
 
 function create() {
   let pegasusShapes = getPegasusShapes(this);
@@ -67,10 +80,9 @@ function create() {
         }
         this.paletteCircle.strokeColor = 0xffc836;
       }
-    }, { paletteCircle, color })
+    }, { paletteCircle, color }) // gives reference to this.palletColor, this.color
 
   }
-
 }
 
 function getPegasusShapes(scene) {
@@ -82,20 +94,9 @@ function getPegasusStaticShapes(scene) {
   nostril(scene)
 }
 
-const config = {
-  type: Phaser.WEBGL,
-  parent: 'phaser-game',
-  backgroundColor: 0xffc836,
-  width: 440,
-  height: 550,
-  scene: {
-    create,
-  }
-};
-
-const game = new Phaser.Game(config);
-
 function body(scene) {
+
+  // vector image generation
   let path = scene.add.path();
   path.moveTo(12.7257659, 202.472652);
   path.add(new Phaser.Curves.CubicBezier(new Phaser.Math.Vector2(12.7257659, 202.472652), new Phaser.Math.Vector2(19.8214691, 192.476558), new Phaser.Math.Vector2(31.4699066, 182.212886), new Phaser.Math.Vector2(61.1847503, 174.816402)));
