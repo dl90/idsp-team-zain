@@ -4,7 +4,7 @@ const settings = {
   moveSpeed: 500,
   playerSpawnPosition: [64, 64],
   enemySpawnDistance: 500, // difficulty
-  enemyMoveSpeed: 550 // difficulty
+  enemyMoveSpeed: 450 // difficulty
 }
 
 class Scene_1 extends Phaser.Scene {
@@ -14,19 +14,18 @@ class Scene_1 extends Phaser.Scene {
 
   preload() {
     this.load.image('bg', './images/level_1/bg.png'); // 2560*2560
-    this.load.spritesheet('f_dog', './images/dog/f_sheet.png', { frameWidth: 256, frameHeight: 256 });
-    this.load.spritesheet('b_dog', './images/dog/b_sheet.png', { frameWidth: 256, frameHeight: 256 });
-    this.load.spritesheet('l_dog', './images/dog/l_sheet.png', { frameWidth: 128, frameHeight: 128 }); // not scaled
-    this.load.spritesheet('l_catcher', './images/catcher/l_sheet.png', { frameWidth: 128, frameHeight: 130 }); // why 2px extra
+    this.load.spritesheet('f_dog', './images/dog/f_sheet.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('b_dog', './images/dog/b_sheet.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('l_dog', './images/dog/l_sheet.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('l_catcher', './images/catcher/l_sheet.png', { frameWidth: 128, frameHeight: 128 });
   }
 
   create() {
     gameState.cursors = this.input.keyboard.createCursorKeys();
-    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
-
-
-    gameState.player = this.physics.add.sprite(settings.playerSpawnPosition[0], settings.playerSpawnPosition[1], 'f_dog').setScale(0.5);
+    gameState.player = this.physics.add.sprite(settings.playerSpawnPosition[0], settings.playerSpawnPosition[1], 'f_dog').setScale(1);
     gameState.player.setCollideWorldBounds(true);
+
+    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
 
     // this.enemies = game.add.group();
     // this.enemies.create(this.physics.add.sprite(300, 300, 'l_catcher'));
@@ -74,7 +73,7 @@ class Scene_1 extends Phaser.Scene {
 
   update() {
     this.enemy.anims.play('l_catcher', true);
-    this.physics.moveToObject(this.enemy, gameState.player, 250);
+    this.physics.moveToObject(this.enemy, gameState.player, settings.enemyMoveSpeed);
 
     if (gameState.cursors.up.isDown) { // controls
       gameState.player.setVelocityY(-settings.moveSpeed);
