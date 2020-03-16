@@ -4,60 +4,43 @@
  * @note Basic pathfinding with AStar
 */
 
-const [row, column] = [20, 20];
-const start = { x: 0, y: 0 };
-const end = { x: column - 1, y: row - 1 };
 const [straightMove, diagonalMove] = [1, Math.sqrt(2)];
 const [blocked, movable] = [0, 1];
+const [row, column] = [20, 20];
+
+const start = { x: 0, y: 0 };
+const end = { x: column - 1, y: row - 1 };
 
 // 0 == blocked, 1 == movable
 const gameMap = [
-  ["NW", "N", "NE", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ["W", "X", "E", 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  ["SW", "S", "SE", 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, "O"]
+  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
-function checkDirections() {
-  // x y inverted => gameMap   *** [y][x] >>> ([row][column]) ***
-  console.log(gameMap[1][1]); // start
-  console.log(gameMap[0][1]); // north     => -1,  0
-  console.log(gameMap[0][2]); // northEast => -1, +1
-  console.log(gameMap[1][2]); // east      =>  0, +1
-  console.log(gameMap[2][2]); // southEast => +1, +1
-  console.log(gameMap[2][1]); // south     => +1,  0
-  console.log(gameMap[2][0]); // southWest => +1, -1
-  console.log(gameMap[1][0]); // west      =>  0, -1
-  console.log(gameMap[0][0]); // northWest => -1, -1
-}
-
 /**
- * @param {Number} moveCost movement cost, aka "G-cost" (straight/diagonal moves)
- * @param {Number} distanceToEnd distance to goal, aka "H-cost"
- * @return heuristic value (sum of "G" and "H"), aka "F-cost"
+ * Generates neighbors
+ * @param {Object} node node containing starting x, y coords
+ * @return {Array} array of nodes, contains x, y coords and cost
  */
-function findCost(moveCost, distanceToEnd) {
-  return moveCost + distanceToEnd;
-}
-
-genNeighbor(start);
-function genNeighbor(start) {
+function genNeighbors(node) {
   const directions = {
     north: { x: 0, y: -1 },
     northEast: { x: 1, y: -1 },
@@ -71,60 +54,94 @@ function genNeighbor(start) {
   const results = [];
 
   for (const direction in directions) {
-    // console.log(directions[direction]);
-    const y = start.y + directions[direction].y;
-    const x = start.x + directions[direction].x;
-
+    const [x, y] = [node.x + directions[direction].x, node.y + directions[direction].y];
     if ((y >= 0 && y < row) && (x >= 0 && x < column)) {
       try {
         if (gameMap[y][x] !== undefined && gameMap[y][x] !== blocked) {
-          let moveCost;
+          let node = new Object;
           if (Math.abs(x) + Math.abs(y) === 2) {
-            moveCost = diagonalMove;
+            node.moveCost = diagonalMove;
           } else {
-            moveCost = straightMove;
+            node.moveCost = straightMove;
           }
           const distanceToEnd = Math.sqrt((end.x - x) ** 2 + (end.y - y) ** 2);
-          const h = (findCost(moveCost, distanceToEnd));
-          results.push({ x, y, heuristic: h});
+          [node.x, node.y, node.distanceToEnd] = [x, y, distanceToEnd];
+          node.cost = node.moveCost + node.distanceToEnd;
+          results.push(node);
         };
-      } catch (err) { };
+      } catch { };
     }
   }
-  console.log(results);
+  return results;
 }
 
-const nodesToEvaluate = [];
-const nodesEvaluated = [];
-const path = [];
+/**
+ * get the lowest cost node
+ * @param {Array} array array of nodes
+ * @return {Object} node with the lowest cost
+ */
+function getLowestCost(array) {
+  let current = array[0];
+  const sameCost = [];
 
-// run(start, end);
+  // finds lowest cost move
+  for (let i = 0; i < array.length; i++) {
+    if (array[i].cost < current.cost) {
+      current = array[i];
+    }
+  }
+
+  // finds similar cost moves
+  sameCost.push(current);
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] != current && array[i].cost === current.cost) {
+      sameCost.push(array[i])
+    }
+  }
+
+  // finds lowest heuristic (distanceToEnd) from sameCost[]
+  let cost = sameCost[0];
+  for (let i = 0; i < sameCost.length; i++) {
+    if (sameCost[i].distanceToEnd < cost.distanceToEnd) {
+      cost = sameCost[i];
+    }
+  }
+  return cost;
+}
+
+
+/**
+ * Generates shortest path
+ * @param {Object} start node containing start x, y coords
+ * @param {Object} end node containing end x, y coords
+ * @return {Array} array of nodes generating the shortest path (hopefully)
+ */
 function run(start, end) {
-  nodesToEvaluate.push(start);
+  const pathEvaluated = [];
+  let pathToEvaluate = [];
+  let [state, current] = [true, start];
 
-  let state = true;
+  current.cost = 0;
+  pathToEvaluate.push(current);
+
   while (state) {
+    const nodes = genNeighbors(current);
+    for (const node of nodes) {
+      if (!pathToEvaluate.includes(node) && !pathEvaluated.includes(node)) {
+        pathToEvaluate.push(node);
+      }
+    }
+    pathToEvaluate = pathToEvaluate.filter(_node => { current.x === _node.x && current.y === _node.y });
+    pathEvaluated.push(current);
+    current = getLowestCost(nodes);
 
-    if (current === end) {
+    if (current.x === end.x && current.y === end.y) {
+      pathEvaluated.push(current);
       state = false;
     }
-
-    if (nodesToEvaluate.length = 0) {
-      state = false;
-    }
-
-    const current = nodesToEvaluate.pop(); // lowest cost node in list, needs to be sorted
-    nodesEvaluated.push(current);
-
-    // for each neighbor of current node
-    // if its blocked or is in nodesEvaluated, skip to next neighbor
-
-    // if new path to neighbor is shorter OR neighbor is not in nodesToEvaluate
-    // calc cost of neighbor
-    // parent of neighbor = current
-
-    // if neighbor not in nodesToEvaluate
-    // add neighbor to nodesToEvaluate
 
   }
+  return pathEvaluated;
 }
+
+console.log(run(start, end))
