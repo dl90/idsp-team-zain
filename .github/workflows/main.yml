@@ -1,0 +1,24 @@
+name: My First CI
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: npm install, npm test
+        run: |
+          npm install
+          npm test
+      - name: ESLint Action
+        uses: hallee/eslint-action@1.0.1
