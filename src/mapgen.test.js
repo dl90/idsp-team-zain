@@ -1,4 +1,4 @@
-const { genEmpty } = require("./mapgen");
+const { genEmpty, genObstacles } = require("./mapgen");
 
 describe("genEmpty(map) test", () => {
   const [y, x, val] = [2, 4, 0];
