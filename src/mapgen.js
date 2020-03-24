@@ -17,6 +17,7 @@ const end = { x: column - 1, y: row - 1 };
 // obstacles
 const difficulty = 0.3;
 const numOfBlocked = Math.round(row * column * difficulty);
+console.log(numOfBlocked);
 
 const test = main();
 if (Array.isArray(test)) {
@@ -29,7 +30,7 @@ if (Array.isArray(test)) {
 function main() {
   const runtime_start = performance.performance.now();
   const map = genEmpty(row, column, movable);
-  const mapWithObstacles = genObstacles(map, numOfBlocked, blocked);
+  const mapWithObstacles = insertObstacles(map, numOfBlocked, blocked);
   console.info(mapWithObstacles);
 
   try {
@@ -77,11 +78,16 @@ function genEmpty(row, column, value) {
  * @param {Number} numOfObstacles Number of obstacles to add to map
  * @param {Number} value Number representing an obstacle
  */
-function genObstacles(map, numOfObstacles, value) {
+function insertObstacles(map, numOfObstacles, value) {
   const seed = [];
-  let i = 0;
+  let [row, column] = [0, 0];
+  if (map !== undefined && map[0] !== undefined) {
+    row = map.length;
+    column = map[0].length;
+  }
 
-  while (i <= numOfObstacles) {
+  let i = 0;
+  while (i < numOfObstacles) {
     // excludes start and end [0][0], [y-1][x-1]
     const y = String(Math.round(Math.random() * (row - 2) + 1));
     const x = String(Math.round(Math.random() * (column - 2) + 1));
@@ -101,4 +107,4 @@ function genObstacles(map, numOfObstacles, value) {
   return map;
 }
 
-module.exports = { genEmpty, genObstacles };
+module.exports = { genEmpty, insertObstacles };

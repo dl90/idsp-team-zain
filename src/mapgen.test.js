@@ -1,6 +1,6 @@
-const { genEmpty } = require("./mapgen");
+const { genEmpty, insertObstacles } = require("./mapgen");
 
-describe("genEmpty(map) test", () => {
+describe("genEmpty() test", () => {
   const [y, x, val] = [2, 4, 0];
   const map = [
     [0, 0, 0, 0],
@@ -36,5 +36,28 @@ describe("genEmpty(map) test", () => {
     expect(() => genEmpty(1, -10, 1)).toThrow("Invalid input");
     expect(() => genEmpty(0, 1, 1)).toThrow("Invalid input");
     expect(() => genEmpty(1, 0, 1)).toThrow("Invalid input");
+  });
+});
+
+describe("insertObstacles() test", () => {
+  const map = genEmpty(30, 20, 1);
+  const numOfObstacles = 180;
+  const obstacleValue = 0;
+  const obstacleMap = insertObstacles(map, numOfObstacles, obstacleValue);
+  console.log(obstacleMap);
+  function countFunction() {
+    let counter = 0;
+    for (let i = 0; i < obstacleMap.length; i++) {
+      for (let j = 0; j < obstacleMap[i].length; j++) {
+        if (obstacleMap[i][j] === obstacleValue) {
+          counter++;
+        }
+      }
+    }
+    return counter;
+  }
+
+  test("Correctly inserts obstacleValue at random x y coordinates on map", () => {
+    expect(countFunction()).toBe(numOfObstacles);
   });
 });

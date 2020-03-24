@@ -5,8 +5,9 @@
  * @TODO Need to resolve infinite loop issue, caused by getLowestCost alternating between two neighboring cells, currently handled by throwing error
  */
 
-const [blocked, movable] = [0, 1];
+const [blocked] = [0];
 // for manually testing
+/*
 const gameMap = [
   [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -36,6 +37,7 @@ const gameMap = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
+*/
 
 /**
  * Generates neighbors
