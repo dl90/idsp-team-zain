@@ -9,9 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Use Node.js 12.x
         uses: actions/setup-node@v1
         with:
@@ -21,4 +22,6 @@ jobs:
           npm install
           npm test
       - name: ESLint Action
-        uses: hallee/eslint-action@1.0.1
+        uses: hallee/eslint-action@master
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
