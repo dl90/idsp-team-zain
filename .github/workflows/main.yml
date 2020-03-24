@@ -22,6 +22,6 @@ jobs:
           npm install
           npm test
       - name: ESLint Action
-        uses: hallee/eslint-action@master
+        uses: hallee/eslint-action@1.0.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
