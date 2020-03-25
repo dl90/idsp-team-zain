@@ -13,15 +13,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Use Node.js 12.x
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
+
       - name: npm install, npm test
         run: |
           npm install
           npm test
-      - name: ESLint Action
-        uses: hallee/eslint-action@1.0.1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Secret Scan
+        uses: max/secret-scan@1.0.0
+
+      # - name: ESLint Action
+      #   uses: hallee/eslint-action@1.0.1
+      #   with:
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
