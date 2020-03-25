@@ -24,8 +24,14 @@ jobs:
           npm install
           npm test
 
-      - name: Secret Scan
-        uses: max/secret-scan@1.0.0
+      - name: eslint
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+
+      # - name: Secret Scan
+      #   uses: max/secret-scan@1.0.0
 
       # - name: ESLint Action
       #   uses: hallee/eslint-action@1.0.1
