@@ -29,11 +29,3 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
-
-      # - name: Secret Scan
-      #   uses: max/secret-scan@1.0.0
-
-      # - name: ESLint Action
-      #   uses: hallee/eslint-action@1.0.1
-      #   with:
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}

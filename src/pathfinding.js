@@ -2,42 +2,10 @@
  * @author Don (dl90)
  * @date March 15, 2020
  * @note Basic pathfinding with AStar
- * @TODO Need to resolve infinite loop issue, caused by getLowestCost alternating between two neighboring cells, currently handled by throwing error
+ * @TODO Throws no possible moves while possible moves exist?!?!
  */
 
 const [blocked] = [0];
-// for manually testing
-/*
-const gameMap = [
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-];
-*/
 
 /**
  * Generates neighbors
@@ -47,6 +15,7 @@ const gameMap = [
  */
 function genNeighbors(node, end, map) {
   const [straightMove, diagonalMove] = [1, Math.sqrt(2)];
+  const results = [];
   const directions = {
     north: { x: 0, y: -1 },
     northEast: { x: 1, y: -1 },
@@ -57,7 +26,6 @@ function genNeighbors(node, end, map) {
     west: { x: -1, y: 0 },
     northWest: { x: -1, y: -1 }
   };
-  const results = [];
 
   let [row, column] = [0, 0];
   if (map !== undefined && map[0] !== undefined) {
@@ -66,26 +34,14 @@ function genNeighbors(node, end, map) {
   }
 
   for (const direction in directions) {
-    const [x, y] = [
-      node.x + directions[direction].x,
-      node.y + directions[direction].y
-    ];
+    const [x, y] = [node.x + directions[direction].x, node.y + directions[direction].y];
     if (y >= 0 && y < row && x >= 0 && x < column) {
       try {
         if (map[y][x] !== undefined && map[y][x] !== blocked) {
           const newNode = new Object();
-          [newNode.x, newNode.y] = [x, y];
-          if (
-            Math.abs(newNode.x - node.x) + Math.abs(newNode.y - node.y) ===
-            2
-          ) {
-            newNode.moveCost = diagonalMove;
-          } else {
-            newNode.moveCost = straightMove;
-          }
-          newNode.distanceToEnd = Math.sqrt(
-            (end.x - x) ** 2 + (end.y - y) ** 2
-          );
+          [newNode.x, newNode.y, newNode.traversed] = [x, y, false];
+          Math.abs(newNode.x - node.x) + Math.abs(newNode.y - node.y) === 2 ? newNode.moveCost = diagonalMove : newNode.moveCost = straightMove;
+          newNode.distanceToEnd = Math.sqrt((end.x - x) ** 2 + (end.y - y) ** 2);
           newNode.cost = newNode.moveCost + newNode.distanceToEnd;
           results.push(newNode);
         }
@@ -108,7 +64,7 @@ function getLowestCost(array) {
 
   // finds lowest heuristic (distanceToEnd) cost from all moves
   for (let i = 0; i < array.length; i++) {
-    if (array[i].distanceToEnd < current.distanceToEnd) {
+    if (array[i].distanceToEnd < current.distanceToEnd && array[i].traversed === false) {
       current = array[i];
     }
   }
@@ -116,7 +72,7 @@ function getLowestCost(array) {
   // finds similar cost moves
   sameCost.push(current);
   for (let i = 0; i < array.length; i++) {
-    if (array[i] != current && array[i].cost === current.cost) {
+    if (array[i] != current && array[i].cost === current.cost && array[i].traversed === false) {
       sameCost.push(array[i]);
     }
   }
@@ -129,7 +85,7 @@ function getLowestCost(array) {
   // finds lowest cost (distanceToEnd + moveCost) from sameCost[]
   let cost = sameCost[0];
   for (let i = 0; i < sameCost.length; i++) {
-    if (sameCost[i].cost < cost.cost) {
+    if (sameCost[i].cost < cost.cost && sameCost[i].traversed === false) {
       cost = sameCost[i];
     }
   }
@@ -149,10 +105,9 @@ function run(start, end, map) {
   let [state, current, totalMoveCost] = [true, start, 0];
 
   current.moveCost = 0;
-  current.distanceToEnd = Math.sqrt(
-    (end.x - start.x) ** 2 + (end.y - start.y) ** 2
-  );
+  current.distanceToEnd = Math.sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2);
   current.cost = 0;
+  current.traversed = false;
   pathToEvaluate.push(current);
 
   while (state) {
@@ -161,7 +116,6 @@ function run(start, end, map) {
     for (const node of nodes) {
       let exist = false;
 
-      // for some reason Array.includes does not work
       pathEvaluated.forEach(evaluatedNode => {
         if (evaluatedNode.x === node.x && evaluatedNode.y === node.y) {
           exist = true;
@@ -178,21 +132,62 @@ function run(start, end, map) {
       }
     }
 
-    pathToEvaluate = pathToEvaluate.filter(node => {
-      return node !== current;
-    });
+    pathToEvaluate = pathToEvaluate.filter(node => { return node !== current });
+    current.traversed = true;
     pathEvaluated.push(current);
-    console.info(`\tLOG: current =>  ${JSON.stringify(current)}`);
-    console.info(
-      `\nLOG: ${pathToEvaluate.length} paths to evaluate =>  ${JSON.stringify(
-        pathToEvaluate
-      )}\n`
-    );
-    current = getLowestCost(nodes); // loops
+
+    // console.info(`\n\tLOG: current =>  ${JSON.stringify(current)}\n`);
+    // console.info(`\nLOG: ${pathToEvaluate.length} paths TO EVALUATE =>  ${JSON.stringify(pathToEvaluate)}\n`);
+    // console.info(`\nLOG: ${pathEvaluated.length} paths EVALUATED =>  ${JSON.stringify(pathEvaluated)}\n`)
+    // console.info(`\t ------------------------------------- \n`)
+
+    try {
+      current = getLowestCost(nodes); // loops
+    } catch (error) {
+      state = false
+      console.info(`\t ------------------ ERROR ---------------- \n`)
+      console.info(error.message)
+      console.info(`\n\tLOG: current =>  ${JSON.stringify(current)}\n`);
+      console.info(`\nLOG: ${pathToEvaluate.length} paths TO EVALUATE =>  ${JSON.stringify(pathToEvaluate)}\n`);
+      console.info(`\nLOG: ${pathEvaluated.length} paths EVALUATED =>  ${JSON.stringify(pathEvaluated)}\n`)
+      console.info(`\n\tTotal move cost: ${totalMoveCost}`);
+    }
+
 
     pathEvaluated.forEach(evaluatedNode => {
       if (evaluatedNode.x === current.x && evaluatedNode.y === current.y) {
-        throw new Error("Infinite loop");
+
+        const nodes = genNeighbors(current, end, map);
+        for (const node of nodes) {
+          let exist = false;
+
+          pathEvaluated.forEach(evaluatedNode => {
+            if (evaluatedNode.x === node.x && evaluatedNode.y === node.y) {
+              exist = true;
+            }
+          });
+          pathToEvaluate.forEach(nodeToEval => {
+            if (nodeToEval.x === node.x && nodeToEval.y === node.y) {
+              exist = true;
+            }
+          });
+
+          if (!exist) {
+            pathToEvaluate.push(node);
+          }
+        }
+
+        try {
+          current = getLowestCost(pathToEvaluate); // loops
+        } catch (error) {
+          state = false
+          console.info(`\t ------------------ ERROR ---------------- \n`)
+          console.info(error.message)
+          console.info(`\n\tLOG: current =>  ${JSON.stringify(current)}\n`);
+          console.info(`\nLOG: ${pathToEvaluate.length} paths TO EVALUATE =>  ${JSON.stringify(pathToEvaluate)}\n`);
+          console.info(`\nLOG: ${pathEvaluated.length} paths EVALUATED =>  ${JSON.stringify(pathEvaluated)}\n`)
+          console.info(`\n\tTotal move cost: ${totalMoveCost}`);
+        }
       }
     });
 

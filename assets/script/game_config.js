@@ -1,11 +1,13 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 const gameState = {
   score: 0
 };
 
 const config = {
   type: Phaser.AUTO,
-  width: 1200,
-  height: 900,
+  width: 480,
+  height: 270,
   backgroundColor: "e5e5e5",
   physics: {
     default: 'arcade',

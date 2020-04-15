@@ -7,7 +7,7 @@ const { run } = require("./pathfinding");
 const performance = require("perf_hooks");
 
 // map settings
-const [row, column] = [30, 20];
+const [row, column] = [30, 30];
 const [blocked, movable] = [0, 1];
 
 // positions
@@ -15,9 +15,10 @@ const start = { x: 0, y: 0 };
 const end = { x: column - 1, y: row - 1 };
 
 // obstacles
-const difficulty = 0.3;
+const difficulty = 0.4;
 const numOfBlocked = Math.round(row * column * difficulty);
-console.log(numOfBlocked);
+console.info(`Total cells excluding start and end =>  ${row * column - 2}`);
+console.info(`Number of blocked cells =>  ${numOfBlocked}`);
 
 const test = main();
 if (Array.isArray(test)) {
@@ -31,7 +32,7 @@ function main() {
   const runtime_start = performance.performance.now();
   const map = genEmpty(row, column, movable);
   const mapWithObstacles = insertObstacles(map, numOfBlocked, blocked);
-  console.info(mapWithObstacles);
+  console.table(mapWithObstacles);
 
   try {
     const route = run(start, end, mapWithObstacles);
@@ -89,8 +90,8 @@ function insertObstacles(map, numOfObstacles, value) {
   let i = 0;
   while (i < numOfObstacles) {
     // excludes start and end [0][0], [y-1][x-1]
-    const y = String(Math.round(Math.random() * (row - 2) + 1));
-    const x = String(Math.round(Math.random() * (column - 2) + 1));
+    const y = String(Math.round(Math.random() * (row - 3) + 1));
+    const x = String(Math.round(Math.random() * (column - 3) + 1));
     if (!seed.includes(`${x} ${y}`)) {
       seed.push(`${x} ${y}`);
       i++;
