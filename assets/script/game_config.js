@@ -1,6 +1,14 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
+
+/**
+ * @author Don (dl90)
+ * @date April 15, 2020
+ * @note Game Global Config
+ */
+
 const gameState = {
+  health: null,
   score: 0
 };
 
@@ -19,4 +27,8 @@ const config = {
   scene: [Menu, Scene_1]
 };
 
-const game = new Phaser.Game(config);
+try {
+  const game = new Phaser.Game(config);
+} catch (error) {
+  console.log(error)
+}

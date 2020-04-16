@@ -1,12 +1,21 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+
+/**
+ * @author Don (dl90)
+ * @date April 15, 2020
+ * @note Scene 1
+ */
+
 const settings = {
   width: 2560,
   height: 2560,
-  moveSpeed: 300,
-  playerSpawnPosition: [32, 32],
-  enemySpawnDistance: 500, // difficulty
-  enemyMoveSpeed: 220 // difficulty
+  moveSpeed: 200,
+  diagonalMoveSpeed: 141, // 141
+  playerSpawnPosition: [96, 96],
+  enemySpawnDistance: 1000,       // difficulty
+  enemyMoveSpeed: 190,
+  movementHealthCostRatio: 0.0001
 }
 
 class Scene_1 extends Phaser.Scene {
@@ -68,7 +77,8 @@ class Scene_1 extends Phaser.Scene {
       assetText.destroy();
     });
 
-    this.load.image('bg', './sprites/level_1/bg.png'); // 2560*2560
+    // background
+    this.load.image('bg', './sprites/level_1/bg.png');
     this.load.spritesheet('f_dog', './sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('b_dog', './sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('l_dog', './sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
@@ -79,6 +89,22 @@ class Scene_1 extends Phaser.Scene {
     this.load.image('audio_button_on', './sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', './sprites/buttons/sound_off.png');
     this.load.audio('scene_1_bgm', './bmg/1_Scene_1.mp3');
+
+    // health bar
+    this.load.image('health_100', './sprites/health-bar/health_100.png');
+    this.load.image('health_90', './sprites/health-bar/health_90.png');
+    this.load.image('health_85', './sprites/health-bar/health_85.png');
+    this.load.image('health_80', './sprites/health-bar/health_80.png');
+    this.load.image('health_70', './sprites/health-bar/health_70.png');
+    this.load.image('health_65', './sprites/health-bar/health_65.png');
+    this.load.image('health_55', './sprites/health-bar/health_55.png');
+    this.load.image('health_50', './sprites/health-bar/health_50.png');
+    this.load.image('health_45', './sprites/health-bar/health_45.png');
+    this.load.image('health_40', './sprites/health-bar/health_40.png');
+    this.load.image('health_30', './sprites/health-bar/health_30.png');
+    this.load.image('health_20', './sprites/health-bar/health_20.png');
+    this.load.image('health_15', './sprites/health-bar/health_15.png');
+    this.load.image('health_10', './sprites/health-bar/health_10.png');
   }
 
   create() {
@@ -86,10 +112,16 @@ class Scene_1 extends Phaser.Scene {
     const height = this.cameras.main.height;
 
     gameState.cursors = this.input.keyboard.createCursorKeys();
+
     gameState.player = this.physics.add.sprite(settings.playerSpawnPosition[0], settings.playerSpawnPosition[1], 'f_dog').setScale(1);
+    gameState.value = 0;
     gameState.player.setCollideWorldBounds(true);
 
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
+
+    // initialize health
+    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0);
+    gameState.health = 100
 
     // audio department
     const sound_config = {
@@ -103,7 +135,7 @@ class Scene_1 extends Phaser.Scene {
     }
 
     const sceneBGM = this.sound.add('scene_1_bgm', sound_config);
-    const audioButton = this.add.sprite((width - 20), height - 20, 'audio_button_on').setScale(0.6);
+    const audioButton = this.add.sprite((width - 20), height - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0);
     audioButton.setInteractive();
 
     const emitter = new Phaser.Events.EventEmitter();
@@ -184,7 +216,7 @@ class Scene_1 extends Phaser.Scene {
     this.anims.create({ //dogcatcher
       key: 's_catcher',
       frames: this.anims.generateFrameNumbers('s_catcher', { start: 0, end: 1 }),
-      frameRate: Math.round(settings.moveSpeed / 30),
+      frameRate: Math.round(settings.moveSpeed / 40),
       repeat: -1
     })
   }
@@ -196,24 +228,71 @@ class Scene_1 extends Phaser.Scene {
     this.physics.moveToObject(this.enemy1, gameState.player, 100);
     this.physics.moveToObject(this.enemy2, gameState.player, settings.enemyMoveSpeed);
 
-    if (gameState.cursors.up.isDown) { // controls
+    if (gameState.cursors.up.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // up
       gameState.player.setVelocityY(-settings.moveSpeed);
+      gameState.player.setVelocityX(0);
       gameState.player.anims.play('b_move', true);
-    } else if (gameState.cursors.down.isDown) {
+
+      gameState.value += gameState.cursors.up.getDuration()   // ***
+    } else if (gameState.cursors.down.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // down
       gameState.player.setVelocityY(settings.moveSpeed);
+      gameState.player.setVelocityX(0);
       gameState.player.anims.play('f_move', true);
-    } else if (gameState.cursors.left.isDown) {
+
+      gameState.value += gameState.cursors.down.getDuration() // ***
+    } else if (gameState.cursors.left.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // left
       gameState.player.setVelocityX(-settings.moveSpeed);
+      gameState.player.setVelocityY(0);
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
-    } else if (gameState.cursors.right.isDown) {
+
+      gameState.value += gameState.cursors.left.getDuration() // ***
+    } else if (gameState.cursors.right.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // right
       gameState.player.setVelocityX(settings.moveSpeed);
-      gameState.player.anims.play('l_move', true);
+      gameState.player.setVelocityY(0);
       gameState.player.flipX = true;
+      gameState.player.anims.play('l_move', true);
+
+      gameState.value += gameState.cursors.right.getDuration() // ***
+    } else if (gameState.cursors.up.isDown && gameState.cursors.right.isDown) { // up right
+      gameState.player.setVelocityY(-settings.diagonalMoveSpeed);
+      gameState.player.setVelocityX(settings.diagonalMoveSpeed);
+      gameState.player.flipX = true;
+      gameState.player.anims.play('l_move', true);
+
+      gameState.value += gameState.cursors.up.getDuration()     // ***
+      gameState.value += gameState.cursors.right.getDuration()  // ***
+    } else if (gameState.cursors.up.isDown && gameState.cursors.left.isDown) { // up left
+      gameState.player.setVelocityY(-settings.diagonalMoveSpeed);
+      gameState.player.setVelocityX(-settings.diagonalMoveSpeed);
+      gameState.player.flipX = false;
+      gameState.player.anims.play('l_move', true);
+
+      gameState.value += gameState.cursors.up.getDuration()     // ***
+      gameState.value += gameState.cursors.left.getDuration()   // ***
+    } else if (gameState.cursors.down.isDown && gameState.cursors.right.isDown) { //down right
+      gameState.player.setVelocityY(settings.diagonalMoveSpeed);
+      gameState.player.setVelocityX(settings.diagonalMoveSpeed);
+      gameState.player.flipX = true;
+      gameState.player.anims.play('l_move', true);
+
+      gameState.value += gameState.cursors.down.getDuration()     // ***
+      gameState.value += gameState.cursors.right.getDuration()    // ***
+    } else if (gameState.cursors.down.isDown && gameState.cursors.left.isDown) { //down left
+      gameState.player.setVelocityY(settings.diagonalMoveSpeed);
+      gameState.player.setVelocityX(-settings.diagonalMoveSpeed);
+      gameState.player.flipX = false;
+      gameState.player.anims.play('l_move', true);
+
+      gameState.value += gameState.cursors.down.getDuration()     // ***
+      gameState.value += gameState.cursors.left.getDuration()     // ***
     } else {
       gameState.player.setVelocityX(0);
       gameState.player.setVelocityY(0);
       gameState.player.anims.pause()
+      gameState.player.angle = 0;
+
+      console.log(gameState.value * settings.movementHealthCostRatio);  // score
     }
   }
 }

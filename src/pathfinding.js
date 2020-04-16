@@ -2,7 +2,8 @@
  * @author Don (dl90)
  * @date March 15, 2020
  * @note Basic pathfinding with AStar
- * @TODO Throws no possible moves while possible moves exist?!?!
+ * @TODO 1. Throws no possible moves while possible moves exist?!
+ * @TODO 2. Optimization
  */
 
 const [blocked] = [0];

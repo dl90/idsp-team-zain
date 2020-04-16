@@ -1,5 +1,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+
+/**
+ * @author Don (dl90)
+ * @date April 15, 2020
+ * @note Game Menu
+ */
+
 class Menu extends Phaser.Scene {
   constructor() {
     super({ key: 'Menu' });
