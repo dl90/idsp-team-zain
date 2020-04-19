@@ -133,7 +133,6 @@ class Menu extends Phaser.Scene {
       emitter.emit('play_bmg')
     }
 
-    // start department
     // this.add.text((game.config.width / 2 - 200), (game.config.height / 2 + 300), 'Click to Start!', { fontSize: '35px', fill: '#000000' });
     playButton.on('pointerup', () => {
       this.scene.stop('Menu');

@@ -24,7 +24,7 @@ const config = {
       enableBody: true,
     }
   },
-  scene: [Menu, Scene_1]
+  scene: [Menu, Scene_1, Scene_2]
 };
 
 try {
