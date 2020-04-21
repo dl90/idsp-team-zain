@@ -4,9 +4,10 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
- * @note Scene 1
+ * @TODO fix danger audio queue 
  */
 
+const sceneState = {}
 const settings = {
   width: 3200,
   height: 3200,
@@ -14,10 +15,9 @@ const settings = {
   diagonalMoveSpeed: 70.71, // 141
   playerSpawnPosition: [80, 80],
   enemyMoveSpeed: 90,
-  movementHealthCostRatio: 0.000005
+  movementHealthCostRatio: 0.000005,
+  twoKeyMultiplier: 0.6
 }
-
-const sceneState = {}
 
 class Scene_1 extends Phaser.Scene {
   constructor() {
@@ -27,63 +27,52 @@ class Scene_1 extends Phaser.Scene {
   preload() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-    const loadingText = this.make.text({
-      x: width / 2 - 50,
-      y: height / 2,
-      text: 'Loading:',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    loadingText.setOrigin(0.5, 0.5);
 
-    const percentText = this.make.text({
-      x: width / 2 + 50,
-      y: height / 2,
-      text: '0%',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    percentText.setOrigin(0.5, 0.5);
+    function loading() {
+      const loadingText = this.make.text({
+        x: width / 2 - 50,
+        y: height / 2,
+        text: 'Loading:',
+        style: {
+          fontSize: '24px',
+          fill: '#000000'
+        }
+      });
+      loadingText.setOrigin(0.5, 0.5);
 
-    var assetText = this.make.text({
-      x: width / 2,
-      y: height / 2 + 50,
-      text: '',
-      style: {
-        fontSize: '10px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
+      const percentText = this.make.text({
+        x: width / 2 + 50,
+        y: height / 2,
+        text: '0%',
+        style: {
+          fontSize: '24px',
+          fill: '#000000'
+        }
+      });
+      percentText.setOrigin(0.5, 0.5);
 
-    assetText.setOrigin(0.5, 0.5);
+      const assetText = this.make.text({
+        x: width / 2,
+        y: height / 2 + 50,
+        text: '',
+        style: {
+          fontSize: '10px',
+          // fontFamily: 'Arial',
+          fill: '#000000'
+        }
+      });
+      assetText.setOrigin(0.5, 0.5);
 
-    this.load.on('progress', function (value) {
-      percentText.setText(parseInt(value * 100) + '%');
-    });
+      this.load.on('progress', value => { percentText.setText(parseInt(value * 100) + '%') });
+      this.load.on('fileprogress', file => { assetText.setText('Loading: ' + file.key) });
+      this.load.on('complete', () => { loadingText.destroy(); percentText.destroy(); assetText.destroy() });
+    }
 
-    this.load.on('fileprogress', function (file) {
-      assetText.setText('Loading: ' + file.key);
-    });
-
-    this.load.on('complete', function () {
-      loadingText.destroy();
-      percentText.destroy();
-      assetText.destroy();
-    });
-
-    // background
+    loading.apply(this);
     this.load.image('bg', './sprites/testing/100x100.png');
     this.load.spritesheet('f_dog', './sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('b_dog', './sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('l_dog', './sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
-
     this.load.spritesheet('s_catcher', './sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image('audio_button_on', './sprites/buttons/sound_on.png');
@@ -111,6 +100,9 @@ class Scene_1 extends Phaser.Scene {
 
     // endpoint
     this.load.image('girl_1', './sprites/family/girl_1.png');
+    this.load.image('bone', './sprites/items/bone.png');
+    this.load.image('fence_1', './sprites/level_1/fence_1.png');
+
   }
 
   create() {
@@ -121,7 +113,6 @@ class Scene_1 extends Phaser.Scene {
 
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);//.setScale(0.25);
 
-
     // level title
     sceneState.levelText = this.add.text(width / 2 - 50, height / 2 - 50, 'Level 1', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
     this.time.delayedCall(5000, removeLevelText);
@@ -130,11 +121,27 @@ class Scene_1 extends Phaser.Scene {
     }
 
     gameState.cursors = this.input.keyboard.createCursorKeys();
-
     gameState.player = this.physics.add.sprite(settings.playerSpawnPosition[0], settings.playerSpawnPosition[1], 'f_dog').setScale(1);
-    gameState.value = 0;
     gameState.player.setCollideWorldBounds(true);
 
+    // initialize health
+    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(10);
+    gameState.healthVal = 100
+
+    // bone
+    gameState.bone = this.physics.add.sprite(settings.width / 2, settings.height / 2, 'bone');
+    this.physics.add.overlap(gameState.player, gameState.bone, () => {
+      gameState.healthVal += 40;
+      gameState.bone.destroy();
+      gameState.health()
+    })
+
+    // walls
+    const walls = this.physics.add.staticGroup();
+    const wallPositions = [{ x: 50, y: 575 }, { x: 250, y: 575 }, { x: 450, y: 575 }, { x: 400, y: 380 }, { x: 100, y: 200 }]; // batch creation
+    wallPositions.forEach(wall => { walls.create(wall.x, wall.y, 'fence_1').setScale(1, .3).refreshBody() });
+    walls.create(0, 128, 'fence_1').setScale(1, .3).refreshBody();
+    this.physics.add.collider(gameState.player, walls);
 
     // scene transition
     gameState.girl_1 = this.physics.add.sprite(settings.width - 16, settings.height - 16, "girl_1").setScale(0.25)
@@ -145,11 +152,6 @@ class Scene_1 extends Phaser.Scene {
       this.scene.stop("Scene_1")
       this.scene.start("Scene_2")
     })
-
-
-    // initialize health
-    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0);
-    gameState.health = 100
 
     // audio department
     const sound_config = {
@@ -170,7 +172,7 @@ class Scene_1 extends Phaser.Scene {
     const deathBGM = this.sound.add('death_audio', sound_config.loop = false)
 
 
-    let audioPlaying = true;
+    sceneState.audioPlaying = true;
     let danger = false;
 
     // emitter for music
@@ -178,12 +180,12 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       sceneBGM.pause()
-      audioPlaying = false;
+      sceneState.audioPlaying = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
     gameState.emitter.on('resume_bgm', () => {
       sceneBGM.resume();
-      audioPlaying = true
+      sceneState.audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
     // gameState.emitter.on('danger_bgm_play', () => {
@@ -206,7 +208,7 @@ class Scene_1 extends Phaser.Scene {
     // })
 
     audioButton.on('pointerup', () => {
-      if (audioPlaying) {
+      if (sceneState.audioPlaying) {
         gameState.emitter.emit('pause_bgm')
       } else {
         gameState.emitter.emit('resume_bgm')
@@ -229,11 +231,11 @@ class Scene_1 extends Phaser.Scene {
 
 
     this.physics.add.overlap(gameState.player, this.enemy2, () => {
-      gameState.health -= 20
+      gameState.healthVal -= 20
     })
 
     this.physics.add.overlap(gameState.player, this.enemy3, () => {
-      gameState.health -= 20
+      gameState.healthVal -= 20
     })
 
     // collider physics
@@ -334,20 +336,20 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.setVelocityX(0);
       gameState.player.anims.play('b_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (gameState.cursors.up.getDuration() * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (gameState.cursors.up.getDuration() * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.down.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // down
       gameState.player.setVelocityY(settings.moveSpeed);
       gameState.player.setVelocityX(0);
       gameState.player.anims.play('f_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (gameState.cursors.down.getDuration() * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (gameState.cursors.down.getDuration() * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.left.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // left
       gameState.player.setVelocityX(-settings.moveSpeed);
@@ -355,10 +357,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (gameState.cursors.left.getDuration() * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (gameState.cursors.left.getDuration() * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.right.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // right
       gameState.player.setVelocityX(settings.moveSpeed);
@@ -366,10 +368,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (gameState.cursors.right.getDuration() * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (gameState.cursors.right.getDuration() * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.up.isDown && gameState.cursors.right.isDown) { // up right
       gameState.player.setVelocityY(-settings.diagonalMoveSpeed);
@@ -377,10 +379,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (0.6 * (gameState.cursors.up.getDuration() + gameState.cursors.right.getDuration()) * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (settings.twoKeyMultiplier * (gameState.cursors.up.getDuration() + gameState.cursors.right.getDuration()) * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.up.isDown && gameState.cursors.left.isDown) { // up left
       gameState.player.setVelocityY(-settings.diagonalMoveSpeed);
@@ -388,10 +390,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (0.6 * (gameState.cursors.left.getDuration() + gameState.cursors.up.getDuration()) * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (settings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.up.getDuration()) * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.down.isDown && gameState.cursors.right.isDown) { //down right
       gameState.player.setVelocityY(settings.diagonalMoveSpeed);
@@ -399,10 +401,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (0.6 * (gameState.cursors.right.getDuration() + gameState.cursors.down.getDuration()) * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (settings.twoKeyMultiplier * (gameState.cursors.right.getDuration() + gameState.cursors.down.getDuration()) * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else if (gameState.cursors.down.isDown && gameState.cursors.left.isDown) { //down left
       gameState.player.setVelocityY(settings.diagonalMoveSpeed);
@@ -410,10 +412,10 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
 
-      if (gameState.health > 0) {
-        gameState.health -= (0.6 * (gameState.cursors.left.getDuration() + gameState.cursors.down.getDuration()) * settings.movementHealthCostRatio)
+      if (gameState.healthVal > 0) {
+        gameState.healthVal -= (settings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.down.getDuration()) * settings.movementHealthCostRatio)
       } else {
-        gameState.health = -1
+        gameState.healthVal = -1
       }
     } else {
       gameState.player.setVelocityX(0);
@@ -424,31 +426,35 @@ class Scene_1 extends Phaser.Scene {
     }
 
     // health department
-    if (gameState.health >= 0) {
-      const healthTickers = {
-        100: () => { gameState.healthBar.setTexture('health_100') },
-        93: () => { gameState.healthBar.setTexture('health_90') },
-        86: () => { gameState.healthBar.setTexture('health_85') },
-        79: () => { gameState.healthBar.setTexture('health_80') },
-        72: () => { gameState.healthBar.setTexture('health_70') },
-        65: () => { gameState.healthBar.setTexture('health_65') },
-        58: () => { gameState.healthBar.setTexture('health_55') },
-        51: () => { gameState.healthBar.setTexture('health_50') },
-        44: () => { gameState.healthBar.setTexture('health_45') },
-        38: () => { gameState.healthBar.setTexture('health_40') },
-        31: () => { gameState.healthBar.setTexture('health_30') },
-        24: () => { gameState.healthBar.setTexture('health_20') },
-        17: () => { gameState.healthBar.setTexture('health_15') },
-        10: () => { gameState.healthBar.setTexture('health_10') }
-      }
-      for (const bar in healthTickers) {
-        if ((gameState.health - bar >= -2.5) && (gameState.health - bar <= 2.5)) {
-          healthTickers[bar]()
+    gameState.health = function () {
+      let cache = gameState.healthVal;
+      if (gameState.healthVal >= 0 || Math.abs(cache - gameState.healthVal > 10)) {
+        const healthTickers = {
+          100: () => { gameState.healthBar.setTexture('health_100') },
+          93: () => { gameState.healthBar.setTexture('health_90') },
+          86: () => { gameState.healthBar.setTexture('health_85') },
+          79: () => { gameState.healthBar.setTexture('health_80') },
+          72: () => { gameState.healthBar.setTexture('health_70') },
+          65: () => { gameState.healthBar.setTexture('health_65') },
+          58: () => { gameState.healthBar.setTexture('health_55') },
+          51: () => { gameState.healthBar.setTexture('health_50') },
+          44: () => { gameState.healthBar.setTexture('health_45') },
+          38: () => { gameState.healthBar.setTexture('health_40') },
+          31: () => { gameState.healthBar.setTexture('health_30') },
+          24: () => { gameState.healthBar.setTexture('health_20') },
+          17: () => { gameState.healthBar.setTexture('health_15') },
+          10: () => { gameState.healthBar.setTexture('health_10') }
+        }
+        for (const bar in healthTickers) {
+          if ((gameState.healthVal - bar >= -2.5) && (gameState.healthVal - bar <= 2.5)) {
+            healthTickers[bar]()
+          }
         }
       }
     }
+    gameState.health()
 
-    if (gameState.health < 0) {
+    if (gameState.healthVal < 0) {
       sceneState.levelText = this.add.text(180, 100, 'Game Over', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
       this.scene.pause()
       gameState.emitter.emit('pause_bgm')
