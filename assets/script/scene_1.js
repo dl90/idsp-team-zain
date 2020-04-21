@@ -217,26 +217,18 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.emit('play_bgm')
 
 
+
     // this.enemies = game.add.group();
     // this.enemies.create(this.physics.add.sprite(300, 300, 'l_catcher'));
     // this.enemies.enableBody = true;
 
-
     this.enemy2 = this.physics.add.sprite(320, 320, 's_catcher');
     this.enemy2.setCollideWorldBounds(true);
-
-
     this.enemy3 = this.physics.add.sprite(256, 256, 's_catcher');
     this.enemy3.setCollideWorldBounds(true);
 
-
-    this.physics.add.overlap(gameState.player, this.enemy2, () => {
-      gameState.healthVal -= 20
-    })
-
-    this.physics.add.overlap(gameState.player, this.enemy3, () => {
-      gameState.healthVal -= 20
-    })
+    this.physics.add.overlap(gameState.player, this.enemy2, () => { gameState.healthVal -= 20 })
+    this.physics.add.overlap(gameState.player, this.enemy3, () => { gameState.healthVal -= 20 })
 
     // collider physics
     // this.physics.add.collider(gameState.player, this.enemy2);
@@ -428,7 +420,7 @@ class Scene_1 extends Phaser.Scene {
     // health department
     gameState.health = function () {
       let cache = gameState.healthVal;
-      if (gameState.healthVal >= 0 || Math.abs(cache - gameState.healthVal > 10)) {
+      if (gameState.healthVal >= 0 || Math.abs(cache - gameState.healthVal > 5)) {
         const healthTickers = {
           100: () => { gameState.healthBar.setTexture('health_100') },
           93: () => { gameState.healthBar.setTexture('health_90') },
