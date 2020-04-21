@@ -80,7 +80,7 @@ class Menu extends Phaser.Scene {
     this.load.image('play_button', './sprites/buttons/button_play.png');
     this.load.image('audio_button_on', './sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', './sprites/buttons/sound_off.png');
-    this.load.audio('intro_bgm', './bmg/1_Intro_1.mp3');
+    this.load.audio('intro_bgm', './bgm/1_Intro_1.mp3');
   }
 
  
@@ -108,13 +108,13 @@ class Menu extends Phaser.Scene {
 
     // audio department
     const emitter = new Phaser.Events.EventEmitter();
-    emitter.on('play_bmg', () => { intro_bgm.play() }, this);
-    emitter.on('pause_bmg', () => {
+    emitter.on('play_bgm', () => { intro_bgm.play() }, this);
+    emitter.on('pause_bgm', () => {
       intro_bgm.pause();
       playing = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
-    emitter.on('resume_bmg', () => { 
+    emitter.on('resume_bgm', () => { 
       intro_bgm.resume();
       playing = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
@@ -123,14 +123,14 @@ class Menu extends Phaser.Scene {
     let playing = true;
     audioButton.on('pointerup', () => { 
       if (playing) {
-        emitter.emit('pause_bmg')
+        emitter.emit('pause_bgm')
       } else {
-        emitter.emit('resume_bmg')
+        emitter.emit('resume_bgm')
       }
     });
 
     if(playing) {
-      emitter.emit('play_bmg')
+      emitter.emit('play_bgm')
     }
 
     // this.add.text((game.config.width / 2 - 200), (game.config.height / 2 + 300), 'Click to Start!', { fontSize: '35px', fill: '#000000' });
