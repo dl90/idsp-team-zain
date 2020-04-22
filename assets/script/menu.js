@@ -80,7 +80,7 @@ class Menu extends Phaser.Scene {
     this.load.image('play_button', './sprites/buttons/button_play.png');
     this.load.image('audio_button_on', './sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', './sprites/buttons/sound_off.png');
-    this.load.audio('intro_bgm', './bgm/1_Intro_1.mp3');
+    this.load.audio('intro_bgm', './bgm/Meme_Intro.mp3');
   }
 
  
