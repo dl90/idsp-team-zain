@@ -4,14 +4,9 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
- * @note Game Global Config
  */
 
-const gameState = {
-  health: null,
-  score: 0
-};
-
+const gameState = {};
 const config = {
   type: Phaser.AUTO,
   width: 480,
@@ -25,11 +20,11 @@ const config = {
       enableBody: true,
     }
   },
-  scene: [Menu, Scene_1, Scene_2]
+  scene: [Menu, Scene_1, Scene_1_end]
 };
 
 try {
-  const game = new Phaser.Game(config);
+  new Phaser.Game(config);
 } catch (error) {
   console.log(error)
 }
