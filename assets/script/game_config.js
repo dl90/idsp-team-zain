@@ -7,11 +7,7 @@
  * @date April 15, 2020
  */
 
-// cross scene params
-const gameState = {
-
-};
-
+const gameState = {};
 const config = {
   type: Phaser.AUTO,
   width: 480,

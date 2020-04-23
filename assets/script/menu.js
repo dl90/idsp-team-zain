@@ -9,54 +9,12 @@
  */
 
 class Menu extends Phaser.Scene {
-  
   constructor() {
     super({ key: 'Menu' });
   }
 
   preload() {
-    function loading() {
-      sceneState.loadingText = this.make.text({
-        x: settings.canvasWidth / 2 - 50,
-        y: settings.canvasHeight / 2,
-        text: 'Loading:',
-        style: {
-          fontSize: '24px',
-          align: 'center',
-          fill: '#000000'
-        }
-      });
-
-      sceneState.percentText = this.make.text({
-        x: settings.canvasWidth / 2 + 50,
-        y: settings.canvasHeight / 2,
-        text: '0%',
-        style: {
-          fontSize: '24px',
-          align: 'center',
-          fill: '#000000'
-        }
-      });
-
-      sceneState.assetText = this.make.text({
-        x: settings.canvasWidth / 2,
-        y: settings.canvasHeight / 2 + 50,
-        text: '',
-        style: {
-          fontSize: '14px',
-          align: 'center',
-          fill: '#000000'
-        }
-      });
-
-      sceneState.loadingText.setOrigin(0.5, 0.5);
-      sceneState.percentText.setOrigin(0.5, 0.5);
-      sceneState.assetText.setOrigin(0.5, 0.5);
-      this.load.on('progress', value => { sceneState.percentText.setText(parseInt(value * 100) + '%') });
-      this.load.on('fileprogress', file => { sceneState.assetText.setText('Loading: ' + file.key) });
-      this.load.on('complete', () => { sceneState.loadingText.destroy(); sceneState.percentText.destroy(); sceneState.assetText.destroy() });
-    }
-    loading.apply(this);
+    gameFunctions.loading.call(this);
 
     this.load.image('logo', './sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', './sprites/buttons/button_play.png');
@@ -65,14 +23,10 @@ class Menu extends Phaser.Scene {
     this.load.audio('intro_bgm', './bgm/Meme_Intro.mp3');
   }
 
- 
   create() {
-    sceneState.loadingText ? (() => { sceneState.loadingText.destroy(); delete sceneState.loadingText; })() : null
-    sceneState.percentText ? (() => { sceneState.percentText.destroy(); delete sceneState.percentText; })() : null
-    sceneState.assetText   ? (() => { sceneState.assetText.destroy();   delete sceneState.assetText;   })() : null
-
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
+    this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
+    this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
     const sound_config = {
       mute: false,
@@ -84,10 +38,10 @@ class Menu extends Phaser.Scene {
       delay: 0
     }
 
-    this.add.image( (width / 2 + 5), (height * 0.22),  'logo').setScale(0.2);
+    this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
     const intro_bgm = this.sound.add('intro_bgm', sound_config);
-    const playButton = this.add.sprite( (width / 2), height - 100, 'play_button');
-    const audioButton = this.add.sprite( (width - 20), height - 20, 'audio_button_on').setScale(0.6);
+    const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button');
+    const audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.6);
 
     playButton.setInteractive();
     audioButton.setInteractive();
@@ -100,25 +54,17 @@ class Menu extends Phaser.Scene {
       playing = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
-    emitter.on('resume_bgm', () => { 
+    emitter.on('resume_bgm', () => {
       intro_bgm.resume();
       playing = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
 
     let playing = true;
-    audioButton.on('pointerup', () => { 
-      if (playing) {
-        emitter.emit('pause_bgm')
-      } else {
-        emitter.emit('resume_bgm')
-      }
-    });
+    audioButton.on('pointerup', () => { playing ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
+    playing ? emitter.emit('play_bgm') : null;
 
-    if(playing) {
-      emitter.emit('play_bgm')
-    }
-
+    // transition
     playButton.on('pointerup', () => {
       this.scene.stop('Menu');
       intro_bgm.stop();

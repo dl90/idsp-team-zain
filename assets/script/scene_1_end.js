@@ -19,13 +19,11 @@ class Scene_1_end extends Phaser.Scene {
   }
   create() {
     // this.scene.remove("Scene_1");
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    
-    this.add.text(width / 2 - 90, height / 2 - 50, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: '#7E00C2' });
-    this.add.text(width / 2 - 90, height / 2 - 20, `Score: ${gameState.score}`, { fontSize: 16, color: '#7E00C2' });
-    const playButton = this.add.sprite( (width / 2), height - 100, 'play_button');
-    const backButton = this.add.sprite( (width / 2), height - 80, 'back_button');
+
+    this.add.text(config.width / 2 - 90, config.height / 2 - 50, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: '#7E00C2' });
+    this.add.text(config.width / 2 - 90, config.height / 2 - 20, `Score: ${gameState.score}`, { fontSize: 16, color: '#7E00C2' });
+    const playButton = this.add.sprite(config.width / 2, config.height - 100, 'play_button');
+    const backButton = this.add.sprite(config.width / 2, config.height - 80, 'back_button');
 
     playButton.setInteractive();
     backButton.setInteractive();
@@ -39,7 +37,6 @@ class Scene_1_end extends Phaser.Scene {
     backButton.on('pointerup', () => {
       this.scene.stop('Scene_1_end');
       this.sound.stopAll();
-      // const x = this.scene.get('Scene_1');
       this.scene.start('Scene_1');
     })
   }
