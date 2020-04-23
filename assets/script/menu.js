@@ -1,3 +1,4 @@
+'use strict'
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 
@@ -13,68 +14,7 @@ class Menu extends Phaser.Scene {
   }
 
   preload() {
-    // var progressBar = this.add.graphics();
-    // var progressBox = this.add.graphics();
-    // progressBox.fillStyle(0xE1E1E1, 0.8);
-    // progressBox.fillRect(100, 200, 120, 20);
-
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    const loadingText = this.make.text({
-      x: width / 2 - 50,
-      y: height / 2,
-      text: 'Loading:',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    loadingText.setOrigin(0.5, 0.5);
-
-    const percentText = this.make.text({
-      x: width / 2 + 50,
-      y: height / 2,
-      text: '0%',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    percentText.setOrigin(0.5, 0.5);
-
-    var assetText = this.make.text({
-      x: width / 2,
-      y: height / 2 + 50,
-      text: '',
-      style: {
-        fontSize: '10px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-
-    assetText.setOrigin(0.5, 0.5);
-
-    this.load.on('progress', function (value) {
-      percentText.setText(parseInt(value * 100) + '%');
-      // progressBar.clear();
-      // progressBar.fillStyle(0xffffff, 1);
-      // progressBar.fillRect(250, 280, 300 * value, 30);
-    });
-
-    this.load.on('fileprogress', function (file) {
-      assetText.setText('Loading: ' + file.key);
-    });
-
-    this.load.on('complete', function () {
-      // progressBar.destroy();
-      // progressBox.destroy();
-      loadingText.destroy();
-      percentText.destroy();
-      assetText.destroy();
-    });
+    gameFunctions.loading.call(this);
 
     this.load.image('logo', './sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', './sprites/buttons/button_play.png');
@@ -83,10 +23,10 @@ class Menu extends Phaser.Scene {
     this.load.audio('intro_bgm', './bgm/Meme_Intro.mp3');
   }
 
- 
   create() {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
+    this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
+    this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
     const sound_config = {
       mute: false,
@@ -98,10 +38,10 @@ class Menu extends Phaser.Scene {
       delay: 0
     }
 
-    this.add.image( (width / 2 + 5), (height * 0.22),  'logo').setScale(0.2);
+    this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
     const intro_bgm = this.sound.add('intro_bgm', sound_config);
-    const playButton = this.add.sprite( (width / 2), height - 100, 'play_button');
-    const audioButton = this.add.sprite( (width - 20), height - 20, 'audio_button_on').setScale(0.6);
+    const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button');
+    const audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.6);
 
     playButton.setInteractive();
     audioButton.setInteractive();
@@ -114,26 +54,17 @@ class Menu extends Phaser.Scene {
       playing = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
-    emitter.on('resume_bgm', () => { 
+    emitter.on('resume_bgm', () => {
       intro_bgm.resume();
       playing = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
 
     let playing = true;
-    audioButton.on('pointerup', () => { 
-      if (playing) {
-        emitter.emit('pause_bgm')
-      } else {
-        emitter.emit('resume_bgm')
-      }
-    });
+    audioButton.on('pointerup', () => { playing ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
+    playing ? emitter.emit('play_bgm') : null;
 
-    if(playing) {
-      emitter.emit('play_bgm')
-    }
-
-    // this.add.text((game.config.width / 2 - 200), (game.config.height / 2 + 300), 'Click to Start!', { fontSize: '35px', fill: '#000000' });
+    // transition
     playButton.on('pointerup', () => {
       this.scene.stop('Menu');
       intro_bgm.stop();
