@@ -1,3 +1,4 @@
+'use strict'
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 
@@ -9,6 +10,8 @@
 
 const sceneState = {}
 const settings = {
+  canvasWidth:  480,
+  canvasHeight: 270,
   width: 3200,
   height: 3200,
   moveSpeed: 100,
@@ -26,54 +29,53 @@ class Scene_1 extends Phaser.Scene {
   }
 
   preload() {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-
     function loading() {
-      const loadingText = this.make.text({
-        x: width / 2 - 50,
-        y: height / 2,
+      sceneState.loadingText = this.make.text({
+        x: settings.canvasWidth / 2 - 50,
+        y: settings.canvasHeight / 2,
         text: 'Loading:',
         style: {
           fontSize: '24px',
+          align: 'center',
           fill: '#000000'
         }
       });
-      loadingText.setOrigin(0.5, 0.5);
 
-      const percentText = this.make.text({
-        x: width / 2 + 50,
-        y: height / 2,
+      sceneState.percentText = this.make.text({
+        x: settings.canvasWidth / 2 + 50,
+        y: settings.canvasHeight / 2,
         text: '0%',
         style: {
           fontSize: '24px',
+          align: 'center',
           fill: '#000000'
         }
       });
-      percentText.setOrigin(0.5, 0.5);
 
-      const assetText = this.make.text({
-        x: width / 2,
-        y: height / 2 + 50,
+      sceneState.assetText = this.make.text({
+        x: settings.canvasWidth / 2,
+        y: settings.canvasHeight / 2 + 50,
         text: '',
         style: {
-          fontSize: '10px',
-          // fontFamily: 'Arial',
+          fontSize: '14px',
+          align: 'center',
           fill: '#000000'
         }
       });
-      assetText.setOrigin(0.5, 0.5);
 
-      this.load.on('progress', value => { percentText.setText(parseInt(value * 100) + '%') });
-      this.load.on('fileprogress', file => { assetText.setText('Loading: ' + file.key) });
-      this.load.on('complete', () => { loadingText.destroy(); percentText.destroy(); assetText.destroy() });
+      sceneState.loadingText.setOrigin(0.5, 0.5);
+      sceneState.percentText.setOrigin(0.5, 0.5);
+      sceneState.assetText.setOrigin(0.5, 0.5);
+      this.load.on('progress', value => { sceneState.percentText.setText(parseInt(value * 100) + '%') });
+      this.load.on('fileprogress', file => { sceneState.assetText.setText('Loading: ' + file.key) });
+      this.load.on('complete', () => { sceneState.loadingText.destroy(); sceneState.percentText.destroy(); sceneState.assetText.destroy() });
     }
-
     loading.apply(this);
-    this.load.image('bg', './sprites/testing/100x100.png');
-    this.load.spritesheet('f_dog', './sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('b_dog', './sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('l_dog', './sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
+
+    this.load.image('bg', './sprites/testing/100x100.png'); // testing bg
+    this.load.spritesheet('f_dog', './sprites/dog/re_f_sheet.png',      { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('b_dog', './sprites/dog/re_b_sheet.png',      { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('l_dog', './sprites/dog/re_l_sheet.png',      { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', './sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image('audio_button_on', './sprites/buttons/sound_on.png');
@@ -84,37 +86,48 @@ class Scene_1 extends Phaser.Scene {
     this.load.audio('death_audio', 'bgm/clips/Meme_death.mp3');
 
     // health bar
-    this.load.image('health_100', './sprites/health-bar/health_100.png');
-    this.load.image('health_90', './sprites/health-bar/health_90.png');
-    this.load.image('health_85', './sprites/health-bar/health_85.png');
-    this.load.image('health_80', './sprites/health-bar/health_80.png');
-    this.load.image('health_70', './sprites/health-bar/health_70.png');
-    this.load.image('health_65', './sprites/health-bar/health_65.png');
-    this.load.image('health_55', './sprites/health-bar/health_55.png');
-    this.load.image('health_50', './sprites/health-bar/health_50.png');
-    this.load.image('health_45', './sprites/health-bar/health_45.png');
-    this.load.image('health_40', './sprites/health-bar/health_40.png');
-    this.load.image('health_30', './sprites/health-bar/health_30.png');
-    this.load.image('health_20', './sprites/health-bar/health_20.png');
-    this.load.image('health_15', './sprites/health-bar/health_15.png');
-    this.load.image('health_10', './sprites/health-bar/health_10.png');
+    const healthPath = './sprites/health-bar'
+    this.load.image('health_100', healthPath + '/health_100.png');
+    this.load.image('health_90',  healthPath + '/health_90.png');
+    this.load.image('health_85',  healthPath + '/health_85.png');
+    this.load.image('health_80',  healthPath + '/health_80.png');
+    this.load.image('health_70',  healthPath + '/health_70.png');
+    this.load.image('health_65',  healthPath + '/health_65.png');
+    this.load.image('health_55',  healthPath + '/health_55.png');
+    this.load.image('health_50',  healthPath + '/health_50.png');
+    this.load.image('health_45',  healthPath + '/health_45.png');
+    this.load.image('health_40',  healthPath + '/health_40.png');
+    this.load.image('health_30',  healthPath + '/health_30.png');
+    this.load.image('health_20',  healthPath + '/health_20.png');
+    this.load.image('health_15',  healthPath + '/health_15.png');
+    this.load.image('health_10',  healthPath + '/health_10.png');
 
-    // level 1 specifics
+    // generics
     this.load.image('girl_1', './sprites/family/girl_1.png');
     this.load.image('bone', './sprites/items/bone.png');
-    this.load.image('fence_horizontal', './sprites/level_1/fence_horizontal.png');
-    this.load.image('fence_vertical', './sprites/level_1/fence_vertical.png');
-    this.load.image('bush_square', './sprites/level_1/bush_square.png');
-    this.load.image('recycle', './sprites/level_1/recycle.png');
-    this.load.image('fir_tree', './sprites/level_1/fir_tree.png');
 
+    // level 1 specifics
+    const level_1_path = './sprites/level_1'
+    this.load.image('fence_horizontal', level_1_path + '/fence_horizontal.png');
+    this.load.image('fence_vertical',   level_1_path + '/fence_vertical.png');
+    this.load.image('bush_square',      level_1_path + '/bush_square.png');
+    this.load.image('recycle',          level_1_path + '/recycle.png');
+    this.load.image('fir_tree',         level_1_path + '/fir_tree.png');
+    this.load.image('bench',            level_1_path + '/bench.png');
   }
+
 
   create() {
     this.scene.remove("Menu");
+    sceneState.loadingText ? (() => { sceneState.loadingText.destroy(); delete sceneState.loadingText; })() : null
+    sceneState.percentText ? (() => { sceneState.percentText.destroy(); delete sceneState.percentText; })() : null
+    sceneState.assetText   ? (() => { sceneState.assetText.destroy();   delete sceneState.assetText;   })() : null
 
+    // camera boundaries
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
+    console.log(config.width)
+    console.log(width)
 
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);//.setScale(0.25);
 

@@ -1,3 +1,4 @@
+'use strict'
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 
@@ -8,73 +9,54 @@
  */
 
 class Menu extends Phaser.Scene {
+  
   constructor() {
     super({ key: 'Menu' });
   }
 
   preload() {
-    // var progressBar = this.add.graphics();
-    // var progressBox = this.add.graphics();
-    // progressBox.fillStyle(0xE1E1E1, 0.8);
-    // progressBox.fillRect(100, 200, 120, 20);
+    function loading() {
+      sceneState.loadingText = this.make.text({
+        x: settings.canvasWidth / 2 - 50,
+        y: settings.canvasHeight / 2,
+        text: 'Loading:',
+        style: {
+          fontSize: '24px',
+          align: 'center',
+          fill: '#000000'
+        }
+      });
 
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    const loadingText = this.make.text({
-      x: width / 2 - 50,
-      y: height / 2,
-      text: 'Loading:',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    loadingText.setOrigin(0.5, 0.5);
+      sceneState.percentText = this.make.text({
+        x: settings.canvasWidth / 2 + 50,
+        y: settings.canvasHeight / 2,
+        text: '0%',
+        style: {
+          fontSize: '24px',
+          align: 'center',
+          fill: '#000000'
+        }
+      });
 
-    const percentText = this.make.text({
-      x: width / 2 + 50,
-      y: height / 2,
-      text: '0%',
-      style: {
-        fontSize: '24px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-    percentText.setOrigin(0.5, 0.5);
+      sceneState.assetText = this.make.text({
+        x: settings.canvasWidth / 2,
+        y: settings.canvasHeight / 2 + 50,
+        text: '',
+        style: {
+          fontSize: '14px',
+          align: 'center',
+          fill: '#000000'
+        }
+      });
 
-    var assetText = this.make.text({
-      x: width / 2,
-      y: height / 2 + 50,
-      text: '',
-      style: {
-        fontSize: '10px',
-        fontFamily: 'Arial',
-        fill: '#000000'
-      }
-    });
-
-    assetText.setOrigin(0.5, 0.5);
-
-    this.load.on('progress', function (value) {
-      percentText.setText(parseInt(value * 100) + '%');
-      // progressBar.clear();
-      // progressBar.fillStyle(0xffffff, 1);
-      // progressBar.fillRect(250, 280, 300 * value, 30);
-    });
-
-    this.load.on('fileprogress', function (file) {
-      assetText.setText('Loading: ' + file.key);
-    });
-
-    this.load.on('complete', function () {
-      // progressBar.destroy();
-      // progressBox.destroy();
-      loadingText.destroy();
-      percentText.destroy();
-      assetText.destroy();
-    });
+      sceneState.loadingText.setOrigin(0.5, 0.5);
+      sceneState.percentText.setOrigin(0.5, 0.5);
+      sceneState.assetText.setOrigin(0.5, 0.5);
+      this.load.on('progress', value => { sceneState.percentText.setText(parseInt(value * 100) + '%') });
+      this.load.on('fileprogress', file => { sceneState.assetText.setText('Loading: ' + file.key) });
+      this.load.on('complete', () => { sceneState.loadingText.destroy(); sceneState.percentText.destroy(); sceneState.assetText.destroy() });
+    }
+    loading.apply(this);
 
     this.load.image('logo', './sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', './sprites/buttons/button_play.png');
@@ -85,6 +67,10 @@ class Menu extends Phaser.Scene {
 
  
   create() {
+    sceneState.loadingText ? (() => { sceneState.loadingText.destroy(); delete sceneState.loadingText; })() : null
+    sceneState.percentText ? (() => { sceneState.percentText.destroy(); delete sceneState.percentText; })() : null
+    sceneState.assetText   ? (() => { sceneState.assetText.destroy();   delete sceneState.assetText;   })() : null
+
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -133,7 +119,6 @@ class Menu extends Phaser.Scene {
       emitter.emit('play_bgm')
     }
 
-    // this.add.text((game.config.width / 2 - 200), (game.config.height / 2 + 300), 'Click to Start!', { fontSize: '35px', fill: '#000000' });
     playButton.on('pointerup', () => {
       this.scene.stop('Menu');
       intro_bgm.stop();

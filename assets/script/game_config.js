@@ -1,3 +1,4 @@
+'use strict'
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
@@ -6,7 +7,11 @@
  * @date April 15, 2020
  */
 
-const gameState = {};
+// cross scene params
+const gameState = {
+
+};
+
 const config = {
   type: Phaser.AUTO,
   width: 480,
