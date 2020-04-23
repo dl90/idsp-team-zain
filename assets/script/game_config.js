@@ -16,12 +16,12 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      debug: true,
+      // debug: true,
       gravity: { y: 0 },
       enableBody: true,
     }
   },
-  scene: [Menu, Scene_1, Scene_1_end]
+  scene: [Menu, Scene_1, Scene_1_end, Scene_2]
 };
 
 try {
