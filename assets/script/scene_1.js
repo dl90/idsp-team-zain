@@ -130,7 +130,9 @@ class Scene_1 extends Phaser.Scene {
       this.scene.start("Scene_1_end")
     })
 
+
     this.physics.add.sprite(12 * 32, 5 * 32 + 16, 'bench').setScale(0.25).setOrigin(0.5)
+
 
     // --- Static --- //
 
@@ -146,12 +148,12 @@ class Scene_1 extends Phaser.Scene {
     const firTrees = walls.create(12 * 32, 8 * 32, 'fir_tree').setScale(0.25).setOrigin(0.5).refreshBody().setSize(64, 64, 0, 0)
     this.physics.add.collider(firTrees, [gameState.player, this.enemy1, this.enemy2])
 
+
     // pass through walls
     this.simiWalls = this.physics.add.staticGroup();
     const squareBushes = [{ x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 },
     { x: 15, y: 0 }, { x: 15, y: 1 }, { x: 15, y: 2 }, { x: 15, y: 3 }, { x: 15, y: 4 }, { x: 15, y: 5 }, { x: 15, y: 6 }, { x: 15, y: 7 }, { x: 15, y: 8 }, { x: 15, y: 9 },];
     squareBushes.forEach(bush => { this.simiWalls.create(bush.x * 32 + 16, bush.y * 32 + 16, 'bush_square').setScale(0.25).refreshBody().setOrigin(0.5).setSize(40, 40, 0, 0).setOffset(-4, -4) });
-
 
 
     // --- Interactive --- //
@@ -218,6 +220,7 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('resume_bgm', () => {
       sceneBGM.resume();
       // deathBGM.resume();
+
       this.audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
@@ -226,7 +229,6 @@ class Scene_1 extends Phaser.Scene {
       deathBGM.play();
       this.audioPlaying = true
     }, this)
-
 
     // this.danger = false
     // gameState.emitter.on('danger_bgm_stop', () => { // doesn't work
@@ -312,7 +314,6 @@ class Scene_1 extends Phaser.Scene {
       loopDelay: 2000
     });
 
-
   }
 
   animate() {
@@ -367,6 +368,7 @@ class Scene_1 extends Phaser.Scene {
         enemy.anims.pause();
       }
     }
+
     this.enemy1_tween.isPlaying() ? this.enemy1.anims.play('s_catcher', true) : biDirectional_enemy(this.enemy1);
     this.enemy2_tween.isPlaying() ? this.enemy2.anims.play('s_catcher', true) : biDirectional_enemy(this.enemy2);
 
