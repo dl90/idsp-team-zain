@@ -16,10 +16,14 @@ const scene_1_settings = {
   moveSpeed: 100,
   movementHealthCostRatio: 0.000005,
   diagonalMoveSpeed: 70.71, // calculated
-  playerSpawnPosition: [80, 80],
+  playerSpawnPosition: [3, 3],
   enemyMoveSpeed: 90,
   enemyChaseDistance: 80,
   twoKeyMultiplier: 0.6,
+  enemy1_spawnLocation: [10, 0],
+  enemy1_tweenDistance: 10,
+  enemy2_spawnLocation: [12, 12],
+  enemy2_tweenDistance: 10,
 }
 
 class Scene_1 extends Phaser.Scene {
@@ -93,7 +97,7 @@ class Scene_1 extends Phaser.Scene {
 
     // initialize player & controls
     gameState.cursors = this.input.keyboard.createCursorKeys();
-    gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0], scene_1_settings.playerSpawnPosition[1], 'f_dog').setScale(1).setDepth(10);
+    gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0] * 32 - 16, scene_1_settings.playerSpawnPosition[1] * 32 - 16, 'f_dog').setScale(1).setDepth(10);
     gameState.player.setCollideWorldBounds(true);
     // gameState.player.setBounce(10, 10)
 
@@ -126,6 +130,7 @@ class Scene_1 extends Phaser.Scene {
       this.scene.start("Scene_1_end")
     })
 
+    this.physics.add.sprite(12 * 32, 5 * 32 + 16, 'bench').setScale(0.25).setOrigin(0.5)
 
     // --- Static --- //
 
@@ -139,13 +144,14 @@ class Scene_1 extends Phaser.Scene {
     this.physics.add.collider(gameState.player, walls);
 
     const firTrees = walls.create(12 * 32, 8 * 32, 'fir_tree').setScale(0.25).setOrigin(0.5).refreshBody().setSize(64, 64, 0, 0)
-    this.physics.add.collider(firTrees, [gameState.player, this.enemy2, this.enemy3])
+    this.physics.add.collider(firTrees, [gameState.player, this.enemy1, this.enemy2])
 
     // pass through walls
     this.simiWalls = this.physics.add.staticGroup();
     const squareBushes = [{ x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 },
     { x: 15, y: 0 }, { x: 15, y: 1 }, { x: 15, y: 2 }, { x: 15, y: 3 }, { x: 15, y: 4 }, { x: 15, y: 5 }, { x: 15, y: 6 }, { x: 15, y: 7 }, { x: 15, y: 8 }, { x: 15, y: 9 },];
     squareBushes.forEach(bush => { this.simiWalls.create(bush.x * 32 + 16, bush.y * 32 + 16, 'bush_square').setScale(0.25).refreshBody().setOrigin(0.5).setSize(40, 40, 0, 0).setOffset(-4, -4) });
+
 
 
     // --- Interactive --- //
@@ -156,19 +162,33 @@ class Scene_1 extends Phaser.Scene {
     this.recycle.setDamping(true);
     this.recycle.setDrag(0.5);
     this.recycle.setMaxVelocity(50);
+    let recycleCollider = true
     this.physics.add.collider(gameState.player, this.recycle, () => {
-      //   const str = 'Danger up ahead';
-      //   sceneState.message = this.add.text(width / 2 - 75, height * 0.9, str, { fontSize: 16, color: '#FF0B0F' }).setScrollFactor(0);
-
-      //   this.time.delayedCall(5000, sceneState.message.destroy()); // timer doesn't work
-      //   // this.time.addEvent({
-      //   //   delay: 2000,
-      //   //   callbackScope: this,
-      //   //   loop: true,
-      //   //   callback: () => { sceneState.message.destroy(); console.log("this") },
-      //   // });
-    });
-    this.physics.add.collider(this.recycle, [this.enemy3, this.enemy2, walls]);
+      if (recycleCollider) {
+        const str = 'Danger up ahead';
+        const message = this.add.text(scene_1_settings.canvasWidth / 2 - 75, scene_1_settings.canvasHeight - 30, str, { fontSize: 16, color: '#FF0B0F' }).setScrollFactor(0);
+        this.time.addEvent({
+          delay: 500,
+          callbackScope: this,
+          loop: true,
+          callback: () => { message.visible = false },
+        });
+        this.time.addEvent({
+          delay: 1000,
+          callbackScope: this,
+          loop: true,
+          callback: () => { message.visible = true },
+        });
+        this.time.addEvent({
+          delay: 6000,
+          callbackScope: this,
+          loop: true,
+          callback: () => { message.destroy(); recycleCollider = true },
+        });
+        recycleCollider = false
+      }
+    })
+    this.physics.add.collider(this.recycle, [this.enemy2, this.enemy1, walls]);
 
     // audio department
     const sound_config = {
@@ -190,29 +210,34 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.on('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
-      sceneBGM.pause()
+      sceneBGM.pause();
+      // deathBGM.pause();
       this.audioPlaying = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
     gameState.emitter.on('resume_bgm', () => {
       sceneBGM.resume();
+      // deathBGM.resume();
       this.audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
     gameState.emitter.on('death_bgm', () => {
-      sceneBGM.pause()
-      deathBGM.play()
+      sceneBGM.pause();
+      deathBGM.play();
     }, this)
 
+
+    // this.danger = false
     // gameState.emitter.on('danger_bgm_stop', () => { // doesn't work
-    // sceneState.danger = false
+    // this.danger = false
+    // dangerBGM.stop()
     // }, this)
     // gameState.emitter.on('danger_bgm_play', () => {
-    //   // if (!sceneState.danger) {
+    //   if (!this.danger) {
     //   sceneBGM.pause()
     //   dangerBGM.play()
-    //   sceneState.danger = true
-    //   // }
+    //   this.danger = true
+    //   }
     // }, this)
     // dangerBGM.once('complete', () => {
     //   sceneState.danger = false
@@ -225,10 +250,10 @@ class Scene_1 extends Phaser.Scene {
     audioButton.on('pointerup', () => { this.audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     // this.enemies = game.add.group();
-    this.enemy2 = this.physics.add.sprite(10 * 32 - 16, 0 * 32 - 16, 's_catcher');
+    this.enemy1 = this.physics.add.sprite(scene_1_settings.enemy1_spawnLocation[0] * 32 - 16, scene_1_settings.enemy1_spawnLocation[1] * 32 + 16, 's_catcher');
+    this.enemy1.setCollideWorldBounds(true);
+    this.enemy2 = this.physics.add.sprite(scene_1_settings.enemy2_spawnLocation[0] * 32 - 16, scene_1_settings.enemy2_spawnLocation[1] * 32 - 16, 's_catcher');
     this.enemy2.setCollideWorldBounds(true);
-    this.enemy3 = this.physics.add.sprite(12 * 32 - 16, 12 * 32 - 16, 's_catcher');
-    this.enemy3.setCollideWorldBounds(true);
 
     // lose health
     function reduceHealth(obj1, obj2) {
@@ -252,10 +277,10 @@ class Scene_1 extends Phaser.Scene {
     }
 
     //general colliders
-    this.physics.add.collider(this.enemy2, [walls, this.simiWalls, this.recycle, this.enemy2, this.enemy3]);
-    this.physics.add.collider(this.enemy3, [walls, this.simiWalls, this.recycle, this.enemy2, this.enemy3]);
+    this.physics.add.collider(this.enemy1, [walls, this.simiWalls, this.recycle, this.enemy1, this.enemy2]);
+    this.physics.add.collider(this.enemy2, [walls, this.simiWalls, this.recycle, this.enemy1, this.enemy2]);
+    this.physics.add.overlap(gameState.player, this.enemy1, reduceHealth.bind(this))
     this.physics.add.overlap(gameState.player, this.enemy2, reduceHealth.bind(this))
-    this.physics.add.overlap(gameState.player, this.enemy3, reduceHealth.bind(this))
 
     // camera department
     this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
@@ -266,27 +291,27 @@ class Scene_1 extends Phaser.Scene {
     this.animate();
 
     //tween @TODO hard coded
-    this.tweenEnemy_horizontal = this.tweens.add({
-      targets: [this.enemy2],
-      y: 10 * 32,
+    this.enemy1_tween = this.tweens.add({
+      targets: this.enemy1,
+      y: this.enemy1.y + scene_1_settings.enemy1_tweenDistance * 32,
       ease: 'Linear',
       duration: 4000,
       repeat: -1,
       yoyo: true,
-      loopDelay: 2000,
-      // onActive: () => { this.enemy2.anims.play('s_catcher', true) }
-    })
+      loopDelay: 2000
+    });
 
-    this.tweenEnemy_vertical = this.tweens.add({
-      targets: [this.enemy3],
-      x: 10 * 32,
+    this.enemy2_tween = this.tweens.add({
+      targets: this.enemy2,
+      x: this.enemy2.x + scene_1_settings.enemy2_tweenDistance * 32,
       ease: 'Linear',
-      duration: 2000,
+      duration: 4000,
       repeat: -1,
       yoyo: true,
-      loopDelay: 2000,
-      // onActive: () => { this.enemy3.anims.play('s_catcher', true) }
-    })
+      loopDelay: 2000
+    });
+
+
   }
 
   animate() {
@@ -341,37 +366,40 @@ class Scene_1 extends Phaser.Scene {
         enemy.anims.pause();
       }
     }
-    biDirectional_enemy(this.enemy3)
-    biDirectional_enemy(this.enemy2)
+    this.enemy1_tween.isPlaying() ? this.enemy1.anims.play('s_catcher', true) : biDirectional_enemy(this.enemy1);
+    this.enemy2_tween.isPlaying() ? this.enemy2.anims.play('s_catcher', true) : biDirectional_enemy(this.enemy2);
 
-    // distance boolean
     function distanceCalc(gameObj1, gameObj2) {
       return Phaser.Math.Distance.Chebyshev(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y)
     }
 
-    if ((distanceCalc(gameState.player, this.enemy2) < scene_1_settings.enemyChaseDistance) && !this.physics.overlap(gameState.player, this.enemy2)) {
-      this.tweenEnemy_horizontal.pause();
+    if ((distanceCalc(gameState.player, this.enemy1) < scene_1_settings.enemyChaseDistance) && !this.physics.overlap(gameState.player, this.enemy1)) {
+      this.enemy1_tween.pause();
+      this.physics.moveToObject(this.enemy1, gameState.player, scene_1_settings.enemyMoveSpeed);
+    } else {
+      this.enemy1.setVelocityX(0);
+      this.enemy1.setVelocityY(0);
+      if (Math.round(this.enemy1.x) === scene_1_settings.enemy1_spawnLocation[0] * 32 - 16 && Math.round(this.enemy1.y) === scene_1_settings.enemy1_spawnLocation[1] * 32 + 16) {
+        this.enemy1_tween.play();
+      } else {
+        this.physics.moveTo(this.enemy1, scene_1_settings.enemy1_spawnLocation[0] * 32 - 16, scene_1_settings.enemy1_spawnLocation[1] * 32 + 16);
+      }
+    }
+
+    if (distanceCalc(gameState.player, this.enemy2) < scene_1_settings.enemyChaseDistance && !this.physics.overlap(gameState.player, this.enemy2)) {
+      this.enemy2_tween.pause();
       this.physics.moveToObject(this.enemy2, gameState.player, scene_1_settings.enemyMoveSpeed);
-      // sceneState.dangerState = true
     } else {
-      // sceneState.dangerState = false
-      this.enemy2.setVelocityX(0)
-      this.enemy2.setVelocityY(0)
-      // this.tweenEnemy2.play()
+      this.enemy2.setVelocityX(0);
+      this.enemy2.setVelocityY(0);
+      if (Math.round(this.enemy2.x) === scene_1_settings.enemy2_spawnLocation[0] * 32 - 16 && Math.round(this.enemy2.y) === scene_1_settings.enemy2_spawnLocation[1] * 32 + 16) {
+        this.enemy2_tween.play()
+      } else {
+        this.physics.moveTo(this.enemy2, scene_1_settings.enemy2_spawnLocation[0] * 32 - 16, scene_1_settings.enemy2_spawnLocation[1] * 32 + 16)
+      }
     }
 
-    if (distanceCalc(gameState.player, this.enemy3) < scene_1_settings.enemyChaseDistance && !this.physics.overlap(gameState.player, this.enemy3)) {
-      this.tweenEnemy_vertical.pause();
-      this.physics.moveToObject(this.enemy3, gameState.player, scene_1_settings.enemyMoveSpeed);
-      // sceneState.dangerState = true
-    } else {
-      // sceneState.dangerState = false
-      this.enemy3.setVelocityX(0)
-      this.enemy3.setVelocityY(0)
-      // this.tweenEnemy3.play()
-    }
-
-    // if (sceneState.dangerState && gameState.health > 0) {
+    // if (this.dangerState && gameState.health > 0) {
     //   gameState.emitter.emit('pause_bgm')
     //   gameState.emitter.emit('danger_bgm_play')
     // } else {
@@ -475,7 +503,7 @@ class Scene_1 extends Phaser.Scene {
     }
 
     // health department
-    let cache = gameState.healthVal;
+    this.cache = gameState.healthVal;
     gameState.health = function (tracked, cached) {
       if (tracked === cached) {
         // console.log(`tracked: ${tracked} cached: ${cached}`)
@@ -504,15 +532,14 @@ class Scene_1 extends Phaser.Scene {
     }
 
     if (gameState.healthVal > 0) {
-      gameState.health(gameState.healthVal, cache)
+      gameState.health(gameState.healthVal, this.cache)
     } else {
       this.levelText.destroy()
-      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 50, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
-      this.scene.pause()
-      gameState.emitter.emit('pause_bgm')
+      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 70, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
       // gameState.emitter.emit('danger_bgm_stop')
+      this.physics.pause()
+      this.anims.pauseAll()
       gameState.emitter.emit('death_bgm')
     }
-
   }
 }
