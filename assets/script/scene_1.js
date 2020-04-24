@@ -213,20 +213,20 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       sceneBGM.pause();
-      // deathBGM.pause();
+      deathBGM.pause();
       this.audioPlaying = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this)
     gameState.emitter.on('resume_bgm', () => {
       sceneBGM.resume();
       // deathBGM.resume();
-
       this.audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this)
-    gameState.emitter.on('death_bgm', () => {
+    gameState.emitter.once('death_bgm', () => {
       sceneBGM.pause();
       deathBGM.play();
+      this.audioPlaying = true
     }, this)
 
     // this.danger = false
@@ -536,12 +536,14 @@ class Scene_1 extends Phaser.Scene {
     if (gameState.healthVal > 0) {
       gameState.health(gameState.healthVal, this.cache)
     } else {
-      this.levelText.destroy()
+      this.levelText.destroy();
       this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 70, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
       // gameState.emitter.emit('danger_bgm_stop')
-      this.physics.pause()
-      this.anims.pauseAll()
-      gameState.emitter.emit('death_bgm')
+      this.physics.pause();
+      this.anims.pauseAll();
+      this.tweens.pauseAll();
+      // this.scene.pause()
+      gameState.emitter.emit('death_bgm');
     }
   }
 }
