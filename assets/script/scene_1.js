@@ -5,7 +5,7 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
- * @TODO fix danger audio queue, health bar responsiveness
+ * @TODO fix danger audio queue
  */
 
 const scene_1_settings = {
@@ -32,6 +32,7 @@ class Scene_1 extends Phaser.Scene {
   }
 
   preload() {
+    !level_1 ? (() => { throw new Error("Missing map data") })() : null;
     gameFunctions.loading.call(this);
 
     this.load.image('bg', './sprites/testing/100x100.png'); // testing bg
@@ -70,12 +71,27 @@ class Scene_1 extends Phaser.Scene {
 
     // level 1 specifics
     const level_1_path = './sprites/level_1'
-    this.load.image('fence_horizontal', level_1_path + '/fence_horizontal.png');
-    this.load.image('fence_vertical', level_1_path + '/fence_vertical.png');
-    this.load.image('bush_square', level_1_path + '/bush_square.png');
-    this.load.image('recycle', level_1_path + '/recycle.png');
-    this.load.image('fir_tree', level_1_path + '/fir_tree.png');
     this.load.image('bench', level_1_path + '/bench.png');
+    this.load.image('birch_tree', level_1_path + '/birch_tree.png');
+    this.load.image('bush_round', level_1_path + '/bush_round.png');
+    this.load.image('bush_square', level_1_path + '/bush_square.png');
+    this.load.image('fence_corner_leftBottom', level_1_path + '/fence_corner_leftBottom.png');
+    this.load.image('fence_corner_leftTop', level_1_path + '/fence_corner_leftTop.png');
+    this.load.image('fence_corner_rightBottom', level_1_path + '/fence_corner_rightBottom.png');
+    this.load.image('fence_corner_rightTop', level_1_path + '/fence_corner_rightTop.png');
+    this.load.image('fence_horizontal', level_1_path + '/fence_horizontal.png');
+    this.load.image('fence_vertical_left', level_1_path + '/fence_vertical_left.png');
+    this.load.image('fence_vertical_right', level_1_path + '/fence_vertical_right.png');
+    this.load.image('fir_tree', level_1_path + '/fir_tree.png');
+    this.load.image('flower_1', level_1_path + '/flower_1.png');
+    this.load.image('flower_2', level_1_path + '/flower_2.png');
+    this.load.image('light_post', level_1_path + '/light_post.png');
+    this.load.image('recycle_bin', level_1_path + '/recycle_bin.png');
+    this.load.image('sign', level_1_path + '/sign.png');
+    this.load.image('stump', level_1_path + '/stump.png');
+
+    // map from JSON option (throws error if load from static folder)
+    // this.load.json('mapData', 'maps/level_1.json');
   }
 
 
@@ -85,7 +101,10 @@ class Scene_1 extends Phaser.Scene {
     this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
     this.scene.remove("Menu"); // maybe keep menu?
-    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);//.setScale(0.25);
+    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
+
+    // map from JSON option
+    // const map = this.cache.json.get('mapData');
 
     // level title
     this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 50, scene_1_settings.canvasHeight / 2 - 50, 'Level 1', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
@@ -97,28 +116,9 @@ class Scene_1 extends Phaser.Scene {
 
     // initialize player & controls
     gameState.cursors = this.input.keyboard.createCursorKeys();
-    gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0] * 32 - 16, scene_1_settings.playerSpawnPosition[1] * 32 - 16, 'f_dog').setScale(1).setDepth(10);
+    gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0] * 32 - 16, scene_1_settings.playerSpawnPosition[1] * 32 - 16, 'f_dog').setScale(1).setDepth(1);
     gameState.player.setCollideWorldBounds(true);
     // gameState.player.setBounce(10, 10)
-
-    // bones
-    gameState.bone = this.physics.add.sprite(16 * 32, 16 * 32, 'bone').setOrigin(0.5);
-    this.physics.add.overlap(gameState.player, gameState.bone, () => {
-      let cache = gameState.healthVal;
-      (gameState.healthVal + 40) > 100 ? gameState.healthVal = 100 : gameState.healthVal += 40;
-      gameState.bone.destroy();
-      gameState.health(gameState.healthVal, cache);
-    })
-    // const bones = this.physics.add.staticGroup()
-    // const boneLocations = [{ x: 14, y: 14 }]
-    // boneLocations.forEach(bone => { bones.create(bone.x * 32, bone.y * 32, 'bone').refreshBody().setOrigin(0.5) })
-    // this.physics.add.overlap(gameState.player, bones, () => {
-    //   let cache = gameState.healthVal;
-    //   (gameState.healthVal + 40) > 100 ? gameState.healthVal = 100 : gameState.healthVal += 40;
-    //   bones.remove(this) // how to isolate the bone in contact
-    //   // gameState.bone.destroy();
-    //   gameState.health(gameState.healthVal, cache);
-    // })
 
     // scene transition 
     this.girl_1 = this.physics.add.sprite(20 * 32 - 16, 20 * 32 - 16, 'girl_1').setScale(0.25).setOrigin(0.5)//.setSize(32, 32, 0, 0).setOffset(0, 0);
@@ -136,61 +136,82 @@ class Scene_1 extends Phaser.Scene {
 
     // --- Static --- //
 
-    // walls
+    // blocking walls
     const walls = this.physics.add.staticGroup();
-    const horizontalWalls = [{ x: 2, y: 4 }, { x: 6, y: 4 }, { x: 12, y: 4 }]; // batch creation
-    horizontalWalls.forEach(wall => { walls.create(wall.x * 32, wall.y * 32 + 16, 'fence_horizontal').setScale(1, 0.25).refreshBody().setOrigin(0.5) });
+    level_1.fenceHorizontal.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_horizontal').setSize(32, 16) });
+    level_1.fenceVertical_left.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_vertical_left').setSize(16, 32).setOffset(0, 0) });
+    level_1.fenceVertical_right.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_vertical_right').setSize(16, 32).setOffset(16, 0) });
+    level_1.fenceCorner_leftBottom.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_corner_leftBottom').setSize(32, 16) });
+    level_1.fenceCorner_rightBottom.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_corner_rightBottom').setSize(32, 16) });
+    level_1.fenceCorner_leftTop.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_corner_leftTop').setSize(16, 24).setOffset(0, 8) });
+    level_1.fenceCorner_rightTop.forEach(wall => { walls.create(wall.x * 32 - 16, wall.y * 32 - 16, 'fence_corner_rightTop').setSize(16, 24).setOffset(16, 8) });
 
-    const verticalWalls = [{ x: 16, y: 2 }, { x: 16, y: 4 }, { x: 16, y: 6 }, { x: 16, y: 8 }];
-    verticalWalls.forEach(wall => { walls.create(wall.x * 32 + 16, wall.y * 32, 'fence_vertical').setScale(0.25, 1).refreshBody().setOrigin(0.5) });
-    this.physics.add.collider(gameState.player, walls);
-
-    const firTrees = walls.create(12 * 32, 8 * 32, 'fir_tree').setScale(0.25).setOrigin(0.5).refreshBody().setSize(64, 64, 0, 0)
-    this.physics.add.collider(firTrees, [gameState.player, this.enemy1, this.enemy2])
-
-
-    // pass through walls
-    this.simiWalls = this.physics.add.staticGroup();
-    const squareBushes = [{ x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 },
-    { x: 15, y: 0 }, { x: 15, y: 1 }, { x: 15, y: 2 }, { x: 15, y: 3 }, { x: 15, y: 4 }, { x: 15, y: 5 }, { x: 15, y: 6 }, { x: 15, y: 7 }, { x: 15, y: 8 }, { x: 15, y: 9 },];
-    squareBushes.forEach(bush => { this.simiWalls.create(bush.x * 32 + 16, bush.y * 32 + 16, 'bush_square').setScale(0.25).refreshBody().setOrigin(0.5).setSize(40, 40, 0, 0).setOffset(-4, -4) });
+    // trees
+    level_1.firTree.forEach(wall => { walls.create(wall.x * 32 - 32, wall.y * 32 - 32, 'fir_tree').setSize(12, 12).setOffset(25, 55).setDepth(2) });
+    level_1.birchTree.forEach(wall => { walls.create(wall.x * 32 - 32, wall.y * 32 - 32, 'birch_tree').setSize(16, 12).setOffset(26, 46).setDepth(2) });
 
 
-    // --- Interactive --- //
+    // // pass through walls
+    // this.simiWalls = this.physics.add.staticGroup();
+    // const squareBushes = [{ x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 },
+    // { x: 15, y: 0 }, { x: 15, y: 1 }, { x: 15, y: 2 }, { x: 15, y: 3 }, { x: 15, y: 4 }, { x: 15, y: 5 }, { x: 15, y: 6 }, { x: 15, y: 7 }, { x: 15, y: 8 }, { x: 15, y: 9 },];
+    // squareBushes.forEach(bush => { this.simiWalls.create(bush.x * 32 + 16, bush.y * 32 + 16, 'bush_square').setScale(0.25).refreshBody().setOrigin(0.5).setSize(40, 40, 0, 0).setOffset(-4, -4) });
 
-    // recycle
-    this.recycle = this.physics.add.sprite(128, 64, 'recycle').setScale(0.25).setOrigin(0).setInteractive();
-    this.recycle.setCollideWorldBounds(true);
-    this.recycle.setDamping(true);
-    this.recycle.setDrag(0.5);
-    this.recycle.setMaxVelocity(50);
-    let recycleCollider = true
-    this.physics.add.collider(gameState.player, this.recycle, () => {
-      if (recycleCollider) {
-        const str = 'Danger up ahead';
-        const message = this.add.text(scene_1_settings.canvasWidth / 2 - 75, scene_1_settings.canvasHeight - 30, str, { fontSize: 16, color: '#FF0B0F' }).setScrollFactor(0);
-        this.time.addEvent({
-          delay: 500,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.visible = false },
-        });
-        this.time.addEvent({
-          delay: 1000,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.visible = true },
-        });
-        this.time.addEvent({
-          delay: 6000,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.destroy(); recycleCollider = true },
-        });
-        recycleCollider = false
-      }
-    })
-    this.physics.add.collider(this.recycle, [this.enemy2, this.enemy1, walls]);
+
+    // // --- Interactive --- //
+
+    // // bones
+    // gameState.bone = this.physics.add.sprite(16 * 32, 16 * 32, 'bone').setOrigin(0.5);
+    // this.physics.add.overlap(gameState.player, gameState.bone, () => {
+    //   let cache = gameState.healthVal;
+    //   (gameState.healthVal + 40) > 100 ? gameState.healthVal = 100 : gameState.healthVal += 40;
+    //   gameState.bone.destroy();
+    //   gameState.health(gameState.healthVal, cache);
+    // })
+    // // const bones = this.physics.add.staticGroup()
+    // // const boneLocations = [{ x: 14, y: 14 }]
+    // // boneLocations.forEach(bone => { bones.create(bone.x * 32, bone.y * 32, 'bone').refreshBody().setOrigin(0.5) })
+    // // this.physics.add.overlap(gameState.player, bones, () => {
+    // //   let cache = gameState.healthVal;
+    // //   (gameState.healthVal + 40) > 100 ? gameState.healthVal = 100 : gameState.healthVal += 40;
+    // //   bones.remove(this) // how to isolate the bone in contact
+    // //   // gameState.bone.destroy();
+    // //   gameState.health(gameState.healthVal, cache);
+    // // })
+
+    // // recycle
+    // this.recycle = this.physics.add.sprite(128, 64, 'recycle').setScale(0.25).setOrigin(0).setInteractive();
+    // this.recycle.setCollideWorldBounds(true);
+    // this.recycle.setDamping(true);
+    // this.recycle.setDrag(0.5);
+    // this.recycle.setMaxVelocity(50);
+    // let recycleCollider = true
+    // this.physics.add.collider(gameState.player, this.recycle, () => {
+    //   if (recycleCollider) {
+    //     const str = 'Danger up ahead';
+    //     const message = this.add.text(scene_1_settings.canvasWidth / 2 - 75, scene_1_settings.canvasHeight - 30, str, { fontSize: 16, color: '#FF0B0F' }).setScrollFactor(0);
+    //     this.time.addEvent({
+    //       delay: 500,
+    //       callbackScope: this,
+    //       loop: true,
+    //       callback: () => { message.visible = false },
+    //     });
+    //     this.time.addEvent({
+    //       delay: 1000,
+    //       callbackScope: this,
+    //       loop: true,
+    //       callback: () => { message.visible = true },
+    //     });
+    //     this.time.addEvent({
+    //       delay: 6000,
+    //       callbackScope: this,
+    //       loop: true,
+    //       callback: () => { message.destroy(); recycleCollider = true },
+    //     });
+    //     recycleCollider = false
+    //   }
+    // })
+    // this.physics.add.collider(this.recycle, [this.enemy2, this.enemy1, walls]);
 
     // audio department
     const sound_config = {
@@ -247,7 +268,7 @@ class Scene_1 extends Phaser.Scene {
     // }, this)
 
     gameState.emitter.emit('play_bgm');
-    const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0);
+    const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0).setDepth(10);
     audioButton.setInteractive();
     audioButton.on('pointerup', () => { this.audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
@@ -283,6 +304,9 @@ class Scene_1 extends Phaser.Scene {
     this.physics.add.collider(this.enemy2, [walls, this.simiWalls, this.recycle, this.enemy1, this.enemy2]);
     this.physics.add.overlap(gameState.player, this.enemy1, reduceHealth.bind(this))
     this.physics.add.overlap(gameState.player, this.enemy2, reduceHealth.bind(this))
+
+    // this.physics.add.collider(firTrees, [gameState.player, this.enemy1, this.enemy2])
+    this.physics.add.collider(gameState.player, walls);
 
     // camera department
     this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
@@ -501,7 +525,6 @@ class Scene_1 extends Phaser.Scene {
       gameState.player.setVelocityY(0);
       gameState.player.anims.pause()
       gameState.player.angle = 0;
-
     }
 
     // health department

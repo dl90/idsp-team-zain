@@ -18,7 +18,7 @@ class Scene_1_end extends Phaser.Scene {
     this.load.image('back_button', './sprites/buttons/button_back.png');
   }
   create() {
-    // this.scene.remove("Scene_1");
+    this.scene.stop("Scene_1");
 
     this.add.text(config.width / 2 - 90, config.height / 2 - 50, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: '#7E00C2' });
     this.add.text(config.width / 2 - 90, config.height / 2 - 20, `Score: ${gameState.score}`, { fontSize: 16, color: '#7E00C2' });
