@@ -37,7 +37,7 @@ class Scene_1_end extends Phaser.Scene {
     backButton.on('pointerup', () => {
       this.scene.stop('Scene_1_end');
       this.sound.stopAll();
-      this.scene.start('Scene_1');
+      this.scene.get("Scene_1").scene.restart();
     })
   }
 
