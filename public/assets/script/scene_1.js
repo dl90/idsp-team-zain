@@ -261,7 +261,6 @@ class Scene_1 extends Phaser.Scene {
       }
     });
 
-
     // lose health
     function reduceHealth(obj1, obj2) {
       obj1.setVelocityX(0).setVelocityY(0);
@@ -281,7 +280,6 @@ class Scene_1 extends Phaser.Scene {
         this.healthTrigger = false;
       }
     }
-
 
     // enemy group
     this.enemies = this.physics.add.group();
@@ -404,7 +402,6 @@ class Scene_1 extends Phaser.Scene {
         // enemy drag over semiWalls
         this.physics.overlap(gameObj, this.semiWalls) ? gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) : gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
       }
-
     })
 
     if (this.dangerState && gameState.healthVal > 0) {

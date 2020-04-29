@@ -1,9 +1,10 @@
+/* eslint-disable no-undef */
 const express = require("express"),
   helmet = require("helmet"),
   firebase = require("firebase"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
-  { firebaseConfig } = require("./firebase_config"),
+  // { firebaseConfig } = require("./firebase_config"),
   app = express();
 
 const config = {
