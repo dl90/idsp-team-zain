@@ -16,6 +16,7 @@ class Menu extends Phaser.Scene {
   preload() {
     gameFunctions.loading.call(this);
     this.load.html('login_form', '/assets/util/login_form.html');
+    this.load.html('signup_form', '/assets/util/signup_form.html');
 
     this.load.image('logo', '/assets/sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', '/assets/sprites/buttons/button_play.png');
@@ -47,43 +48,112 @@ class Menu extends Phaser.Scene {
     playButton.setInteractive().setVisible(false);
     audioButton.setInteractive();
 
-    const text = this.add.text(config.width / 2, config.height / 2, 'Please login or create an account to proceed', { color: 'orange', fontSize: '16px ' }).setOrigin(0.5);
-    const form = this.add.dom(config.width / 2, 0).createFromCache('login_form').setOrigin(0.5);
-    form.addListener('click');
-    form.on('click', function (event) {
-      console.log("clicked")
-      if (event.target.name === 'login') {
-        const inputText = this.getChildByName('username');
+    const prompt = this.add.text(config.width / 2, config.height / 2, 'Please login or create an account to proceed', { color: 'orange', fontSize: '16px ' }).setOrigin(0.5);
+    const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5);
+    const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
 
-        if (inputText.value !== '') {
-          this.removeListener('click');
-          this.setVisible(false);
-          text.setText('Welcome ' + inputText.value);
-          playButton.setVisible(true);
-        }
-        else {
-          //  Flash the prompt
-          this.scene.tweens.add({
-            targets: text,
-            alpha: 0,
-            duration: 250,
-            loop: 2,
-            ease: 'Power3',
-            yoyo: true
-          });
-        }
+    this.msgFlash = function (target) {
+      this.scene.tweens.add({
+        targets: target,
+        alpha: 0,
+        duration: 250,
+        loop: 2,
+        ease: 'Power3',
+        yoyo: true
+      });
+    }
+
+    loginForm.addListener("click");
+    loginForm.on("click", function (event) {
+      const email = loginForm.getChildByName("email").value.trim(),
+        pass = loginForm.getChildByName("pass").value.trim();
+      if (event.target.id === "login-submit" && (email.length !== 0 && pass.length >= 6)) {
+        event.preventDefault();
+
+        fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ email, pass })
+        }).then(res => {
+          if (res.status === 200) {
+            loginForm.removeListener('click');
+            loginForm.setVisible(false);
+            return res.json();
+          } else if (res.status === 401) {
+            prompt.setText('Invalid username or password'); // this.msgFlash(prompt);
+          } else if (res.status == 429) {
+            prompt.setText('Too many attempts, 30min timeout');
+          } else {
+            console.log('something else');
+          }
+        }, (reject) => {
+          prompt.setText(reject.reason)
+        }).then((resData) => {
+          if (resData) {
+            prompt.setText(`Welcome ${resData.displayName}`);
+            gameState.userDisplayName = resData.displayName;
+            playButton.setVisible(true);
+          }
+        }).catch(err => { console.log(err) });
+      } else if (event.target.id === "login-submit") {
+        prompt.setText('Invalid input'); // this.msgFlash(prompt);
+
+      } else if (event.target.id === "login-to-sign-up") {
+        prompt.setText('Sign up');
+        loginForm.setVisible(false);
+        signupForm.setVisible(true);
       }
-
     });
 
-    this.tweens.add({
-      targets: form,
-      y: config.height / 2 + 50,
-      duration: 2000,
-      ease: 'Power3'
+    signupForm.addListener("click");
+    signupForm.on("click", function (event) {
+      const name = signupForm.getChildByName("name").value.trim(),
+        email = signupForm.getChildByName("email").value.trim(),
+        pass = signupForm.getChildByName("pass").value.trim();
+      if (event.target.id === "sign-up-submit" && (name.length >= 3 && email.length !== 0 && pass.length >= 6)) {
+        event.preventDefault();
+
+        fetch("/auth/sign_up", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({ name, email, pass })
+        }).then(res => {
+          if (res.status === 200) {
+            signupForm.removeListener('click');
+            signupForm.setVisible(false);
+            return res.json();
+          } else if (res.status == 429) {
+            prompt.setText('Too many attempts, 30min timeout');
+          } else {
+            prompt.setText("Signup unsuccessful");
+          }
+        }, (reject) => {
+          prompt.setText(reject.reason)
+        }).then((resData) => {
+          if (resData) {
+            prompt.setText(`Welcome ${resData.displayName}`);
+            gameState.userDisplayName = resData.displayName;
+            playButton.setVisible(true);
+          }
+        }).catch(err => {
+          console.log(err)
+        })
+
+      } else if (event.target.id === "sign-up-submit") {
+        prompt.setText('Invalid input');
+      } else if (event.target.id === "sign-up-to-login") {
+        prompt.setText('Login');
+        signupForm.setVisible(false)
+        loginForm.setVisible(true)
+      }
     });
 
     // audio department
+    this.sound.pauseOnBlur = false;
     const emitter = new Phaser.Events.EventEmitter();
     emitter.on('play_bgm', () => { intro_bgm.play() }, this);
     emitter.on('pause_bgm', () => {

@@ -1,5 +1,13 @@
-<form>
-  <input type="text" name="username" placeholder="Username" style="font-size: 8px">
-  <input type="password" name="password" placeholder="Password" style="font-size: 8px">
-  <input type="button" name="login" value="Login" style="font-size: 8px">
-</form>
+<div id="login_form_container" style="display: flex; flex-direction: column;">
+  <form id="login_form" style="display: flex; flex-direction: column;" method="POST" action="/auth/login">
+    <input class="font-adjust" name="email" id="login-username" type="text" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="valid email required" required />
+    <input class="font-adjust" name="pass" id="login-password" type="password" placeholder="Password" pattern=".{6,}" title="Minimum 6 characters" required />
+    <button class="font-adjust" type=" submit" id="login-submit">Login</button>
+  </form>
+  <button class="font-adjust" type=" submit" id="login-to-sign-up">Sign Up</button>
+</div>
+<style>
+  .font-adjust {
+    font-size: xx-small;
+  }
+</style>

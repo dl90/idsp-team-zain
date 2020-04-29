@@ -7,7 +7,12 @@
  * @date April 15, 2020
  */
 
-const gameState = {};
+const gameState = {
+  userID: null,
+  userDisplayName: null,
+  score: null
+};
+
 const config = {
   type: Phaser.AUTO,
   width: 480,

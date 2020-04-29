@@ -148,6 +148,7 @@ class Scene_1 extends Phaser.Scene {
     const sceneBGM = this.sound.add('scene_1_bgm', sound_config);
     const dangerBGM = this.sound.add('danger_audio', sound_config);
     const deathBGM = this.sound.add('death_audio', sound_config);
+    this.sound.pauseOnBlur = false;
     this.audioPlaying = true;
     this.danger_bgm_toggle = true;
 
@@ -247,25 +248,16 @@ class Scene_1 extends Phaser.Scene {
       if (recycleCollider) {
         const str = 'Bark';
         const message = this.add.text(scene_1_settings.canvasWidth / 2 - 30, scene_1_settings.canvasHeight - 30, str, { fontSize: 16, color: '#FF7A00' }).setScrollFactor(0);
-        this.time.addEvent({
-          delay: 500,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.visible = false },
+        this.tweens.add({
+          targets: message,
+          alpha: 0,
+          duration: 1000,
+          loop: 2,
+          ease: 'Linear',
+          yoyo: false,
+          onComplete: () => { message.destroy(); recycleCollider = true }
         });
-        this.time.addEvent({
-          delay: 1000,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.visible = true },
-        });
-        this.time.addEvent({
-          delay: 5000,
-          callbackScope: this,
-          loop: true,
-          callback: () => { message.destroy(); recycleCollider = true },
-        });
-        recycleCollider = false
+        recycleCollider = false;
       }
     });
 
@@ -279,14 +271,14 @@ class Scene_1 extends Phaser.Scene {
         loop: false,
         callback: () => {
           this.healthTrigger = true;
-          this.time.removeAllEvents()
+          this.time.removeAllEvents();
         }
       })
 
       // const currentTrigger = true && currentTrigger
       if (this.healthTrigger) {
-        gameState.healthVal -= 10
-        this.healthTrigger = false
+        gameState.healthVal -= 10;
+        this.healthTrigger = false;
       }
     }
 
@@ -301,7 +293,7 @@ class Scene_1 extends Phaser.Scene {
           "y": obj.y,
           "tweenX": obj.tweenX,
           "tweenY": obj.tweenY
-        })
+        });
     }, this);
     this.enemies.getChildren().forEach(function (gameObj) {
       // enemy colliders
@@ -367,7 +359,9 @@ class Scene_1 extends Phaser.Scene {
 
   update() {
     // player drag over semiWalls
-    this.physics.overlap(gameState.player, this.semiWalls) ? gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) : gameState.player.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.moveSpeed);
+    if (gameState.player) {
+      this.physics.overlap(gameState.player, this.semiWalls) ? gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) : gameState.player.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.moveSpeed);
+    }
 
     // flip animation for enemies
     function biDirectional_enemy(enemy) {
@@ -387,25 +381,30 @@ class Scene_1 extends Phaser.Scene {
 
     this.tweens.getAllTweens().forEach(tween => {
       const gameObj = tween.targets[0];
-      tween.isPlaying() ? gameObj.anims.play('s_catcher', true) : biDirectional_enemy(gameObj);
 
-      if (this.physics.overlap(gameState.player, gameObj)) {
-        gameObj.setVelocityX(0).setVelocityY(0);
-        this.dangerState = true
-      } else if (distanceCalc(gameState.player, gameObj) < scene_1_settings.enemyChaseDistance) {
-        tween.pause();
-        this.physics.moveToObject(gameObj, gameState.player, scene_1_settings.enemyMoveSpeed);
-        this.dangerState = true
-      } else {
-        if (Math.round(gameObj.x) === gameObj.getData("x") * 32 - 16 && Math.round(gameObj.y) === gameObj.getData("y") * 32 - 16) {
-          tween.play();
+      // ignores text tweens
+      if (gameObj.type === "Sprite") {
+        tween.isPlaying() ? gameObj.anims.play('s_catcher', true) : biDirectional_enemy(gameObj);
+
+        if (this.physics.overlap(gameState.player, gameObj)) {
+          gameObj.setVelocityX(0).setVelocityY(0);
+          this.dangerState = true
+        } else if (distanceCalc(gameState.player, gameObj) < scene_1_settings.enemyChaseDistance) {
+          tween.pause();
+          this.physics.moveToObject(gameObj, gameState.player, scene_1_settings.enemyMoveSpeed);
+          this.dangerState = true
         } else {
-          this.physics.moveTo(gameObj, gameObj.getData("x") * 32 - 16, gameObj.getData("y") * 32 - 16);
+          if (Math.round(gameObj.x) === gameObj.getData("x") * 32 - 16 && Math.round(gameObj.y) === gameObj.getData("y") * 32 - 16) {
+            tween.play();
+          } else {
+            this.physics.moveTo(gameObj, gameObj.getData("x") * 32 - 16, gameObj.getData("y") * 32 - 16);
+          }
         }
+
+        // enemy drag over semiWalls
+        this.physics.overlap(gameObj, this.semiWalls) ? gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) : gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
       }
 
-      // enemy drag over semiWalls
-      this.physics.overlap(gameObj, this.semiWalls) ? gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) : gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
     })
 
     if (this.dangerState && gameState.healthVal > 0) {

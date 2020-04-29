@@ -1,0 +1,14 @@
+<div id="signup-form-container" style="display: flex; flex-direction: column;">
+  <form id="signup-form" style="display: flex; flex-direction: column;" method="POST" action="/auth/sign_up">
+    <input class="font-adjust" name="name" id="sign-up-nickname" type="text" placeholder="Name" pattern=".{3,}" title="Minimum 3 characters" required />
+    <input class="font-adjust" name="email" id="sign-up-username" type="text" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="valid email required" required />
+    <input class="font-adjust" name="pass" id="sign-up-password_1" type="password" placeholder="Password" pattern=".{6,}" title="Minimum 6 characters" required />
+    <button class="font-adjust" type="submit" id="sign-up-submit" >Sign Up</button>
+  </form>
+  <button class="font-adjust" type=" submit" id="sign-up-to-login">Login</button>
+</div>
+<style>
+  .font-adjust {
+    font-size: xx-small;
+  }
+</style>
