@@ -34,7 +34,7 @@ class Scene_2 extends Phaser.Scene {
 
   preload() {
     gameFunctions.loading.call(this);
-    // console.log(gameState.health)
+    gameFunctions.loadHealthTextures.call(this);
   }
 
   create() {
@@ -46,7 +46,11 @@ class Scene_2 extends Phaser.Scene {
     gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0] * 32 - 16, scene_1_settings.playerSpawnPosition[1] * 32 - 16, 'f_dog').setSize(30, 30).setDepth(1);
     gameState.player.setCollideWorldBounds(true);
 
-    // gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(10);
+    // readds healthBar
+    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(10);
+
+    // follows player
+    this.cameras.main.startFollow(gameState.player);
   }
 
   animate() {
@@ -71,8 +75,8 @@ class Scene_2 extends Phaser.Scene {
   }
 
   update() {
-
     if (gameState.healthVal > 0) {
+      this.physics.resume()
       gameFunctions.control(gameState, scene_1_settings);
       gameFunctions.activeHealthTextures(gameState);
     } else {
@@ -80,8 +84,8 @@ class Scene_2 extends Phaser.Scene {
       this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 70, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#4B004F' }).setScrollFactor(0);
       this.physics.pause();
       this.anims.pauseAll();
-      this.tweens.pauseAll();
-      gameState.emitter.emit('death_bgm');
+      // this.tweens.pauseAll();
+      // gameState.emitter.emit('death_bgm');
     }
   }
 }

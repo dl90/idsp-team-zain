@@ -170,8 +170,27 @@ const gameFunctions = {
    * Calculates distance between two game objects
    * @param {Object} gameObj1 Phaser game object
    * @param {Object} gameObj2 Phaser game object
+   * @return {Number} Distance between
    */
   distanceCalc: (gameObj1, gameObj2) => { return Phaser.Math.Distance.Chebyshev(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y) },
+
+  /**
+   * Converts ms to make it easier to read
+   * @param {Number} ms Milliseconds to convert
+   * @return {String} formatted time
+   */
+  timeConvert: (ms) => {
+    let milliseconds = parseInt((ms % 1000)),
+      seconds = parseInt((ms / 1000) % 60),
+      minutes = parseInt((ms / (1000 * 60)) % 60),
+      hours = parseInt((ms / (1000 * 60 * 60)) % 24);
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+  },
 
 
 }

@@ -173,9 +173,16 @@ class Menu extends Phaser.Scene {
 
     // transition
     playButton.on('pointerup', () => {
-      this.scene.stop('Menu');
-      intro_bgm.stop();
-      this.scene.start('Scene_1');
+      this.tweens.add({
+        targets: intro_bgm,
+        volume: 0,
+        duration: 1500,
+        onComplete: () => {
+          this.scene.stop('Menu');
+          intro_bgm.stop();
+          this.scene.start('Scene_1');
+        }
+      })
     })
 
   }
