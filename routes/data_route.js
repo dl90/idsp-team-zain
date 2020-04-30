@@ -1,4 +1,15 @@
+'use strict';
 
+// const express = require("express"),
+//   router = express.Router()
 
-  // const db = firebase.firestore()
-  // auth.onAuthStateChanged((user) => { console.log(user)})
+// module.exports = function (auth) {
+
+//   // const db = firebase.firestore()
+//   // auth.onAuthStateChanged((user) => { console.log(user)})
+
+//   router.post('u', (req, res) => {
+    
+//   })
+
+// }

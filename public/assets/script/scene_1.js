@@ -5,7 +5,7 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
- * @TODO fix danger audio queue
+ * @TODO fix audio transition
  */
 
 const scene_1_settings = {
@@ -22,6 +22,8 @@ const scene_1_settings = {
   enemyChaseDistance: 100,
   boneHealthRegen: 30,
   familySpawnPosition: [47, 1],
+  enemyHealthReduction: 0.1, // per 16ms
+  levelTime: 300, // s
 
   enemy: [
     { "id": 1, "x": 9, "y": 1, "tweenX": 0, "tweenY": 5 },
@@ -55,6 +57,7 @@ class Scene_1 extends Phaser.Scene {
     this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', './assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
+    this.load.image('back_button', './assets/sprites/buttons/button_back.png');                  //
     this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');                 //
     this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');               //
     this.load.audio('scene_1_bgm', './assets/bgm/Meme_Scene_1.mp3');                             //
@@ -100,6 +103,8 @@ class Scene_1 extends Phaser.Scene {
     this.scene.remove("Menu"); // maybe keep menu?
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
 
+
+
     // camera department
     this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
     this.physics.world.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
@@ -124,14 +129,42 @@ class Scene_1 extends Phaser.Scene {
     // follows player
     this.cameras.main.startFollow(gameState.player);
 
+    // time tracker
+    this.levelTime = scene_1_settings.levelTime;
+    this.timeText = this.add.text(scene_1_settings.canvasWidth / 2, 10, `Level time: ${this.levelTime}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
+    this.input.keyboard.once('keydown', () => {
+      this.startTime = this.time.now;
+
+      // 1s tick call
+      this.time.addEvent({
+        delay: 1000,
+        callback: () => {
+          if (gameState.healthVal > 0) {
+            this.levelTime--
+            this.timeText.setText(`Level time: ${this.levelTime}`);
+          }
+        },
+        callbackScope: this,
+        repeat: -1
+      })
+    }, this);
+
+    // score tracker
+    this.score = parseInt(this.levelTime * gameState.healthVal);
+    this.scoreText = this.add.text(scene_1_settings.canvasWidth / 2, 30, `Score: ${this.score}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
+
     // scene transition 
     this.girl_1 = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl_1');
     this.physics.add.overlap(gameState.player, this.girl_1, () => {
-      sceneBGM.stop()
-      sceneBGM.destroy()
-      this.sound.play('success_audio')
-      this.scene.stop("Scene_1")
-      this.scene.start("Scene_1_end")
+      sceneBGM.stop();
+      sceneBGM.destroy();
+
+      // timer
+      gameState.emitter.emit('end_time');
+
+      this.sound.play('success_audio');
+      this.scene.stop("Scene_1");
+      this.scene.start("Scene_1_end");
     })
 
     // audio department
@@ -149,46 +182,60 @@ class Scene_1 extends Phaser.Scene {
     const dangerBGM = this.sound.add('danger_audio', sound_config);
     const deathBGM = this.sound.add('death_audio', sound_config);
     this.sound.pauseOnBlur = false;
-    this.audioPlaying = true;
-    this.danger_bgm_toggle = true;
+    let audioPlaying = true,
+      danger_bgm_toggle = true;
 
     // emitter for music
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.on('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
-      this.audioPlaying = false;
+      audioPlaying = false;
       audioButton.setTexture('audio_button_off').setScale(0.6)
     }, this);
     gameState.emitter.on('resume_bgm', () => {
       this.dangerState && dangerBGM.isPaused ? dangerBGM.resume() : gameState.healthVal > 0 ? sceneBGM.resume() : deathBGM.resume();
-      this.audioPlaying = true
+      audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.6)
     }, this);
     gameState.emitter.once('death_bgm', () => {
       sceneBGM.pause();
       deathBGM.play();
-      this.audioPlaying = true
+      audioPlaying = true
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
-      if (this.danger_bgm_toggle) {
+      if (danger_bgm_toggle) {
         sceneBGM.pause();
         dangerBGM.play();
-        this.danger_bgm_toggle = false
+        danger_bgm_toggle = false
       }
     }, this);
     gameState.emitter.on('danger_bgm_stop', () => {
-      if (!this.danger_bgm_toggle) {
+      if (!danger_bgm_toggle) {
         dangerBGM.stop();
         sceneBGM.resume();
-        this.danger_bgm_toggle = true
+        danger_bgm_toggle = true
       }
     }, this);
 
-    gameState.emitter.emit('play_bgm');
-    const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0).setDepth(10).setInteractive();
-    audioButton.on('pointerup', () => { this.audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
+    // emitter for time
+    gameState.emitter.once('end_time', () => {
+      gameState.score = this.score;
+      this.endTime = this.time.now;
+      gameState.scene_1_time = gameFunctions.timeConvert(this.endTime - this.startTime)
+    }, this)
 
+    gameState.emitter.emit('play_bgm');
+
+    // buttons
+    const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0).setDepth(10).setInteractive();
+    audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
+
+    this.backButton = this.add.sprite(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight, 'back_button').setOrigin(0.5).setDepth(10).setVisible(false).setInteractive();
+    this.backButton.on('pointerup', () => {
+      this.sound.stopAll();
+      this.scene.restart();
+    });
 
     // --- Static --- //
 
@@ -261,26 +308,6 @@ class Scene_1 extends Phaser.Scene {
       }
     });
 
-    // lose health
-    function reduceHealth(obj1, obj2) {
-      obj1.setVelocityX(0).setVelocityY(0);
-      this.time.addEvent({
-        delay: 2000,
-        callbackScope: this,
-        loop: false,
-        callback: () => {
-          this.healthTrigger = true;
-          this.time.removeAllEvents();
-        }
-      })
-
-      // const currentTrigger = true && currentTrigger
-      if (this.healthTrigger) {
-        gameState.healthVal -= 10;
-        this.healthTrigger = false;
-      }
-    }
-
     // enemy group
     this.enemies = this.physics.add.group();
     scene_1_settings.enemy.forEach(function (obj) {
@@ -296,9 +323,6 @@ class Scene_1 extends Phaser.Scene {
     this.enemies.getChildren().forEach(function (gameObj) {
       // enemy colliders
       this.physics.add.collider(gameObj, [walls, this.moveable, this.enemies]);
-
-      // overlap
-      this.physics.add.overlap(gameObj, gameState.player, reduceHealth.bind(this));
 
       // tween
       if (gameObj.getData("tweenX") !== 0) {
@@ -386,11 +410,12 @@ class Scene_1 extends Phaser.Scene {
 
         if (this.physics.overlap(gameState.player, gameObj)) {
           gameObj.setVelocityX(0).setVelocityY(0);
-          this.dangerState = true
+          gameState.healthVal -= scene_1_settings.enemyHealthReduction;
+          this.dangerState = true;
         } else if (distanceCalc(gameState.player, gameObj) < scene_1_settings.enemyChaseDistance) {
           tween.pause();
           this.physics.moveToObject(gameObj, gameState.player, scene_1_settings.enemyMoveSpeed);
-          this.dangerState = true
+          this.dangerState = true;
         } else {
           if (Math.round(gameObj.x) === gameObj.getData("x") * 32 - 16 && Math.round(gameObj.y) === gameObj.getData("y") * 32 - 16) {
             tween.play();
@@ -402,24 +427,31 @@ class Scene_1 extends Phaser.Scene {
         // enemy drag over semiWalls
         this.physics.overlap(gameObj, this.semiWalls) ? gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) : gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
       }
-    })
+    });
 
-    if (this.dangerState && gameState.healthVal > 0) {
-      gameState.emitter.emit('danger_bgm_play');
-    } else {
-      gameState.emitter.emit('danger_bgm_stop');
-    }
+    // danger_bgm emitter
+    (this.dangerState && gameState.healthVal > 0) ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
+
 
     if (gameState.healthVal > 0) {
       gameFunctions.control(gameState, scene_1_settings);
       gameFunctions.activeHealthTextures(gameState);
+
+      // update score
+      this.score = parseInt(this.levelTime * gameState.healthVal);
+      this.scoreText.setText(`Score: ${this.score}`);
     } else {
+      this.score = 0;
+      this.scoreText.setText(`Score: ${this.score}`);
+
+      gameState.emitter.emit('end_time');
       this.levelText.destroy();
-      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 70, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#4B004F' }).setScrollFactor(0);
+      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#000000' }).setScrollFactor(0).setOrigin(0.5);
       this.physics.pause();
       this.anims.pauseAll();
       this.tweens.pauseAll();
       gameState.emitter.emit('death_bgm');
+      this.backButton.setVisible(true);
     }
   }
 }

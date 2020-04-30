@@ -1,10 +1,12 @@
+'use strict';
 /* eslint-disable no-undef */
+
 const express = require("express"),
   helmet = require("helmet"),
   firebase = require("firebase"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
-  // { firebaseConfig } = require("./firebase_config"),
+  { firebaseConfig } = require("./firebase_config"),
   app = express();
 
 const config = {
@@ -26,15 +28,14 @@ app.use(requestIp.mw());
 app.set('trust proxy', 1);
 
 const reqLimiter = rateLimit({
-  windowMs: 30 * 60 * 1000,
-  max: 30
+  windowMs: 5 * 60 * 1000,
+  max: 5
 });
 
 firebase.initializeApp(config);
 const auth = firebase.auth();
 
 // var admin = require('firebase-admin');
-// heroku config:set DATABASE_URL=secret.com
 
 firebase.auth().onAuthStateChanged(function (user) {
   if (user) {
@@ -46,9 +47,9 @@ firebase.auth().onAuthStateChanged(function (user) {
       uid = user.uid,
       providerData = user.providerData;
     console.log("\n----------------------- auth activity ----------------------------")
-    console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName}, emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous}, \nproviderData: ${JSON.stringify(providerData)}`);
+    console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName}, emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous}, \nproviderData: ${JSON.stringify(providerData)}\n`);
   } else {
-    console.log("no user")
+    console.log("no user");
   }
 });
 
