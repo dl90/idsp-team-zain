@@ -19,7 +19,6 @@ module.exports = function (fireStore) {
     const { uid, scene_1_score, scene_1_time_raw, scene_1_health } = req.body;
     fireStore.collection("user_score").doc('/' + uid).get().then(user => {
       if (!user.exists) {
-
         fireStore.collection("user_score").doc('/' + uid)
           .set({
             'scene_1_score': scene_1_score,
@@ -33,9 +32,8 @@ module.exports = function (fireStore) {
             console.log(err)
           })
       } else {
-
-        const diff = {};
-        const stored = user.data();
+        const stored = user.data(),
+          diff = {};
         // console.log(stored.scene_1_time_raw, scene_1_time_raw);
         stored.scene_1_time_raw > scene_1_time_raw ? diff.scene_1_time_raw = scene_1_time_raw : null;
         stored.scene_1_health < scene_1_health ? diff.scene_1_health = scene_1_health : null;
@@ -43,16 +41,13 @@ module.exports = function (fireStore) {
 
         fireStore.collection("user_score").doc('/' + uid)
           .update(diff)
-          .then(() => {
-            res.send(JSON.stringify(diff));
-          }).catch((err) => {
+          .then(() => res.send(JSON.stringify(diff)))
+          .catch((err) => {
             res.status(401).end();
             console.log(err)
-          })
+          });
       }
     })
-
-
   })
 
   return router

@@ -36,8 +36,7 @@ module.exports = function (auth) {
           if (user) {
             user.updateProfile({ displayName: name })
               .then(() => {
-                const displayName = user.displayName;
-                res.json({ displayName });
+                res.json({ displayName: user.displayName, uid: user.uid });
               }).catch(err => { console.log(err) });
           } else {
             res.status(401).end();

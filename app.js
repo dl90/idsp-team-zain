@@ -6,7 +6,8 @@ const express = require("express"),
   firebase = require("firebase"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
-  // { firebaseConfig } = require("./firebase_config"), // comment when deploying
+  { firebaseConfig } = require("./firebase_config"), // comment when deploying
+  { checkUrl } = require("./middleware/checkUrl"),
   app = express();
 
 const fbConfig = {
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(requestIp.mw());
 app.set('trust proxy', true);
+app.use(checkUrl)
 
 const reqLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
@@ -52,28 +54,7 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
-function wwwRedirect(req, res, next) {
-  if (req.headers.host.slice(0, 4) === 'www.') {
-    const newHost = req.headers.host.slice(4);
-    return res.redirect(301, req.protocol + '://' + newHost + req.originalUrl);
-  }
-  next();
-}
-
-// app.use(wwwRedirect);
-
 module.exports = () => {
-
-  app.get("/test", (req, res, next) => {
-    console.log(req.headers)
-    console.log(req.headers.host, req.protocol, req.originalUrl)
-    next();
-  }, wwwRedirect, (req, res) => {
-    console.log(req.headers)
-    console.log(req.headers.host, req.protocol, req.originalUrl)
-    console.log(req.headers['x-forwarded-proto'])
-    res.send('OK')
-  });
 
   const authRoute = require('./routes/auth_route')(auth);
   app.use("/auth", reqLimiter, authRoute);
