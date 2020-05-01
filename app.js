@@ -6,10 +6,10 @@ const express = require("express"),
   firebase = require("firebase"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
-  // { firebaseConfig } = require("./firebase_config"),
+  // { firebaseConfig } = require("./firebase_config"), // comment when deploying
   app = express();
 
-const config = {
+const fbConfig = {
   apiKey:             process.env.apiKey            || firebaseConfig.apiKey,
   authDomain:         process.env.authDomain        || firebaseConfig.authDomain,
   databaseURL:        process.env.databaseURL       || firebaseConfig.databaseURL,
@@ -32,12 +32,11 @@ const reqLimiter = rateLimit({
   max: 5
 });
 
-firebase.initializeApp(config);
+firebase.initializeApp(fbConfig);
 const auth = firebase.auth();
+const fireStore = firebase.firestore();
 
-// var admin = require('firebase-admin');
-
-firebase.auth().onAuthStateChanged(function (user) {
+firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     let displayName = user.displayName,
       email = user.email,
@@ -57,6 +56,9 @@ module.exports = () => {
 
   const authRoute = require('./routes/auth_route')(auth);
   app.use("/auth", reqLimiter, authRoute);
+
+  const dataRoute = require('./routes/data_route')(fireStore);
+  app.use('/data', dataRoute);
 
   return app;
 };

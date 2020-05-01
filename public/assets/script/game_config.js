@@ -8,7 +8,7 @@
  */
 
 const gameState = {
-  userID: null,
+  uid: null,
   userDisplayName: null,
   score: null
 };
@@ -19,6 +19,7 @@ const config = {
   height: 270,
   parent: "game",
   backgroundColor: "e5e5e5",
+  // resolution: window.devicePixelRatio,
   physics: {
     default: 'arcade',
     arcade: {

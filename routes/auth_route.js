@@ -15,11 +15,11 @@ module.exports = function (auth) {
 
     auth.signInWithEmailAndPassword(email, pass)
       .then(() => {
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(user => {
           if (user) {
-            res.status(200).json({ displayName: user.displayName });
+            res.status(200).json({ displayName: user.displayName, uid: user.uid });
           } else {
-            res.status(401);
+            res.status(401).end();
           }
         })
       }, (rejected) => { res.status(401).json({ rejected }) })
@@ -40,7 +40,7 @@ module.exports = function (auth) {
                 res.status(200).json({ displayName })
               }).catch(err => { console.log(err) });
           } else {
-            res.status(401);
+            res.status(401).end();
           }
         });
       }, (rejected) => { res.status(401).json({ rejected }) })

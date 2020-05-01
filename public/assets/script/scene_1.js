@@ -71,7 +71,7 @@ class Scene_1 extends Phaser.Scene {
 
     // level 1 specifics
     const level_1_path = './assets/sprites/level_1'
-    this.load.image('bench', level_1_path + '/bench.png');                                       //
+    this.load.image('bench', level_1_path + '/bench_lev1.png');                                  //
     this.load.image('birch_tree', level_1_path + '/birch_tree.png');                             //
     this.load.image('bush_round', level_1_path + '/bush_round.png');                             //
     this.load.image('bush_square', level_1_path + '/bush_square.png');                           //
