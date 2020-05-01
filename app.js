@@ -6,7 +6,7 @@ const express = require("express"),
   firebase = require("firebase"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
-  { firebaseConfig } = require("./firebase_config"), // comment when deploying
+  // { firebaseConfig } = require("./firebase_config"), // comment when deploying
   { checkUrl } = require("./middleware/checkUrl"),
   app = express();
 
