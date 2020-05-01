@@ -2,12 +2,13 @@
 /* eslint-disable no-unused-vars */
 
 const express = require("express"),
-  router = express.Router()
+  router = express.Router(),
+  firebase = require("firebase");
 
 module.exports = function (fireStore) {
 
   router.get('/score', (req, res) => {
-    // let doc = fireStore.collection('user_score').doc('/' +  req.uid)
+    // let doc = fireStore.collection('user_score').doc('/' +  req.body.uid)
   })
 
   router.get('/high_score', (req, res) => {
@@ -15,13 +16,26 @@ module.exports = function (fireStore) {
   })
 
   router.post('/score', (req, res) => {
-    const { uid, scene_1_score, scene_1_time, scene_1_health } = req.body;
-    res.send(JSON.stringify({msg:'ok'}))
-    // fireStore.collections("user_score").doc('/' +  req.uid)
-    // .add({
+    const { uid, scene_1_score, scene_1_time_raw, scene_1_health } = req.body;
+    fireStore.collection("user_score").get().then(users => {
+      users.forEach(user => {
+        console.log(user)
+      })
+    })
 
-    //   timestamp: fireStore.FieldValue.serverTimestamp()
-    // })
+    fireStore.collection("user_score").doc('/' + uid)
+      .set({
+        userId: uid,
+        scene_1_score: scene_1_score,
+        scene_1_time_raw: scene_1_time_raw,
+        scene_1_health: scene_1_health,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        res.send(JSON.stringify({ msg: 'ok' }))
+      }).catch((err) => {
+        res.status(401)
+        console.log(err)
+      })
   })
 
   return router

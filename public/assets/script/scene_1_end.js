@@ -20,23 +20,23 @@ class Scene_1_end extends Phaser.Scene {
   create() {
     this.scene.stop("Scene_1");
 
-    this.add.text(config.width / 2, config.height / 2 - 70, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16 }).setOrigin(0.5);
-    this.add.text(config.width / 2, config.height / 2 - 50, `Score: ${gameState.score}`, { fontSize: 16 }).setOrigin(0.5);
-    this.add.text(config.width / 2, config.height / 2 - 30, `Time: ${gameState.scene_1_time}`, { fontSize: 16 }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 70, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 50, `Score: ${gameState.score}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 30, `Time: ${gameState.scene_1_time}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
     const playButton = this.add.sprite(config.width / 2, config.height - 100, 'play_button');
     const backButton = this.add.sprite(config.width / 2, config.height - 80, 'back_button');
 
-    const status = this.add.text(config.width / 2, config.height / 2 - 10, '', { fontSize: 16 }).setOrigin(0.5);
+    const status = this.add.text(config.width / 2, config.height / 2 - 10, '', { fontSize: 16, color: 'black' }).setOrigin(0.5);
     fetch('/data/score', {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ 'uid': gameState.uid, 'scene_1_score': gameState.score, 'scene_1_time': gameState.scene_1_time, 'scene_1_health': gameState.healthVal })
+      body: JSON.stringify({ 'uid': gameState.uid, 'scene_1_score': gameState.score, 'scene_1_time_raw': gameState.scene_1_time_raw, 'scene_1_health': gameState.healthVal })
     }).then(res => {
       if (res.status === 200) {
-        return res.json()
+        return res.json();
       } else {
-        status.setText("Data not posted")
+        status.setText("Data not posted");
       }
     }).then(resData => console.log(resData))
       .catch(err => console.log(err));
