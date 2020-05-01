@@ -26,7 +26,8 @@ class Scene_1_end extends Phaser.Scene {
     const playButton = this.add.sprite(config.width / 2, config.height - 100, 'play_button');
     const backButton = this.add.sprite(config.width / 2, config.height - 80, 'back_button');
 
-    const status = this.add.text(config.width / 2, config.height / 2 - 10, '', { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    const status = this.add.text(config.width / 2, config.height / 2, '', { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    console.log(gameState.uid)
     fetch('/data/score', {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
@@ -38,9 +39,15 @@ class Scene_1_end extends Phaser.Scene {
       } else {
         status.setText("Data not posted");
       }
-    }).then(resData => console.log(resData))
-      .catch(err => console.log(err));
-
+    }).then(resData => {
+      // console.log(resData)
+      let newStatusText = ''
+      const { scene_1_time_raw , scene_1_health, scene_1_score } = resData;
+      scene_1_time_raw !== undefined ? newStatusText += "New best time!\n" : null
+      scene_1_health !== undefined ? newStatusText += "New best health!\n" : null
+      scene_1_score !== undefined ? newStatusText += "New best score!\n" : null
+      status.setText(newStatusText);
+    }).catch(err => console.log(err));
 
     playButton.setInteractive();
     backButton.setInteractive();

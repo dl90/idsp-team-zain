@@ -37,7 +37,7 @@ module.exports = function (auth) {
             user.updateProfile({ displayName: name })
               .then(() => {
                 const displayName = user.displayName;
-                res.status(200).json({ displayName })
+                res.json({ displayName });
               }).catch(err => { console.log(err) });
           } else {
             res.status(401).end();

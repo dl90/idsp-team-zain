@@ -12,30 +12,47 @@ module.exports = function (fireStore) {
   })
 
   router.get('/high_score', (req, res) => {
-    fireStore.collection('high_score').onSnapshot()
+    // fireStore.collection('high_score').onSnapshot()
   })
 
   router.post('/score', (req, res) => {
     const { uid, scene_1_score, scene_1_time_raw, scene_1_health } = req.body;
-    fireStore.collection("user_score").get().then(users => {
-      users.forEach(user => {
-        console.log(user)
-      })
+    fireStore.collection("user_score").doc('/' + uid).get().then(user => {
+      if (!user.exists) {
+
+        fireStore.collection("user_score").doc('/' + uid)
+          .set({
+            'scene_1_score': scene_1_score,
+            'scene_1_time_raw': scene_1_time_raw,
+            'scene_1_health': scene_1_health,
+            'timestamp': firebase.firestore.FieldValue.serverTimestamp()
+          }).then(() => {
+            res.send(JSON.stringify({ msg: 'ok' }))
+          }).catch((err) => {
+            res.status(401).end();
+            console.log(err)
+          })
+      } else {
+
+        const diff = {};
+        const stored = user.data();
+        // console.log(stored.scene_1_time_raw, scene_1_time_raw);
+        stored.scene_1_time_raw > scene_1_time_raw ? diff.scene_1_time_raw = scene_1_time_raw : null;
+        stored.scene_1_health < scene_1_health ? diff.scene_1_health = scene_1_health : null;
+        stored.scene_1_score < scene_1_score ? diff.scene_1_score = scene_1_score : null;
+
+        fireStore.collection("user_score").doc('/' + uid)
+          .update(diff)
+          .then(() => {
+            res.send(JSON.stringify(diff));
+          }).catch((err) => {
+            res.status(401).end();
+            console.log(err)
+          })
+      }
     })
 
-    fireStore.collection("user_score").doc('/' + uid)
-      .set({
-        userId: uid,
-        scene_1_score: scene_1_score,
-        scene_1_time_raw: scene_1_time_raw,
-        scene_1_health: scene_1_health,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        res.send(JSON.stringify({ msg: 'ok' }))
-      }).catch((err) => {
-        res.status(401)
-        console.log(err)
-      })
+
   })
 
   return router
