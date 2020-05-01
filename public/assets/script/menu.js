@@ -48,7 +48,7 @@ class Menu extends Phaser.Scene {
     playButton.setInteractive().setVisible(false);
     audioButton.setInteractive();
 
-    const prompt = this.add.text(config.width / 2, config.height / 2, 'Please login or create an account to proceed', { color: 'orange', fontSize: '16px ' }).setOrigin(0.5);
+    const prompt = this.add.text(config.width / 2, config.height / 2, 'Please login or create an account to proceed', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
     const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5);
     const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
 
@@ -88,11 +88,12 @@ class Menu extends Phaser.Scene {
             console.log('something else');
           }
         }, (reject) => {
-          prompt.setText(reject.reason)
+          prompt.setText(reject.reason);
         }).then((resData) => {
           if (resData) {
             prompt.setText(`Welcome ${resData.displayName}`);
             gameState.userDisplayName = resData.displayName;
+            gameState.uid = resData.uid;
             playButton.setVisible(true);
           }
         }).catch(err => { console.log(err) });
@@ -132,7 +133,7 @@ class Menu extends Phaser.Scene {
             prompt.setText("Signup unsuccessful");
           }
         }, (reject) => {
-          prompt.setText(reject.reason)
+          prompt.setText(reject.reason);
         }).then((resData) => {
           if (resData) {
             prompt.setText(`Welcome ${resData.displayName}`);
@@ -140,15 +141,15 @@ class Menu extends Phaser.Scene {
             playButton.setVisible(true);
           }
         }).catch(err => {
-          console.log(err)
+          console.log(err);
         })
 
       } else if (event.target.id === "sign-up-submit") {
         prompt.setText('Invalid input');
       } else if (event.target.id === "sign-up-to-login") {
         prompt.setText('Login');
-        signupForm.setVisible(false)
-        loginForm.setVisible(true)
+        signupForm.setVisible(false);
+        loginForm.setVisible(true);
       }
     });
 
@@ -159,13 +160,13 @@ class Menu extends Phaser.Scene {
     emitter.on('pause_bgm', () => {
       intro_bgm.pause();
       playing = false;
-      audioButton.setTexture('audio_button_off').setScale(0.6)
-    }, this)
+      audioButton.setTexture('audio_button_off').setScale(0.6);
+    }, this);
     emitter.on('resume_bgm', () => {
       intro_bgm.resume();
       playing = true
-      audioButton.setTexture('audio_button_on').setScale(0.6)
-    }, this)
+      audioButton.setTexture('audio_button_on').setScale(0.6);
+    }, this);
 
     let playing = true;
     audioButton.on('pointerup', () => { playing ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
@@ -182,8 +183,8 @@ class Menu extends Phaser.Scene {
           intro_bgm.stop();
           this.scene.start('Scene_1');
         }
-      })
-    })
+      });
+    });
 
   }
 }
