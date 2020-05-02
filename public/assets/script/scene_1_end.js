@@ -20,9 +20,9 @@ class Scene_1_end extends Phaser.Scene {
   create() {
     this.scene.stop("Scene_1");
 
-    this.add.text(config.width / 2, config.height / 2 - 70, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
-    this.add.text(config.width / 2, config.height / 2 - 50, `Score: ${gameState.score}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
-    this.add.text(config.width / 2, config.height / 2 - 30, `Time: ${gameState.scene_1_time}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 100, `Health left ${gameState.healthVal.toFixed(2)}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 80, `Score: ${gameState.score}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 60, `Time: ${gameState.scene_1_time}`, { fontSize: 16, color: 'black' }).setOrigin(0.5);
     const playButton = this.add.sprite(config.width / 2, config.height - 100, 'play_button');
     const backButton = this.add.sprite(config.width / 2, config.height - 80, 'back_button');
 
@@ -40,7 +40,6 @@ class Scene_1_end extends Phaser.Scene {
         status.setText("Data not posted");
       }
     }).then(resData => {
-      // console.log(resData)
       let newStatusText = ''
       const { scene_1_time_raw , scene_1_health, scene_1_score } = resData;
       scene_1_time_raw !== undefined ? newStatusText += "New best time!\n" : null

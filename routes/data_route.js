@@ -34,7 +34,6 @@ module.exports = function (fireStore) {
       } else {
         const stored = user.data(),
           diff = {};
-        // console.log(stored.scene_1_time_raw, scene_1_time_raw);
         stored.scene_1_time_raw > scene_1_time_raw ? diff.scene_1_time_raw = scene_1_time_raw : null;
         stored.scene_1_health < scene_1_health ? diff.scene_1_health = scene_1_health : null;
         stored.scene_1_score < scene_1_score ? diff.scene_1_score = scene_1_score : null;
