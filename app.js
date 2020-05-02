@@ -8,9 +8,8 @@ const express = require("express"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
   cookieParser = require('cookie-parser'),
-  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
+  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
   { checkUrl } = require("./middleware/checkUrl"),
-  // { checkToken } = require("./middleware/fbCheckToken"),
   app = express();
 
 
