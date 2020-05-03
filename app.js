@@ -8,8 +8,9 @@ const express = require("express"),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
   cookieParser = require('cookie-parser'),
-  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
   { checkUrl } = require("./middleware/checkUrl"),
+  { verifyToken } = require("./middleware/token"),
+  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
   app = express();
 
 
@@ -28,7 +29,7 @@ const fbService = {
   "type": process.env.type || firebaseService.type,
   "project_id": process.env.project_id || firebaseService.project_id,
   "private_key_id": process.env.private_key_id || firebaseService.private_key_id,
-  "private_key": process.env.private_key.replace(/\\n/g, '\n') || firebaseService.private_key,
+  "private_key": process.env.private_key ? process.env.private_key.replace(/\\n/g, '\n') : firebaseService.private_key,
   "client_email": process.env.client_email || firebaseService.client_email,
   "client_id": process.env.client_id || firebaseService.client_id,
   "auth_uri": process.env.auth_uri || firebaseService.auth_uri,
@@ -46,10 +47,14 @@ app.use(requestIp.mw());
 app.set('trust proxy', true);
 process.env.apiKey ? app.use(checkUrl) : null;
 
-const reqLimiter = rateLimit({
+const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 10
 });
+const dataLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 5
+})
 
 firebase.initializeApp(fbConfig);
 admin.initializeApp({ credential: admin.credential.cert(fbService), databaseURL: "https://fbauthdemo-2a451.firebaseio.com" });
@@ -77,10 +82,10 @@ auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 module.exports = () => {
 
   const authRoute = require('./routes/auth_route')(auth, admin);
-  app.use("/auth", reqLimiter, authRoute);
+  app.use("/auth", authLimiter, authRoute);
 
   const dataRoute = require('./routes/data_route')(fireStore);
-  app.use('/data', dataRoute);
+  app.use('/data', dataLimiter, verifyToken, dataRoute);
 
   return app;
 };

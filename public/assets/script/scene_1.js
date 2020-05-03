@@ -17,7 +17,7 @@ const scene_1_settings = {
   movementHealthCostRatio: 0.000005,
   diagonalMoveSpeed: 70.71,
   twoKeyMultiplier: 0.707,
-  playerSpawnPosition: [3, 3],
+  playerSpawnPosition: [0, 3],
   enemyMoveSpeed: 85,
   enemyChaseDistance: 100,
   boneHealthRegen: 30,
@@ -38,7 +38,18 @@ const scene_1_settings = {
     { "id": 10, "x": 45, "y": 43, "tweenX": -8, "tweenY": 0 }
   ],
   enemyTweenDurationMultiplier: 500,
-  enemyTweenLoopDelay: 20000
+  enemyTweenLoopDelay: 20000,
+
+  coins: [
+    { "x": 25, "y": 3 },
+    { "x": 44, "y": 1 },
+    { "x": 42, "y": 17 },
+    { "x": 21, "y": 25 },
+    { "x": 3, "y": 23 },
+    { "x": 17, "y": 41 },
+    { "x": 40, "y": 45 },
+  ],
+  coinScoreBonus: 1000
 }
 
 class Scene_1 extends Phaser.Scene {
@@ -51,7 +62,7 @@ class Scene_1 extends Phaser.Scene {
     gameFunctions.loading.call(this);
     gameFunctions.loadHealthTextures.call(this);
 
-    this.load.image('bg', './assets/sprites/testing/100x100.png'); // testing bg
+    this.load.image('bg', './assets/sprites/level_1/bg.png'); // testing bg
     this.load.spritesheet('f_dog', './assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('b_dog', './assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
@@ -68,6 +79,7 @@ class Scene_1 extends Phaser.Scene {
     // generics
     this.load.image('girl_1', './assets/sprites/family/girl_1.png');                             //
     this.load.image('bone', './assets/sprites/items/bone.png');                                  //
+    this.load.image('coin', './assets/sprites/items/coin.png');                                  //
 
     // level 1 specifics
     const level_1_path = './assets/sprites/level_1'
@@ -100,13 +112,11 @@ class Scene_1 extends Phaser.Scene {
     this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
     this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
-    this.scene.remove("Menu"); // maybe keep menu?
+    // this.scene.remove("Menu"); // maybe keep menu?
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
 
-
-
     // camera department
-    this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
+    this.camera = this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
     this.physics.world.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
 
     // map from JSON option
@@ -119,6 +129,7 @@ class Scene_1 extends Phaser.Scene {
     // initialize health
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(10);
     gameState.healthVal = 100;
+    gameState.bonusScore = 0;
 
     // initialize player & controls
     gameState.cursors = this.input.keyboard.createCursorKeys();
@@ -127,7 +138,7 @@ class Scene_1 extends Phaser.Scene {
     // gameState.player.setBounce(10, 10)
 
     // follows player
-    this.cameras.main.startFollow(gameState.player);
+    this.camera.startFollow(gameState.player);
 
     // time tracker
     this.levelTime = scene_1_settings.levelTime;
@@ -150,7 +161,7 @@ class Scene_1 extends Phaser.Scene {
     }, this);
 
     // score tracker
-    this.score = parseInt(this.levelTime * gameState.healthVal);
+    this.score = gameState.bonusScore + parseInt(this.levelTime * gameState.healthVal);
     this.scoreText = this.add.text(scene_1_settings.canvasWidth / 2, 30, `Score: ${this.score}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
 
     // scene transition 
@@ -200,18 +211,21 @@ class Scene_1 extends Phaser.Scene {
     }, this);
     gameState.emitter.once('death_bgm', () => {
       sceneBGM.pause();
-      deathBGM.play();
-      audioPlaying = true
+      if (audioPlaying) {
+        deathBGM.play();
+        // audioPlaying = true
+      }
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
-      if (danger_bgm_toggle) {
+      if (danger_bgm_toggle && audioPlaying) {
         sceneBGM.pause();
         dangerBGM.play();
         danger_bgm_toggle = false
+        audioPlaying = true
       }
     }, this);
     gameState.emitter.on('danger_bgm_stop', () => {
-      if (!danger_bgm_toggle) {
+      if (!danger_bgm_toggle && audioPlaying) {
         dangerBGM.stop();
         sceneBGM.resume();
         danger_bgm_toggle = true
@@ -232,10 +246,14 @@ class Scene_1 extends Phaser.Scene {
     const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0).setDepth(10).setInteractive();
     audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
-    this.backButton = this.add.sprite(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight, 'back_button').setOrigin(0.5).setDepth(10).setVisible(false).setInteractive();
+    this.backButton = this.add.sprite(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 + 50, 'back_button').setDepth(10).setVisible(false).setOrigin(0.5).setInteractive().setScrollFactor(0);
     this.backButton.on('pointerup', () => {
-      this.sound.stopAll();
-      this.scene.restart();
+      this.tweens.add({
+        targets: deathBGM,
+        volume: 0,
+        duration: 1500,
+        onComplete: () => { this.scene.restart() }
+      })
     });
 
     // --- Static --- //
@@ -281,6 +299,17 @@ class Scene_1 extends Phaser.Scene {
         (gameState.healthVal + scene_1_settings.boneHealthRegen) > 100 ? gameState.healthVal = 100 : gameState.healthVal += scene_1_settings.boneHealthRegen;
         gameObj.destroy();
         gameFunctions.activeHealthTextures(gameState);
+      });
+    });
+
+    // coins
+    this.collectables = this.physics.add.group();
+    scene_1_settings.coins.forEach(coin => { this.collectables.create(coin.x * 32 - 16, coin.y * 32 - 16, 'coin').setCircle(15, 1, 0) });
+    this.collectables.getChildren().forEach(gameObj => {
+      this.physics.add.overlap(gameState.player, gameObj, () => {
+        gameState.bonusScore += scene_1_settings.coinScoreBonus;
+        gameState.coinCount += 1;
+        gameObj.destroy();
       });
     });
 
@@ -439,7 +468,7 @@ class Scene_1 extends Phaser.Scene {
       gameFunctions.activeHealthTextures(gameState);
 
       // update score
-      this.score = parseInt(this.levelTime * gameState.healthVal);
+      this.score = gameState.bonusScore + parseInt(this.levelTime * gameState.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
     } else {
       this.score = 0;
@@ -447,10 +476,18 @@ class Scene_1 extends Phaser.Scene {
 
       gameState.emitter.emit('end_time');
       this.levelText.destroy();
-      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: '#000000' }).setScrollFactor(0).setOrigin(0.5);
+      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: 'white' }).setScrollFactor(0).setOrigin(0.5);
+      this.tweens.add({
+        targets: this.levelText,
+        alpha: 0,
+        duration: 2000,
+        loop: -1,
+        ease: 'Linear',
+        yoyo: false,
+      });
       this.physics.pause();
       this.anims.pauseAll();
-      this.tweens.pauseAll();
+      // this.tweens.pauseAll();
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }

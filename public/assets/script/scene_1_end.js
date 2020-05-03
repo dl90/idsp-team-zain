@@ -27,12 +27,17 @@ class Scene_1_end extends Phaser.Scene {
     const backButton = this.add.sprite(config.width / 2, config.height - 80, 'back_button');
 
     const status = this.add.text(config.width / 2, config.height / 2, '', { fontSize: 16, color: 'black' }).setOrigin(0.5);
-    console.log(gameState.uid)
     fetch('/data/score', {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ 'uid': gameState.uid, 'scene_1_score': gameState.score, 'scene_1_time_raw': gameState.scene_1_time_raw, 'scene_1_health': gameState.healthVal })
+      body: JSON.stringify({
+        'uid': gameState.uid,
+        'scene_1_score': gameState.score,
+        'scene_1_time_raw': gameState.scene_1_time_raw,
+        'scene_1_health': gameState.healthVal,
+        'scene_1_bonusScore': gameState.bonusScore
+      })
     }).then(res => {
       if (res.status === 200) {
         return res.json();
@@ -41,10 +46,11 @@ class Scene_1_end extends Phaser.Scene {
       }
     }).then(resData => {
       let newStatusText = ''
-      const { scene_1_time_raw , scene_1_health, scene_1_score } = resData;
-      scene_1_time_raw !== undefined ? newStatusText += "New best time!\n" : null
-      scene_1_health !== undefined ? newStatusText += "New best health!\n" : null
-      scene_1_score !== undefined ? newStatusText += "New best score!\n" : null
+      const { scene_1_time_raw, scene_1_health, scene_1_score } = resData;
+      scene_1_time_raw !== undefined ? newStatusText += "New record: time!\n" : null
+      scene_1_health !== undefined ? newStatusText += "New record: health!\n" : null
+      scene_1_score !== undefined ? newStatusText += "New record: score!\n" : null
+      scene_1_bonusScore !== undefined ? newStatusText += "New record: bonus score!\n" : null
       status.setText(newStatusText);
     }).catch(err => console.log(err));
 
@@ -64,5 +70,4 @@ class Scene_1_end extends Phaser.Scene {
     })
   }
 
-  // update() {}
 }
