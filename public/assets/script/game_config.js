@@ -10,7 +10,9 @@
 const gameState = {
   uid: null,
   userDisplayName: null,
-  score: null
+  score: null,
+  bonusScore: 0,
+  coinCount: 0
 };
 
 const config = {

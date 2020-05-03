@@ -16,7 +16,7 @@ module.exports = function (fireStore) {
   })
 
   router.post('/score', (req, res) => {
-    const { uid, scene_1_score, scene_1_time_raw, scene_1_health } = req.body;
+    const { uid, scene_1_score, scene_1_time_raw, scene_1_health, scene_1_bonusScore } = req.body;
     fireStore.collection("user_score").doc('/' + uid).get().then(user => {
       if (!user.exists) {
         fireStore.collection("user_score").doc('/' + uid)
@@ -24,6 +24,7 @@ module.exports = function (fireStore) {
             'scene_1_score': scene_1_score,
             'scene_1_time_raw': scene_1_time_raw,
             'scene_1_health': scene_1_health,
+            'scene_1_bonusScore': scene_1_bonusScore,
             'timestamp': firebase.firestore.FieldValue.serverTimestamp()
           }).then(() => {
             res.send(JSON.stringify({ msg: 'ok' }))
@@ -37,6 +38,7 @@ module.exports = function (fireStore) {
         stored.scene_1_time_raw > scene_1_time_raw ? diff.scene_1_time_raw = scene_1_time_raw : null;
         stored.scene_1_health < scene_1_health ? diff.scene_1_health = scene_1_health : null;
         stored.scene_1_score < scene_1_score ? diff.scene_1_score = scene_1_score : null;
+        stored.scene_1_bonusScore < scene_1_bonusScore ? diff.scene_1_bonusScore = scene_1_bonusScore : null;
 
         fireStore.collection("user_score").doc('/' + uid)
           .update(diff)
