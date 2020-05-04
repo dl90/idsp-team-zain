@@ -10,7 +10,7 @@ const express = require("express"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
+  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
   app = express();
 
 
@@ -81,7 +81,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
 module.exports = () => {
 
-  const authRoute = require('./routes/auth_route')(auth, admin);
+  const authRoute = require('./routes/auth_route')(auth);
   app.use("/auth", authLimiter, authRoute);
 
   const dataRoute = require('./routes/data_route')(fireStore);

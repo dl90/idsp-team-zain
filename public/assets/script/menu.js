@@ -207,6 +207,7 @@ class Menu extends Phaser.Scene {
 
     // transition
     playButton.on('pointerup', () => {
+      logoutButton.removeListener('pointerup')
       this.tweens.add({
         targets: intro_bgm,
         volume: 0,
@@ -221,6 +222,7 @@ class Menu extends Phaser.Scene {
 
     // logout
     logoutButton.on('pointerup', () => {
+      playButton.removeListener('pointerup')
       fetch("/auth/logout", {
         method: "GET"
       }).then(() => {

@@ -16,11 +16,13 @@ const gameState = {
 };
 
 const config = {
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,
   width: 480,
   height: 270,
   parent: "game",
   backgroundColor: "e5e5e5",
+  roundPixels: true,
+  antialias: false,
   // resolution: window.devicePixelRatio,
   physics: {
     default: 'arcade',
@@ -37,8 +39,11 @@ const config = {
   dom: {
     createContainer: true
   },
-  render: { pixelArt: true },
-  scene: [Menu, Scene_1, Scene_1_end, Scene_2]
+  render: {
+    pixelArt: true
+  },
+  // scene: [Menu, Scene_1, Scene_1_end, Scene_2, ScoreBoard]
+  scene: [Scene_2]
 };
 
 try {
