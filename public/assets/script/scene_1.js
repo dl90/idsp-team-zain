@@ -168,7 +168,7 @@ class Scene_1 extends Phaser.Scene {
     this.girl_1 = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl_1');
     this.physics.add.overlap(gameState.player, this.girl_1, () => {
       sceneBGM.stop();
-      sceneBGM.destroy();
+      // sceneBGM.destroy();
 
       // timer
       gameState.emitter.emit('end_time');
@@ -202,24 +202,32 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
       audioPlaying = false;
-      audioButton.setTexture('audio_button_off').setScale(0.6)
+      audioButton.setTexture('audio_button_off').setScale(0.6);
     }, this);
     gameState.emitter.on('resume_bgm', () => {
-      this.dangerState && dangerBGM.isPaused ? dangerBGM.resume() : gameState.healthVal > 0 ? sceneBGM.resume() : deathBGM.resume();
+      if (this.dangerState && dangerBGM.isPaused) {
+        dangerBGM.resume();
+      } else if (gameState.healthVal > 0 && !deathBGM.isPaused) {
+        sceneBGM.resume();
+      } else {
+        deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
+      }
       audioPlaying = true
-      audioButton.setTexture('audio_button_on').setScale(0.6)
+      audioButton.setTexture('audio_button_on').setScale(0.6);
     }, this);
     gameState.emitter.once('death_bgm', () => {
       sceneBGM.pause();
-      if (audioPlaying) {
-        deathBGM.play();
-        // audioPlaying = true
-      }
+      audioPlaying ? deathBGM.play() : null
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
       if (danger_bgm_toggle && audioPlaying) {
         sceneBGM.pause();
-        dangerBGM.play();
+        dangerBGM.setVolume(0).play();
+        this.tweens.add({
+          targets: dangerBGM,
+          volume: 0.8,
+          duration: 1000,
+        });
         danger_bgm_toggle = false
         audioPlaying = true
       }
@@ -227,7 +235,12 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('danger_bgm_stop', () => {
       if (!danger_bgm_toggle && audioPlaying) {
         dangerBGM.stop();
-        sceneBGM.resume();
+        sceneBGM.setVolume(0).resume();
+        this.tweens.add({
+          targets: sceneBGM,
+          volume: 0.8,
+          duration: 2000,
+        });
         danger_bgm_toggle = true
       }
     }, this);
@@ -440,8 +453,12 @@ class Scene_1 extends Phaser.Scene {
 
         if (this.physics.overlap(gameState.player, gameObj)) {
           gameObj.setVelocityX(0).setVelocityY(0);
-          gameState.healthVal -= scene_1_settings.enemyHealthReduction;
-          this.dangerState = true;
+          if (gameState.healthVal > 0) {
+            gameState.healthVal -= scene_1_settings.enemyHealthReduction;
+            this.dangerState = true;
+          } else {
+            gameState.HealthVal = -1;
+          }
         } else if (distanceCalc(gameState.player, gameObj) < scene_1_settings.enemyChaseDistance) {
           tween.pause();
           this.physics.moveToObject(gameObj, gameState.player, scene_1_settings.enemyMoveSpeed);
@@ -476,7 +493,7 @@ class Scene_1 extends Phaser.Scene {
 
       gameState.emitter.emit('end_time');
       this.levelText.destroy();
-      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: 'white' }).setScrollFactor(0).setOrigin(0.5);
+      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: 'red' }).setScrollFactor(0).setOrigin(0.5);
       this.tweens.add({
         targets: this.levelText,
         alpha: 0,
@@ -485,8 +502,8 @@ class Scene_1 extends Phaser.Scene {
         ease: 'Linear',
         yoyo: false,
       });
-      this.physics.pause();
-      this.anims.pauseAll();
+      // this.physics.pause();
+      // this.anims.pauseAll();
       // this.tweens.pauseAll();
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);

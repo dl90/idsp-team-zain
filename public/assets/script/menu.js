@@ -55,8 +55,8 @@ class Menu extends Phaser.Scene {
     const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false);
     const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
 
-    this.msgFlash = function (target) {
-      this.scene.tweens.add({
+    const msgFlash = (target) => {
+      this.tweens.add({
         targets: target,
         alpha: 0,
         duration: 250,
@@ -107,14 +107,17 @@ class Menu extends Phaser.Scene {
               loginForm.setVisible(false);
               return res.json();
             } else if (res.status === 401) {
-              prompt.setText('Invalid username or password'); // this.msgFlash(prompt);
+              prompt.setText('Invalid username or password');
+              msgFlash(prompt);
             } else if (res.status == 429) {
               prompt.setText('Too many attempts, 30min timeout');
+              msgFlash(prompt);
             } else {
               console.log('something else');
             }
           }, (reject) => {
             prompt.setText(reject.reason);
+            msgFlash(prompt);
           }).then((resData) => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
@@ -125,8 +128,8 @@ class Menu extends Phaser.Scene {
             }
           }).catch(err => { console.log(err) });
         } else if (event.target.id === "login-submit") {
-          prompt.setText('Invalid input'); // this.msgFlash(prompt);
-
+          prompt.setText('Invalid input');
+          msgFlash(prompt);
         } else if (event.target.id === "login-to-sign-up") {
           prompt.setText('Sign up');
           loginForm.setVisible(false);
@@ -159,11 +162,14 @@ class Menu extends Phaser.Scene {
               return res.json();
             } else if (res.status == 429) {
               prompt.setText('Too many attempts, 5min timeout');
+              msgFlash(prompt);
             } else {
               prompt.setText("Signup unsuccessful");
+              msgFlash(prompt);
             }
           }, (reject) => {
             prompt.setText(reject.reason);
+            msgFlash(prompt);
           }).then((resData) => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
@@ -178,6 +184,7 @@ class Menu extends Phaser.Scene {
 
         } else if (event.target.id === "sign-up-submit") {
           prompt.setText('Invalid input');
+          msgFlash(prompt);
         } else if (event.target.id === "sign-up-to-login") {
           prompt.setText('Login');
           signupForm.setVisible(false);

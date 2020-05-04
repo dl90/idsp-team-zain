@@ -46,7 +46,7 @@ class Scene_1_end extends Phaser.Scene {
       }
     }).then(resData => {
       let newStatusText = ''
-      const { scene_1_time_raw, scene_1_health, scene_1_score } = resData;
+      const { scene_1_time_raw, scene_1_health, scene_1_score, scene_1_bonusScore } = resData;
       scene_1_time_raw !== undefined ? newStatusText += "New record: time!\n" : null
       scene_1_health !== undefined ? newStatusText += "New record: health!\n" : null
       scene_1_score !== undefined ? newStatusText += "New record: score!\n" : null
