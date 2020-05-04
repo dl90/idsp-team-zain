@@ -70,25 +70,20 @@ class Scene_2 extends Phaser.Scene {
     const collider = map.createStaticLayer('collider', [tileSet], 0, 0);
 
     collider.setCollisionByProperty({ collide: true })
-    
+
     const walls = this.physics.add.staticGroup();
-    // const graphics = this.add.graphics();
     collider.forEachTile((tile) => {
-      var tileWorldPos = collider.tileToWorldXY(tile.x, tile.y);
-      var collisionGroup = tileSet.getTileCollisionGroup(tile.index);
-  
-      if (!collisionGroup || collisionGroup.objects.length === 0) { return; }
-      var objects = collisionGroup.objects;
+      const tileWorldPos = collider.tileToWorldXY(tile.x, tile.y),
+        collisionGroup = tileSet.getTileCollisionGroup(tile.index);
 
-      for (var i = 0; i < objects.length; i++) {
-        var object = objects[i];
-        var objectX = tileWorldPos.x + object.x;
-        var objectY = tileWorldPos.y + object.y;
-
-        if (object.rectangle) {
-          // graphics.strokeRect(objectX, objectY, object.width, object.height);
-          walls.create(tileWorldPos.x + 16, tileWorldPos.y + 16).setSize(object.width, object.height).setDepth(-1)
-        }
+      if (!collisionGroup || collisionGroup.objects.length <= 0) { return; }
+      else {
+        const objects = collisionGroup.objects;
+        objects.forEach((object) => {
+          console.log(tileWorldPos)
+          console.log(object)
+          object.rectangle ? walls.create(tileWorldPos.x + 16, tileWorldPos.y + 16, null).setSize(object.width, object.height).setOffset(object.x, object.y).setOrigin(0).setVisible(false) : null
+        })
       }
     })
     this.physics.add.collider(gameState.player, walls)
