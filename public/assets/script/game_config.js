@@ -42,8 +42,8 @@ const config = {
   render: {
     pixelArt: true
   },
-  // scene: [Menu, Scene_1, Scene_1_end, Scene_2, ScoreBoard]
-  scene: [Scene_2]
+  scene: [Menu, Scene_1, Scene_1_end, Scene_2, ScoreBoard]
+  // scene: [Scene_2]
 };
 
 try {

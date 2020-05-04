@@ -10,7 +10,7 @@ const express = require("express"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
+  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
   app = express();
 
 
