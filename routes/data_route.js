@@ -8,7 +8,7 @@ const express = require("express"),
 module.exports = function (fireStore) {
 
   router.get('/score', (req, res) => {
-    // let doc = fireStore.collection('user_score').doc('/' +  req.body.uid)
+    fireStore.collection('user_score').where("scene_1_score", ">", 0 ).orderBy("scene_1_score")
   })
 
   router.get('/high_score', (req, res) => {
@@ -43,10 +43,7 @@ module.exports = function (fireStore) {
         fireStore.collection("user_score").doc('/' + uid)
           .update(diff)
           .then(() => res.send(JSON.stringify(diff)))
-          .catch((err) => {
-            res.status(401).end();
-            console.log(err)
-          });
+          .catch((err) => { res.status(401).end() });
       }
     })
   })

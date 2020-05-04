@@ -138,7 +138,7 @@ class Scene_1 extends Phaser.Scene {
     // gameState.player.setBounce(10, 10)
 
     // follows player
-    this.camera.startFollow(gameState.player);
+    this.camera.startFollow(gameState.player, false, 0.05, 0.05);
 
     // time tracker
     this.levelTime = scene_1_settings.levelTime;

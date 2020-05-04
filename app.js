@@ -81,7 +81,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
 module.exports = () => {
 
-  const authRoute = require('./routes/auth_route')(auth, admin);
+  const authRoute = require('./routes/auth_route')(auth);
   app.use("/auth", authLimiter, authRoute);
 
   const dataRoute = require('./routes/data_route')(fireStore);

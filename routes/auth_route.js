@@ -2,11 +2,12 @@
 
 const express = require("express"),
   router = express.Router(),
+  admin = require("firebase-admin"),
   ips = [];
 let deploy;
 process.env.apiKey ? deploy = true : deploy = false;
 
-module.exports = function (auth, admin) {
+module.exports = function (auth) {
   const token = (user, res) => {
     if (user) {
       auth.currentUser.getIdToken(true).then(function (idToken) {
@@ -28,10 +29,10 @@ module.exports = function (auth, admin) {
           res.json({ displayName: name, uid });
         }).catch((err) => {
           console.log(err)
-          res.status(403).end();
+          res.status(269).end();
         });
     } else {
-      res.status(403).end();
+      res.status(269).end();
     }
   })
 

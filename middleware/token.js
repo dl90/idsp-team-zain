@@ -1,4 +1,4 @@
-const admin = require("firebase-admin")
+const admin = require("firebase-admin");
 
 function verifyToken(req, res, next) {
   if (req.cookies.idToken) {
