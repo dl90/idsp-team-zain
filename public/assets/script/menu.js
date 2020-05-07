@@ -9,9 +9,7 @@
  */
 
 class Menu extends Phaser.Scene {
-  constructor() {
-    super({ key: 'Menu' });
-  }
+  constructor() { super({ key: 'Menu' }) }
 
   preload() {
     gameFunctions.loading.call(this);
@@ -61,8 +59,9 @@ class Menu extends Phaser.Scene {
         alpha: 0,
         duration: 250,
         loop: 2,
-        ease: 'Power3',
-        yoyo: true
+        ease: 'Linear',
+        yoyo: true,
+        onComplete: () => { target.alpha = 1 }
       });
     }
 
@@ -149,9 +148,7 @@ class Menu extends Phaser.Scene {
 
           fetch("/auth/sign_up", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "same-origin",
             body: JSON.stringify({ name, email, pass })
           }).then(res => {

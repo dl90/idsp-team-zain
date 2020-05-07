@@ -5,18 +5,16 @@
 /**
  * @author Don (dl90)
  * @date April 22, 2020
- * @TODO implement score calc
  */
 
 class Scene_1_end extends Phaser.Scene {
-  constructor() {
-    super({ key: 'Scene_1_end' });
-  }
+  constructor() { super({ key: 'Scene_1_end' }) }
 
   preload() {
     this.load.image('play_button', './assets/sprites/buttons/button_play.png');
     this.load.image('back_button', './assets/sprites/buttons/button_back.png');
   }
+
   create() {
     this.scene.stop("Scene_1");
 

@@ -5,14 +5,13 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
- * @TODO fix audio transition
  */
 
 const scene_1_settings = {
   canvasWidth: 480,
   canvasHeight: 270,
-  worldWidth: 1536,  // 48 x 32
-  worldHeight: 1440, // 46 x 32
+  worldWidth: 32 * 48,
+  worldHeight: 32 * 46,
   moveSpeed: 100,
   movementHealthCostRatio: 0.000005,
   diagonalMoveSpeed: 70.71,
@@ -21,7 +20,7 @@ const scene_1_settings = {
   enemyMoveSpeed: 85,
   enemyChaseDistance: 100,
   boneHealthRegen: 30,
-  familySpawnPosition: [47, 1],
+  familySpawnPosition: [47, 3],
   enemyHealthReduction: 0.1, // per 16ms
   levelTime: 300, // s
 
@@ -53,9 +52,7 @@ const scene_1_settings = {
 }
 
 class Scene_1 extends Phaser.Scene {
-  constructor() {
-    super({ key: 'Scene_1' });
-  }
+  constructor() { super({ key: 'Scene_1' }) }
 
   preload() {
     !level_1 ? (() => { throw new Error("Missing map data") })() : null;
@@ -165,15 +162,15 @@ class Scene_1 extends Phaser.Scene {
     this.scoreText = this.add.text(scene_1_settings.canvasWidth / 2, 30, `Score: ${this.score}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
 
     // scene transition 
-    this.girl_1 = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl_1');
+    this.girl_1 = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl_1').setScale(0.5);
     this.physics.add.overlap(gameState.player, this.girl_1, () => {
-      sceneBGM.stop();
+      this.sound.pauseAll()
       // sceneBGM.destroy();
 
       // timer
       gameState.emitter.emit('end_time');
 
-      this.sound.play('success_audio');
+      audioPlaying ? this.sound.play('success_audio') : null;
       this.scene.stop("Scene_1");
       this.scene.start("Scene_1_end");
     })
@@ -198,7 +195,7 @@ class Scene_1 extends Phaser.Scene {
 
     // emitter for music
     gameState.emitter = new Phaser.Events.EventEmitter();
-    gameState.emitter.on('play_bgm', () => { sceneBGM.play() }, this);
+    gameState.emitter.once('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
       audioPlaying = false;
@@ -502,9 +499,6 @@ class Scene_1 extends Phaser.Scene {
         ease: 'Linear',
         yoyo: false,
       });
-      // this.physics.pause();
-      // this.anims.pauseAll();
-      // this.tweens.pauseAll();
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }

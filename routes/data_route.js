@@ -8,7 +8,12 @@ const express = require("express"),
 module.exports = function (fireStore) {
 
   router.get('/score', (req, res) => {
-    fireStore.collection('user_score').where("scene_1_score", ">", 0 ).orderBy("scene_1_score")
+    fireStore.collection('user_score').orderBy("scene_1_score", "desc").onSnapshot(snapshot => {
+      // console.log(snapshot)
+      // console.log(snapshot.size)
+      snapshot.forEach(doc => console.log(doc.id, doc.data()))
+      res.send(JSON.stringify({ msg: "ok" }));
+    })
   })
 
   router.get('/high_score', (req, res) => {
