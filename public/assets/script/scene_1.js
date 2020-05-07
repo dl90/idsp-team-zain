@@ -11,7 +11,7 @@ const scene_1_settings = {
   canvasWidth: 480,
   canvasHeight: 270,
   worldWidth: 32 * 48,
-  worldHeight: 32 * 46,
+  worldHeight: 32 * 45,
   moveSpeed: 100,
   movementHealthCostRatio: 0.000005,
   diagonalMoveSpeed: 70.71,

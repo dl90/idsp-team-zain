@@ -81,8 +81,8 @@ class Menu extends Phaser.Scene {
           prompt.setText(`Welcome back ${resData.displayName}`)
           gameState.userDisplayName = resData.displayName;
           gameState.uid = resData.uid;
-          playButton.setVisible(true);
-          logoutButton.setVisible(true);
+          playButton.setInteractive().setVisible(true);
+          logoutButton.setInteractive().setVisible(true);
         }
       }).catch((err) => { console.log(err) })
 
@@ -122,8 +122,8 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              playButton.setVisible(true);
-              logoutButton.setVisible(true);
+              playButton.setInteractive().setVisible(true);
+              logoutButton.setInteractive().setVisible(true);
             }
           }).catch(err => { console.log(err) });
         } else if (event.target.id === "login-submit") {
@@ -172,8 +172,9 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              playButton.setVisible(true);
-              logoutButton.setVisible(true);
+              console.log(playButton)
+              playButton.setInteractive().setVisible(true);
+              logoutButton.setInteractive().setVisible(true);
             }
           }).catch(err => {
             console.log(err);

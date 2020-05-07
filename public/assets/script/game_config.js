@@ -27,7 +27,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      debug: true,
+      // debug: true,
       gravity: { y: 0 },
       enableBody: true,
     }
@@ -43,7 +43,7 @@ const config = {
     pixelArt: true
   },
   scene: [Menu, Scene_1, Scene_1_end, Scene_2, ScoreBoard]
-  // scene: [Scene_2]
+  // scene: [ScoreBoard]
 };
 
 try {

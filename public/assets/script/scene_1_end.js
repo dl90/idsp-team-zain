@@ -30,6 +30,7 @@ class Scene_1_end extends Phaser.Scene {
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify({
+        'displayName': gameState.userDisplayName,
         'uid': gameState.uid,
         'scene_1_score': gameState.score,
         'scene_1_time_raw': gameState.scene_1_time_raw,
