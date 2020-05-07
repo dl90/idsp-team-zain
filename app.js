@@ -5,12 +5,13 @@ const express = require("express"),
   helmet = require("helmet"),
   admin = require("firebase-admin"),
   firebase = require("firebase"),
+  // functions = require('firebase-functions'),
   requestIp = require('request-ip'),
   rateLimit = require("express-rate-limit"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploying
+  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
   app = express();
 
 
@@ -63,21 +64,42 @@ const fireStore = firebase.firestore();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
-// firebase.auth().onAuthStateChanged((user) => {
-//   if (user) {
-//     let displayName = user.displayName,
-//       email = user.email,
-//       emailVerified = user.emailVerified,
-//       photoURL = user.photoURL,
-//       isAnonymous = user.isAnonymous,
-//       uid = user.uid,
-//       providerData = user.providerData;
-//     console.log("\n----------------------- auth activity ----------------------------")
-//     console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName}, emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous}, \nproviderData: ${JSON.stringify(providerData)}\n`);
-//   } else {
-//     console.log("no user");
-//   }
-// });
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    let { displayName, email, emailVerified, photoURL, isAnonymous, uid, providerData } = user;
+    console.log("\n----------------------- auth activity ----------------------------")
+    console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName}, emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous}, \nproviderData: ${JSON.stringify(providerData)}\n`);
+  }
+});
+
+// exports.newScore = functions.firestore.document('user_score/{uid}')
+//   .onCreate(event => {
+//     const userId = event.params.uid;
+
+//     return admin.firestore().collection('user_score').doc(userId).orderBy('scene_1_score')
+//       .get()
+//       .then(snapshot => {
+//         console.log(snapshot.size);
+//         const topTen = [];
+
+//         for (let i = 0; i < 10; i++) {
+//           const scene_1_score = snapShot[i].scene_1_score;
+
+//           admin.auth().getUser(userId)
+//             .then(function (userRecord) {
+//               // See the UserRecord reference doc for the contents of userRecord.
+//               console.log('Successfully fetched user data:', userRecord.toJSON());
+//               const displayName = userRecord.displayName;
+
+//               topTen.push({ displayName, scene_1_score });
+//             })
+//             .catch(function (error) {
+//               console.log('Error fetching user data:', error);
+//             });
+
+//         }
+//       })
+//   })
 
 module.exports = () => {
 

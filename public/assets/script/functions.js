@@ -160,9 +160,10 @@ const gameFunctions = {
       }
 
     } else {
-      gameState.player.setVelocityX(0).setVelocityY(0);
-      gameState.player.anims.pause()
-      // gameState.player.angle = 0;
+      if (!gameState.player.noStop) {
+        gameState.player.setVelocityX(0).setVelocityY(0);
+        gameState.player.anims.pause()
+      }
     }
   },
 
@@ -172,7 +173,7 @@ const gameFunctions = {
    * @param {Object} gameObj2 Phaser game object
    * @return {Number} Distance between
    */
-  distanceCalc: (gameObj1, gameObj2) => { return Phaser.Math.Distance.Chebyshev(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y) },
+  distanceCalc: (gameObj1, gameObj2) => { return Phaser.Math.Distance.Between(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y) },
 
   /**
    * Converts ms to make it easier to read

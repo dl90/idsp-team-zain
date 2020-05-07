@@ -5,18 +5,16 @@
 /**
  * @author Don (dl90)
  * @date April 22, 2020
- * @TODO implement score calc
  */
 
 class Scene_1_end extends Phaser.Scene {
-  constructor() {
-    super({ key: 'Scene_1_end' });
-  }
+  constructor() { super({ key: 'Scene_1_end' }) }
 
   preload() {
     this.load.image('play_button', './assets/sprites/buttons/button_play.png');
     this.load.image('back_button', './assets/sprites/buttons/button_back.png');
   }
+
   create() {
     this.scene.stop("Scene_1");
 
@@ -32,6 +30,7 @@ class Scene_1_end extends Phaser.Scene {
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify({
+        'displayName': gameState.userDisplayName,
         'uid': gameState.uid,
         'scene_1_score': gameState.score,
         'scene_1_time_raw': gameState.scene_1_time_raw,

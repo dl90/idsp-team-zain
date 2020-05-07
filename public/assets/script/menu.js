@@ -9,9 +9,7 @@
  */
 
 class Menu extends Phaser.Scene {
-  constructor() {
-    super({ key: 'Menu' });
-  }
+  constructor() { super({ key: 'Menu' }) }
 
   preload() {
     gameFunctions.loading.call(this);
@@ -61,8 +59,9 @@ class Menu extends Phaser.Scene {
         alpha: 0,
         duration: 250,
         loop: 2,
-        ease: 'Power3',
-        yoyo: true
+        ease: 'Linear',
+        yoyo: true,
+        onComplete: () => { target.alpha = 1 }
       });
     }
 
@@ -82,8 +81,8 @@ class Menu extends Phaser.Scene {
           prompt.setText(`Welcome back ${resData.displayName}`)
           gameState.userDisplayName = resData.displayName;
           gameState.uid = resData.uid;
-          playButton.setVisible(true);
-          logoutButton.setVisible(true);
+          playButton.setInteractive().setVisible(true);
+          logoutButton.setInteractive().setVisible(true);
         }
       }).catch((err) => { console.log(err) })
 
@@ -123,8 +122,8 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              playButton.setVisible(true);
-              logoutButton.setVisible(true);
+              playButton.setInteractive().setVisible(true);
+              logoutButton.setInteractive().setVisible(true);
             }
           }).catch(err => { console.log(err) });
         } else if (event.target.id === "login-submit") {
@@ -149,9 +148,7 @@ class Menu extends Phaser.Scene {
 
           fetch("/auth/sign_up", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "same-origin",
             body: JSON.stringify({ name, email, pass })
           }).then(res => {
@@ -175,8 +172,9 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              playButton.setVisible(true);
-              logoutButton.setVisible(true);
+              console.log(playButton)
+              playButton.setInteractive().setVisible(true);
+              logoutButton.setInteractive().setVisible(true);
             }
           }).catch(err => {
             console.log(err);
