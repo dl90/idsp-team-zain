@@ -25,9 +25,9 @@ class Menu extends Phaser.Scene {
   }
 
   create() {
-    this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
-    this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
-    this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
+    this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null;
+    this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null;
+    this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null;
 
     const sound_config = {
       mute: false,
@@ -37,13 +37,13 @@ class Menu extends Phaser.Scene {
       seek: 0,
       loop: true,
       delay: 0
-    }
+    };
 
     this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
     const intro_bgm = this.sound.add('intro_bgm', sound_config);
     const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button');
     const logoutButton = this.add.sprite((config.width / 2), config.height - 80, 'logout_button');
-    const audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.6);
+    const audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.5);
 
     playButton.setInteractive().setVisible(false);
     logoutButton.setInteractive().setVisible(false);
@@ -68,12 +68,12 @@ class Menu extends Phaser.Scene {
     fetch("/auth/token", { method: "GET" })
       .then((res) => {
         if (res.status === 200) {
-          return res.json()
+          return res.json();
         } else {
           prompt.setText('Please login or create an account to proceed')
           loginForm.setVisible(true);
-          login()
-          signUp()
+          login();
+          signUp();
         }
       })
       .then((resData) => {
@@ -81,8 +81,8 @@ class Menu extends Phaser.Scene {
           prompt.setText(`Welcome back ${resData.displayName}`)
           gameState.userDisplayName = resData.displayName;
           gameState.uid = resData.uid;
-          playButton.setInteractive().setVisible(true);
-          logoutButton.setInteractive().setVisible(true);
+          playButton.setVisible(true);
+          logoutButton.setVisible(true);
         }
       }).catch((err) => { console.log(err) })
 
@@ -122,8 +122,8 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              playButton.setInteractive().setVisible(true);
-              logoutButton.setInteractive().setVisible(true);
+              playButton.setVisible(true);
+              logoutButton.setVisible(true);
             }
           }).catch(err => { console.log(err) });
         } else if (event.target.id === "login-submit") {
@@ -172,9 +172,8 @@ class Menu extends Phaser.Scene {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
-              console.log(playButton)
-              playButton.setInteractive().setVisible(true);
-              logoutButton.setInteractive().setVisible(true);
+              playButton.setVisible(true);
+              logoutButton.setVisible(true);
             }
           }).catch(err => {
             console.log(err);
@@ -198,12 +197,12 @@ class Menu extends Phaser.Scene {
     emitter.on('pause_bgm', () => {
       intro_bgm.pause();
       playing = false;
-      audioButton.setTexture('audio_button_off').setScale(0.6);
+      audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
     emitter.on('resume_bgm', () => {
       intro_bgm.resume();
-      playing = true
-      audioButton.setTexture('audio_button_on').setScale(0.6);
+      playing = true;
+      audioButton.setTexture('audio_button_on').setScale(0.5);
     }, this);
 
     let playing = true;
@@ -227,18 +226,18 @@ class Menu extends Phaser.Scene {
 
     // logout
     logoutButton.on('pointerup', () => {
-      playButton.removeListener('pointerup')
-      fetch("/auth/logout", {
-        method: "GET"
-      }).then(() => {
-        prompt.setText('Please login or create an account to proceed');
-        loginForm.setVisible(true);
-        playButton.setVisible(false);
-        logoutButton.setVisible(false);
-        login()
-        signUp()
-      }).catch()
-    })
+      fetch("/auth/logout", { method: "GET" })
+        .then(() => {
+          prompt.setText('Please login or create an account to proceed');
+          loginForm.setVisible(true);
+          playButton.setVisible(false);
+          logoutButton.setVisible(false);
+          login();
+          signUp();
+        }).catch(err => {
+          console.log(err);
+        });
+    });
 
   }
 }

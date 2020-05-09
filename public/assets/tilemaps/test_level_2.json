@@ -1809,6 +1809,38 @@
                          "type":"bool",
                          "value":true
                         }]
+                }, 
+                {
+                 "id":38,
+                 "objectgroup":
+                    {
+                     "draworder":"index",
+                     "id":2,
+                     "name":"",
+                     "objects":[
+                            {
+                             "height":24,
+                             "id":1,
+                             "name":"hitbox",
+                             "rotation":0,
+                             "type":"",
+                             "visible":true,
+                             "width":32,
+                             "x":0,
+                             "y":4
+                            }],
+                     "opacity":1,
+                     "type":"objectgroup",
+                     "visible":true,
+                     "x":0,
+                     "y":0
+                    },
+                 "properties":[
+                        {
+                         "name":"colider",
+                         "type":"bool",
+                         "value":true
+                        }]
                 }],
          "tilewidth":32
         }],

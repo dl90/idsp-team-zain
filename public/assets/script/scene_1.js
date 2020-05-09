@@ -12,17 +12,37 @@ const scene_1_settings = {
   canvasHeight: 270,
   worldWidth: 32 * 48,
   worldHeight: 32 * 45,
+
   moveSpeed: 100,
   movementHealthCostRatio: 0.000005,
   diagonalMoveSpeed: 70.71,
   twoKeyMultiplier: 0.707,
+
   playerSpawnPosition: [0, 3],
+  familySpawnPosition: [47, 1],
+
   enemyMoveSpeed: 85,
   enemyChaseDistance: 100,
-  boneHealthRegen: 30,
-  familySpawnPosition: [47, 3],
   enemyHealthReduction: 0.1, // per 16ms
+
   levelTime: 300, // s
+  boneHealthRegen: 30,
+  coinScoreBonus: 1000,
+
+  backgroundDepth: -1,
+  playerSpriteDepth: 1,
+  wallSpriteDepth: 2,
+  treeSpriteDepth: 3,
+  scoreTimerBackgroundDepth: 3,
+  scoreTextDepth: 5,
+  healthBarDepth: 5,
+  deathBackgroundMaskDepth: 6,
+  deathBackgroundUnmaskDepth: 7,
+  messageDepth: 10,
+  buttonDepth: 10,
+
+  enemyTweenDurationMultiplier: 500,
+  enemyTweenLoopDelay: 20000,
 
   enemy: [
     { "id": 1, "x": 9, "y": 1, "tweenX": 0, "tweenY": 5 },
@@ -36,9 +56,6 @@ const scene_1_settings = {
     { "id": 9, "x": 43, "y": 45, "tweenX": 0, "tweenY": -7 },
     { "id": 10, "x": 45, "y": 43, "tweenX": -8, "tweenY": 0 }
   ],
-  enemyTweenDurationMultiplier: 500,
-  enemyTweenLoopDelay: 20000,
-
   coins: [
     { "x": 25, "y": 3 },
     { "x": 44, "y": 1 },
@@ -47,12 +64,23 @@ const scene_1_settings = {
     { "x": 3, "y": 23 },
     { "x": 17, "y": 41 },
     { "x": 40, "y": 45 },
-  ],
-  coinScoreBonus: 1000
+  ]
 }
 
 class Scene_1 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_1' }) }
+
+  // @TODO import player data
+  init(data) {
+    if (data) {
+      this.playerScene = data.scene;
+      this.playerScore = data.score;
+      this.playerBonus = data.bonus;
+      this.playerHealth = data.health;
+      this.playerTime_raw = data.time_raw;
+      this.forwardData = data;
+    }
+  }
 
   preload() {
     !level_1 ? (() => { throw new Error("Missing map data") })() : null;
@@ -65,39 +93,39 @@ class Scene_1 extends Phaser.Scene {
     this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', './assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
-    this.load.image('back_button', './assets/sprites/buttons/button_back.png');                  //
-    this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');                 //
-    this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');               //
-    this.load.audio('scene_1_bgm', './assets/bgm/Meme_Scene_1.mp3');                             //
-    this.load.audio('success_audio', './assets/bgm/clips/Success.mp3');                          //
-    this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');                             //
-    this.load.audio('death_audio', './assets/bgm/clips/Meme_death.mp3');                         //
+    this.load.image('back_button', './assets/sprites/buttons/button_back.png');
+    this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');
+    this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');
+    this.load.audio('scene_1_bgm', './assets/bgm/Zain_Game_Music.mp3');
+    this.load.audio('success_audio', './assets/bgm/clips/Success.mp3');
+    this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');
+    this.load.audio('death_audio', './assets/bgm/clips/Meme_death.mp3');
 
     // generics
-    this.load.image('girl_1', './assets/sprites/family/girl_1.png');                             //
-    this.load.image('bone', './assets/sprites/items/bone.png');                                  //
-    this.load.image('coin', './assets/sprites/items/coin.png');                                  //
+    this.load.image('girl', './assets/sprites/family/girl.png');
+    this.load.image('bone', './assets/sprites/items/bone.png');
+    this.load.image('coin', './assets/sprites/items/coin.png');
 
     // level 1 specifics
     const level_1_path = './assets/sprites/level_1'
-    this.load.image('bench', level_1_path + '/bench_lev1.png');                                  //
-    this.load.image('birch_tree', level_1_path + '/birch_tree.png');                             //
-    this.load.image('bush_round', level_1_path + '/bush_round.png');                             //
-    this.load.image('bush_square', level_1_path + '/bush_square.png');                           //
-    this.load.image('fence_corner_leftBottom', level_1_path + '/fence_corner_leftBottom.png');   //
-    this.load.image('fence_corner_leftTop', level_1_path + '/fence_corner_leftTop.png');         //
-    this.load.image('fence_corner_rightBottom', level_1_path + '/fence_corner_rightBottom.png'); //
-    this.load.image('fence_corner_rightTop', level_1_path + '/fence_corner_rightTop.png');       //
-    this.load.image('fence_horizontal', level_1_path + '/fence_horizontal.png');                 //
-    this.load.image('fence_vertical_left', level_1_path + '/fence_vertical_left.png');           //
-    this.load.image('fence_vertical_right', level_1_path + '/fence_vertical_right.png');         //
-    this.load.image('fir_tree', level_1_path + '/fir_tree.png');                                 //
-    this.load.image('flower_1', level_1_path + '/flower_1.png');                                 //
-    this.load.image('flower_2', level_1_path + '/flower_2.png');                                 //
-    this.load.image('light_post', level_1_path + '/light_post.png');                             //
-    this.load.image('recycle_bin', level_1_path + '/recycle_bin.png');                           //
-    this.load.image('sign', level_1_path + '/sign.png');                                         //
-    this.load.image('stump', level_1_path + '/stump.png');                                       //
+    this.load.image('bench', level_1_path + '/bench_lev1.png');
+    this.load.image('birch_tree', level_1_path + '/birch_tree.png');
+    this.load.image('bush_round', level_1_path + '/bush_round.png');
+    this.load.image('bush_square', level_1_path + '/bush_square.png');
+    this.load.image('fence_corner_leftBottom', level_1_path + '/fence_corner_leftBottom.png');
+    this.load.image('fence_corner_leftTop', level_1_path + '/fence_corner_leftTop.png');
+    this.load.image('fence_corner_rightBottom', level_1_path + '/fence_corner_rightBottom.png');
+    this.load.image('fence_corner_rightTop', level_1_path + '/fence_corner_rightTop.png');
+    this.load.image('fence_horizontal', level_1_path + '/fence_horizontal.png');
+    this.load.image('fence_vertical_left', level_1_path + '/fence_vertical_left.png');
+    this.load.image('fence_vertical_right', level_1_path + '/fence_vertical_right.png');
+    this.load.image('fir_tree', level_1_path + '/fir_tree.png');
+    this.load.image('flower_1', level_1_path + '/flower_1.png');
+    this.load.image('flower_2', level_1_path + '/flower_2.png');
+    this.load.image('light_post', level_1_path + '/light_post.png');
+    this.load.image('recycle_bin', level_1_path + '/recycle_bin.png');
+    this.load.image('sign', level_1_path + '/sign.png');
+    this.load.image('stump', level_1_path + '/stump.png');
 
     // map from JSON option (throws error if load from static folder)
     // this.load.json('mapData', 'maps/level_1.json');
@@ -105,75 +133,109 @@ class Scene_1 extends Phaser.Scene {
 
 
   create() {
+    // destroys loading assets
     this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
     this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
     this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
-    // this.scene.remove("Menu"); // maybe keep menu?
-    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(-1);
+    // map from JSON option
+    // const map = this.cache.json.get('mapData');
+
+    // img background
+    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(scene_1_settings.backgroundDepth);
 
     // camera department
     this.camera = this.cameras.main.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
     this.physics.world.setBounds(0, 0, scene_1_settings.worldWidth, scene_1_settings.worldHeight);
 
-    // map from JSON option
-    // const map = this.cache.json.get('mapData');
-
     // level title
-    this.levelText = this.add.text(scene_1_settings.canvasWidth / 2 - 50, scene_1_settings.canvasHeight / 2 - 50, 'Level 1', { fontSize: 30, color: '#7E00C2' }).setScrollFactor(0);
-    this.time.delayedCall(5000, this.levelText.destroy());
+    this.levelText = this.add.text(
+      scene_1_settings.canvasWidth / 2,
+      scene_1_settings.canvasHeight / 2,
+      'Level 1',
+      { fontSize: 30, color: '#000000' }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_1_settings.messageDepth);
 
     // initialize health
-    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(10);
+    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(scene_1_settings.healthBarDepth);
     gameState.healthVal = 100;
-    gameState.bonusScore = 0;
+    this.bonusScore = 0;
 
     // initialize player & controls
     gameState.cursors = this.input.keyboard.createCursorKeys();
-    gameState.player = this.physics.add.sprite(scene_1_settings.playerSpawnPosition[0] * 32 - 16, scene_1_settings.playerSpawnPosition[1] * 32 - 16, 'f_dog').setSize(30, 30).setDepth(1);
+    gameState.player = this.physics.add.sprite(
+      scene_1_settings.playerSpawnPosition[0] * 32,
+      scene_1_settings.playerSpawnPosition[1] * 32,
+      'f_dog').setSize(30, 30).setOrigin(0.5).setDepth(scene_1_settings.playerSpriteDepth);
     gameState.player.setCollideWorldBounds(true);
-    // gameState.player.setBounce(10, 10)
 
     // follows player
     this.camera.startFollow(gameState.player, false, 0.05, 0.05);
 
     // time tracker
     this.levelTime = scene_1_settings.levelTime;
-    this.timeText = this.add.text(scene_1_settings.canvasWidth / 2, 10, `Level time: ${this.levelTime}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
+    this.add.rectangle(scene_1_settings.canvasWidth / 2 + 70, 10, 260, 15).setFillStyle(0xffffff, 0.5).setScrollFactor(0).setDepth(scene_1_settings.scoreTimerBackgroundDepth);
+    this.timeText = this.add.text(
+      scene_1_settings.canvasWidth / 2, 10,
+      `Level time: ${this.levelTime}`,
+      { fontSize: 12, color: '#000000' }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_1_settings.messageDepth);
+
+    // keydown event
     this.input.keyboard.once('keydown', () => {
       this.startTime = this.time.now;
+      this.tweens.add({
+        targets: this.levelText,
+        duration: 1000,
+        alpha: 0,
+        onComplete: () => {
+          this.levelText.destroy();
+        }
+      });
 
       // 1s tick call
       this.time.addEvent({
         delay: 1000,
+        callbackScope: this,
+        repeat: -1,
         callback: () => {
           if (gameState.healthVal > 0) {
-            this.levelTime--
+            this.levelTime--;
             this.timeText.setText(`Level time: ${this.levelTime}`);
           }
-        },
-        callbackScope: this,
-        repeat: -1
-      })
+        }
+      });
     }, this);
 
     // score tracker
-    this.score = gameState.bonusScore + parseInt(this.levelTime * gameState.healthVal);
-    this.scoreText = this.add.text(scene_1_settings.canvasWidth / 2, 30, `Score: ${this.score}`, { fontSize: 12, color: '#ff0000' }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
+    this.score = this.bonusScore + parseInt(this.levelTime * gameState.healthVal);
+    this.scoreText = this.add.text(
+      scene_1_settings.canvasWidth / 2 + 150, 10,
+      `Score: ${this.score}`,
+      { fontSize: 12, color: '#000000' }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_1_settings.scoreTextDepth);
 
     // scene transition 
-    this.girl_1 = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl_1').setScale(0.5);
-    this.physics.add.overlap(gameState.player, this.girl_1, () => {
-      this.sound.pauseAll()
-      // sceneBGM.destroy();
+    this.girl = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl');
+    this.physics.add.overlap(gameState.player, this.girl, () => {
+      this.sound.pauseAll();
 
       // timer
       gameState.emitter.emit('end_time');
-
       audioPlaying ? this.sound.play('success_audio') : null;
+
+      // forwarded data
+      const forwardData = {
+        scene: 'Scene_1',
+        score: this.score,
+        bonus: this.bonusScore,
+        health: gameState.healthVal,
+        time_raw: this.scene_1_time_raw
+      };
       this.scene.stop("Scene_1");
-      this.scene.start("Scene_1_end");
-    })
+      this.scene.get("Level_transition").scene.restart(forwardData);
+      // console.log(this.scene.get("Level_transition")) // @TODO
+    });
 
     // audio department
     const sound_config = {
@@ -193,13 +255,13 @@ class Scene_1 extends Phaser.Scene {
     let audioPlaying = true,
       danger_bgm_toggle = true;
 
-    // emitter for music
+    // event emitters
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.once('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
       audioPlaying = false;
-      audioButton.setTexture('audio_button_off').setScale(0.6);
+      audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
     gameState.emitter.on('resume_bgm', () => {
       if (this.dangerState && dangerBGM.isPaused) {
@@ -210,9 +272,46 @@ class Scene_1 extends Phaser.Scene {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
       }
       audioPlaying = true
-      audioButton.setTexture('audio_button_on').setScale(0.6);
+      audioButton.setTexture('audio_button_on').setScale(0.5);
     }, this);
     gameState.emitter.once('death_bgm', () => {
+      this.levelText.destroy();
+      this.levelText = this.add.text(
+        scene_1_settings.canvasWidth / 2,
+        scene_1_settings.canvasHeight / 2 - 50,
+        'Game Over',
+        { fontSize: 30, color: 'white' }).setScrollFactor(0).setOrigin(0.5).setDepth(scene_1_settings.messageDepth);
+      this.tweens.add({
+        targets: this.levelText,
+        alpha: 0,
+        duration: 2000,
+        loop: -1,
+        ease: 'Linear',
+        yoyo: true,
+      });
+
+      const mask = this.add.rectangle(
+        this.camera.centerX - 10,
+        this.camera.centerY - 10,
+        this.camera.displayWidth + 20,
+        this.camera.displayHeight + 20).setFillStyle(0x000000, 0.2).setScrollFactor(0).setDepth(scene_1_settings.deathBackgroundMaskDepth);
+      this.tweens.add({
+        targets: mask,
+        duration: 4000,
+        fillAlpha: 0.9
+      });
+
+      const unmask = this.add.circle(
+        this.camera.centerX + this.camera.displayWidth / 2 - 20,
+        this.camera.centerY + this.camera.displayHeight / 2 - 20,
+        10
+      ).setFillStyle(0xffffff, 0).setScrollFactor(0).setDepth(scene_1_settings.deathBackgroundUnmaskDepth);
+      this.tweens.add({
+        targets: unmask,
+        duration: 4000,
+        fillAlpha: 0.9
+      });
+
       sceneBGM.pause();
       audioPlaying ? deathBGM.play() : null
     }, this);
@@ -244,26 +343,33 @@ class Scene_1 extends Phaser.Scene {
 
     // emitter for time
     gameState.emitter.once('end_time', () => {
-      gameState.score = this.score;
       this.endTime = this.time.now;
-      gameState.scene_1_time_raw = this.endTime - this.startTime;
-      gameState.scene_1_time = gameFunctions.timeConvert(this.endTime - this.startTime);
+      this.scene_1_time_raw = this.endTime - this.startTime;
     }, this)
 
     gameState.emitter.emit('play_bgm');
 
     // buttons
-    const audioButton = this.add.sprite(scene_1_settings.canvasWidth - 20, scene_1_settings.canvasHeight - 20, 'audio_button_on').setScale(0.6).setScrollFactor(0).setDepth(10).setInteractive();
+    const audioButton = this.add.sprite(
+      scene_1_settings.canvasWidth - 20,
+      scene_1_settings.canvasHeight - 20,
+      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(scene_1_settings.buttonDepth).setInteractive();
     audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
-    this.backButton = this.add.sprite(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 + 50, 'back_button').setDepth(10).setVisible(false).setOrigin(0.5).setInteractive().setScrollFactor(0);
+    this.backButton = this.add.sprite(
+      scene_1_settings.canvasWidth / 2,
+      scene_1_settings.canvasHeight / 2 + 50,
+      'back_button').setDepth(scene_1_settings.buttonDepth).setVisible(false).setOrigin(0.5).setScrollFactor(0).setInteractive();
     this.backButton.on('pointerup', () => {
       this.tweens.add({
         targets: deathBGM,
         volume: 0,
         duration: 1500,
-        onComplete: () => { this.scene.restart() }
-      })
+        onComplete: () => {
+          this.sound.stopAll();
+          this.scene.restart();
+        }
+      });
     });
 
     // --- Static --- //
@@ -279,16 +385,16 @@ class Scene_1 extends Phaser.Scene {
     level_1.fenceCorner_rightTop.forEach(obj => { walls.create(obj.x * 32 - 16, obj.y * 32 - 16, 'fence_corner_rightTop').setSize(16, 24).setOffset(16, 8) });
 
     // trees
-    level_1.firTree.forEach(obj => { walls.create(obj.x * 32, obj.y * 32, 'fir_tree').setSize(12, 10).setOffset(25, 54).setDepth(3) });
-    level_1.birchTree.forEach(obj => { walls.create(obj.x * 32, obj.y * 32, 'birch_tree').setSize(16, 12).setOffset(26, 46).setDepth(3) });
+    level_1.firTree.forEach(obj => { walls.create(obj.x * 32, obj.y * 32, 'fir_tree').setSize(12, 10).setOffset(25, 54).setDepth(scene_1_settings.treeSpriteDepth) });
+    level_1.birchTree.forEach(obj => { walls.create(obj.x * 32, obj.y * 32, 'birch_tree').setSize(16, 12).setOffset(26, 46).setDepth(scene_1_settings.treeSpriteDepth) });
 
     // things
     level_1.bench.forEach(obj => { walls.create(obj.x * 32, obj.y * 32 - 16, 'bench') });
-    level_1.lightPost.forEach(obj => { walls.create(obj.x * 32 - 16, obj.y * 32 - 8, 'light_post').setSize(14, 16).setOffset(10, 46).setDepth(2) });
+    level_1.lightPost.forEach(obj => { walls.create(obj.x * 32 - 16, obj.y * 32 - 8, 'light_post').setSize(14, 16).setOffset(10, 46).setDepth(scene_1_settings.wallSpriteDepth) });
     level_1.sign.forEach(obj => { walls.create(obj.x * 32 - 16, obj.y * 32 - 16, 'sign') });
 
     // wall collider
-    this.physics.add.collider(walls, [gameState.player]); //@TODO
+    this.physics.add.collider(walls, [gameState.player]);
 
     // pass through walls
     this.semiWalls = this.physics.add.staticGroup();
@@ -317,8 +423,8 @@ class Scene_1 extends Phaser.Scene {
     scene_1_settings.coins.forEach(coin => { this.collectables.create(coin.x * 32 - 16, coin.y * 32 - 16, 'coin').setCircle(15, 1, 0) });
     this.collectables.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
-        gameState.bonusScore += scene_1_settings.coinScoreBonus;
-        gameState.coinCount += 1;
+        this.bonusScore += scene_1_settings.coinScoreBonus;
+        gameState.coinCount += 1; // @TODO
         gameObj.destroy();
       });
     });
@@ -422,7 +528,9 @@ class Scene_1 extends Phaser.Scene {
   update() {
     // player drag over semiWalls
     if (gameState.player) {
-      this.physics.overlap(gameState.player, this.semiWalls) ? gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) : gameState.player.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.moveSpeed);
+      this.physics.overlap(gameState.player, this.semiWalls) ?
+        gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) :
+        gameState.player.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.moveSpeed);
     }
 
     // flip animation for enemies
@@ -469,7 +577,9 @@ class Scene_1 extends Phaser.Scene {
         }
 
         // enemy drag over semiWalls
-        this.physics.overlap(gameObj, this.semiWalls) ? gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) : gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
+        this.physics.overlap(gameObj, this.semiWalls) ?
+          gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
+          gameObj.setDamping(false).setDrag(1).setMaxVelocity(scene_1_settings.enemyMoveSpeed);
       }
     });
 
@@ -482,25 +592,17 @@ class Scene_1 extends Phaser.Scene {
       gameFunctions.activeHealthTextures(gameState);
 
       // update score
-      this.score = gameState.bonusScore + parseInt(this.levelTime * gameState.healthVal);
+      this.score = this.bonusScore + parseInt(this.levelTime * gameState.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
-
+      // this.physics.pause();
+      // this.anims.pauseAll();
       gameState.emitter.emit('end_time');
-      this.levelText.destroy();
-      this.levelText = this.add.text(scene_1_settings.canvasWidth / 2, scene_1_settings.canvasHeight / 2 - 50, 'Game Over', { fontSize: 30, color: 'red' }).setScrollFactor(0).setOrigin(0.5);
-      this.tweens.add({
-        targets: this.levelText,
-        alpha: 0,
-        duration: 2000,
-        loop: -1,
-        ease: 'Linear',
-        yoyo: false,
-      });
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }
   }
+
 }

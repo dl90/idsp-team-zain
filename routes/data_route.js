@@ -9,12 +9,11 @@ const express = require("express"),
 module.exports = function (fireStore) {
 
   router.get('/score', (req, res) => {
-    fireStore.collection('user_score').orderBy("scene_1_score", "desc").onSnapshot(async (snapshot) => {
-      const topTen = []
+    fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get().then(async (snapshot) => {
+      const topTen = [];
       await snapshot.forEach(doc => {
-        // console.log(doc.data())
         const entry = { displayName: doc.data().displayName, score: doc.data().scene_1_score };
-        topTen.push(entry)
+        topTen.push(entry);
       })
 
       topTen.sort((x, y) => {
@@ -22,52 +21,94 @@ module.exports = function (fireStore) {
         x.scene_1_score > y.scene_1_score ? result = 1 : null;
         y.scene_1_score > x.scene_1_score ? result = -1 : null;
         x.scene_1_score == y.scene_1_score ? result = 0 : null;
-        return result
+        return result;
       });
 
-      topTen.length > 10 ? topTen.length = 10 : null
-      console.log(topTen)
+      topTen.length > 10 ? topTen.length = 10 : null;
       res.send(JSON.stringify({ data: topTen }));
-    })
-  })
+    })//.catch(err => console.log(err));
+  });
 
-  router.get('/high_score', (req, res) => {
-    // fireStore.collection('high_score').onSnapshot()
-  })
 
   router.post('/score', (req, res) => {
-    const { displayName, uid, scene_1_score, scene_1_time_raw, scene_1_health, scene_1_bonusScore } = req.body;
-    fireStore.collection("user_score").doc('/' + uid).get().then(user => {
-      if (!user.exists) {
+    const { uid, displayName, scene, score, time_raw, health, bonus_score } = req.body;
+    uid.trim().length < 28 ? (() => { return res.status(401) })() : null;
+
+    fireStore.collection("user_score").doc('/' + uid).get().then(doc => {
+      const stored = doc.data(); // existing data
+
+      if (!doc.exists) {
+        const document = {
+          'displayName': displayName,
+          'totalScore': score,
+          'timestamp': firebase.firestore.FieldValue.serverTimestamp(),
+          'scenes_completed': [scene],
+          [scene]: {
+            score,
+            bonus_score,
+            health,
+            time_raw,
+            'timestamp': firebase.firestore.FieldValue.serverTimestamp(),
+          }
+        };
+
         fireStore.collection("user_score").doc('/' + uid)
-          .set({
-            'displayName': displayName,
-            'scene_1_score': scene_1_score,
-            'scene_1_time_raw': scene_1_time_raw,
-            'scene_1_health': scene_1_health,
-            'scene_1_bonusScore': scene_1_bonusScore,
-            'timestamp': firebase.firestore.FieldValue.serverTimestamp()
-          }).then(() => {
-            res.send(JSON.stringify({ msg: 'ok' }))
-          }).catch((err) => {
+          .set(document)
+          .then(() => { res.send(JSON.stringify({ msg: 'ok' })) })
+          .catch((err) => {
             res.status(401).end();
-            console.log(err)
-          })
-      } else {
-        const stored = user.data(),
-          diff = {};
-        stored.scene_1_time_raw > scene_1_time_raw ? diff.scene_1_time_raw = scene_1_time_raw : null;
-        stored.scene_1_health < scene_1_health ? diff.scene_1_health = scene_1_health : null;
-        stored.scene_1_score < scene_1_score ? diff.scene_1_score = scene_1_score : null;
-        stored.scene_1_bonusScore < scene_1_bonusScore ? diff.scene_1_bonusScore = scene_1_bonusScore : null;
+            console.log(err);
+          });
+
+      } else if (stored[scene] === undefined) {
+        const scenes_completed = stored.scenes_completed; // collection.document.arrayUnion(arr_value);
+        !scenes_completed.includes(scene) ? scenes_completed.push(scene) : console.log("This doesn't add up, uid: " + uid);
+
+        const newTotalScore = stored.totalScore + score;
+        const document = {
+          'scenes_completed': scenes_completed,
+          'totalScore': newTotalScore,
+          [scene]: {
+            score,
+            bonus_score,
+            health,
+            time_raw,
+            'timestamp': firebase.firestore.FieldValue.serverTimestamp(),
+          }
+        };
 
         fireStore.collection("user_score").doc('/' + uid)
-          .update(diff)
-          .then(() => res.send(JSON.stringify(diff)))
-          .catch((err) => { res.status(401).end() });
-      }
-    })
-  })
+          .update(document)
+          .then(() => { res.send(JSON.stringify({ msg: 'ok' })) })
+          .catch((err) => {
+            res.status(401).end();
+            console.log(err);
+          });
 
-  return router
+      } else {
+        const diff = { [scene]: { 'timestamp': firebase.firestore.FieldValue.serverTimestamp() } };
+        if (stored[scene].score < score) {
+          diff[scene].score = score;
+          diff[scene].bonus_score = bonus_score;
+          diff[scene].health = health;
+          diff[scene].time_raw = time_raw;
+
+          // re-calcs the total score
+          diff[scene].score ? diff.totalScore = stored.totalScore - stored[scene].score + diff[scene].score : null;
+
+          fireStore.collection("user_score").doc('/' + uid)
+            .update(diff)
+            .then(() => { res.send(JSON.stringify(stored[scene])) })
+            .catch(err => {
+              res.status(401).end();
+              console.log(err);
+            });
+        } else {
+          res.send(JSON.stringify(stored[scene]));
+        }
+      }
+    });
+  });
+
+  return router;
 }

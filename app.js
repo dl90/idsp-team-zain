@@ -11,7 +11,7 @@ const express = require("express"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
+  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
   app = express();
 
 
@@ -48,19 +48,14 @@ app.use(requestIp.mw());
 app.set('trust proxy', true);
 process.env.apiKey ? app.use(checkUrl) : null;
 
-const authLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 10
-});
-const dataLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 5
-})
+const authLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }),
+  dataLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 5 })
 
 firebase.initializeApp(fbConfig);
-admin.initializeApp({ credential: admin.credential.cert(fbService), databaseURL: "https://fbauthdemo-2a451.firebaseio.com" });
-const auth = firebase.auth();
-const fireStore = firebase.firestore();
+admin.initializeApp({ credential: admin.credential.cert(fbService) });
+
+const auth = firebase.auth(),
+  fireStore = firebase.firestore();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
@@ -72,6 +67,7 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
+// cloud function
 // exports.newScore = functions.firestore.document('user_score/{uid}')
 //   .onCreate(event => {
 //     const userId = event.params.uid;
