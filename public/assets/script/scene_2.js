@@ -20,7 +20,7 @@ const scene_2_settings = {
 
   playerSpawnPosition: [0, 1],
   familySpawnPosition: [47, 0],
-  levelTime: 300,
+  levelTime: 200,
 
   backgroundDepth: -1,
   wallSpriteDepth: 1,
@@ -58,11 +58,12 @@ class Scene_2 extends Phaser.Scene {
     this.load.spritesheet('b_dog', './assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
-    this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');
-    this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');
     this.load.audio('scene_1_bgm', './assets/bgm/Zain_bgm_01.mp3');
     this.load.audio('success_audio', './assets/bgm/clips/Meme_success.mp3');
-    this.load.audio('death_audio', './assets/bgm/clips/Meme_death.mp3');
+    this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');
+    this.load.audio('death_audio', './assets/bgm/Zain_death.mp3');
+    this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
+    this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
 
     this.load.image('girl', './assets/sprites/family/girl.png');
     this.load.image('face', './assets/sprites/testing/face.png');
@@ -155,9 +156,7 @@ class Scene_2 extends Phaser.Scene {
 
       // timer (end of scene)
       gameState.emitter.emit('end_time');
-
-      this.sound.play('success_audio');
-      this.scene.stop("Scene_2");
+      audioPlaying ? this.sound.play('success_audio') : null
 
       // @TODO
       this.cumulativeScore = this.playerScore + this.score;
@@ -230,6 +229,10 @@ class Scene_2 extends Phaser.Scene {
 
     const sceneBGM = this.sound.add('scene_1_bgm', sound_config);
     const deathBGM = this.sound.add('death_audio', sound_config);
+    const dangerBGM = this.sound.add('danger_audio', sound_config);
+    const boneClip = this.sound.add('bone_audio', sound_config.loop = false);
+    const deathClip = this.sound.add('death_event_audio', sound_config.loop = false);
+
     this.sound.pauseOnBlur = false;
     let audioPlaying = true;
 
@@ -294,8 +297,17 @@ class Scene_2 extends Phaser.Scene {
         fillAlpha: 0.9
       });
 
-      sceneBGM.pause();
-      audioPlaying ? deathBGM.play() : null
+      this.sound.pauseAll();
+      if (audioPlaying) {
+        deathClip.play();
+        deathBGM.setVolume(0).play();
+        this.tweens.add({
+          targets: deathBGM,
+          volume: 0.8,
+          duration: 1000,
+          delay: 7000,
+        });
+      }
     }, this);
 
     // emitter for time
@@ -315,7 +327,10 @@ class Scene_2 extends Phaser.Scene {
         targets: deathBGM,
         volume: 0,
         duration: 1500,
-        onComplete: () => { this.scene.restart(this.forwardData) } // restarts scene with previously passed data
+        onComplete: () => {
+          this.sound.stopAll();
+          this.scene.restart(this.forwardData);
+        }
       });
     });
 

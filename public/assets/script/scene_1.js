@@ -25,7 +25,7 @@ const scene_1_settings = {
   enemyChaseDistance: 100,
   enemyHealthReduction: 0.1, // per 16ms
 
-  levelTime: 300, // s
+  levelTime: 200, // s
   boneHealthRegen: 30,
   coinScoreBonus: 1000,
 
@@ -100,7 +100,9 @@ class Scene_1 extends Phaser.Scene {
     this.load.audio('scene_1_bgm', './assets/bgm/Zain_bgm_01.mp3');
     this.load.audio('success_audio', './assets/bgm/clips/Meme_success.mp3');
     this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');
-    this.load.audio('death_audio', './assets/bgm/Meme_death.mp3');
+    this.load.audio('death_audio', './assets/bgm/Zain_death.mp3');
+    this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
+    this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
 
     // generics
     this.load.image('girl', './assets/sprites/family/girl.png');
@@ -159,8 +161,9 @@ class Scene_1 extends Phaser.Scene {
 
     // initialize health
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(scene_1_settings.healthBarDepth);
+    this.bonusScore = 0; // resetBonus
+    this.coinCount = 0;
     this.healthVal = 100;
-    this.bonusScore = 0;
 
     // initialize player & controls
     gameState.cursors = this.input.keyboard.createCursorKeys();
@@ -252,6 +255,8 @@ class Scene_1 extends Phaser.Scene {
     const sceneBGM = this.sound.add('scene_1_bgm', sound_config);
     const dangerBGM = this.sound.add('danger_audio', sound_config);
     const deathBGM = this.sound.add('death_audio', sound_config);
+    const boneClip = this.sound.add('bone_audio', sound_config.loop = false);
+    const deathClip = this.sound.add('death_event_audio', sound_config.loop = false);
     this.sound.pauseOnBlur = false;
     let audioPlaying = true,
       danger_bgm_toggle = true;
@@ -313,8 +318,17 @@ class Scene_1 extends Phaser.Scene {
         fillAlpha: 0.9
       });
 
-      sceneBGM.pause();
-      audioPlaying ? deathBGM.play() : null
+      this.sound.pauseAll();
+      if (audioPlaying) {
+        deathClip.play();
+        deathBGM.setVolume(0).play();
+        this.tweens.add({
+          targets: deathBGM,
+          volume: 0.8,
+          duration: 1000,
+          delay: 7000,
+        });
+      }
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
       if (danger_bgm_toggle && audioPlaying) {
@@ -414,6 +428,9 @@ class Scene_1 extends Phaser.Scene {
     this.consumable.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         (this.healthVal + scene_1_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += scene_1_settings.boneHealthRegen;
+
+        // play bone audio
+        audioPlaying ? boneClip.play() : null;
         gameObj.destroy();
         gameFunctions.activeHealthTextures(gameState);
       });
@@ -441,7 +458,12 @@ class Scene_1 extends Phaser.Scene {
     this.physics.add.collider(this.moveable, gameState.player, () => {
       if (recycleCollider) {
         const str = 'Bark';
-        const message = this.add.text(scene_1_settings.canvasWidth / 2 - 30, scene_1_settings.canvasHeight - 30, str, { fontSize: 16, color: '#FF7A00' }).setScrollFactor(0);
+        const message = this.add.text(
+          scene_1_settings.canvasWidth / 2,
+          scene_1_settings.canvasHeight - 40,
+          str,
+          { fontSize: 20, color: '#FF7A00' }
+        ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_1_settings.messageDepth);
         this.tweens.add({
           targets: message,
           alpha: 0,
@@ -584,8 +606,6 @@ class Scene_1 extends Phaser.Scene {
       }
     });
 
-    // danger_bgm emitter
-    (this.dangerState && this.healthVal > 0) ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
 
     if (this.healthVal > 0) {
       this.healthVal = gameFunctions.control(gameState, scene_1_settings, this.healthVal);
@@ -594,6 +614,9 @@ class Scene_1 extends Phaser.Scene {
       // update score
       this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
+
+      // danger_bgm emitter
+      this.dangerState ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);

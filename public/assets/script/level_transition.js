@@ -61,7 +61,7 @@ class Level_transition extends Phaser.Scene {
       resData.msg ? newStatusText += "First time for everything!" : null
       if (resData.score < this.playerScore) {
         newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
-      } else if (resData.time_raw < this.playerTime_raw || resData.time_raw > this.playerTime_raw || resData, bonusScore < this.playerBonus) {
+      } else if (resData.time_raw < this.playerTime_raw || resData.time_raw > this.playerTime_raw || resData.bonusScore < this.playerBonus) {
         newStatusText += `Didn't beat your record, but: \n`;
         resData.time_raw > this.playerTime_raw ? newStatusText += `${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
         resData.health < this.playerHealth ? newStatusText += `Got ${this.playerHealth - resData.health} more health\n` : null;
