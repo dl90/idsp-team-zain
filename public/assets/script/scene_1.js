@@ -30,10 +30,10 @@ const scene_1_settings = {
   coinScoreBonus: 1000,
 
   backgroundDepth: -1,
-  playerSpriteDepth: 1,
-  wallSpriteDepth: 2,
+  wallSpriteDepth: 1,
+  playerSpriteDepth: 2,
   treeSpriteDepth: 3,
-  scoreTimerBackgroundDepth: 3,
+  scoreTimerBackgroundDepth: 4,
   scoreTextDepth: 5,
   healthBarDepth: 5,
   deathBackgroundMaskDepth: 6,
@@ -96,10 +96,11 @@ class Scene_1 extends Phaser.Scene {
     this.load.image('back_button', './assets/sprites/buttons/button_back.png');
     this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');
-    this.load.audio('scene_1_bgm', './assets/bgm/Zain_Game_Music.mp3');
-    this.load.audio('success_audio', './assets/bgm/clips/Success.mp3');
+
+    this.load.audio('scene_1_bgm', './assets/bgm/Zain_bgm_01.mp3');
+    this.load.audio('success_audio', './assets/bgm/clips/Meme_success.mp3');
     this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');
-    this.load.audio('death_audio', './assets/bgm/clips/Meme_death.mp3');
+    this.load.audio('death_audio', './assets/bgm/Meme_death.mp3');
 
     // generics
     this.load.image('girl', './assets/sprites/family/girl.png');
@@ -436,7 +437,7 @@ class Scene_1 extends Phaser.Scene {
         .setDamping(true).setDrag(0.5).setMaxVelocity(50).setMass(1.5).setSize(28, 28);
     });
     let recycleCollider = true
-    this.physics.add.collider(this.moveable, [this.enemy2, this.enemy1, walls]);
+    this.physics.add.collider(this.moveable, [walls, this.semiWalls]);
     this.physics.add.collider(this.moveable, gameState.player, () => {
       if (recycleCollider) {
         const str = 'Bark';

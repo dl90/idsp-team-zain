@@ -194,5 +194,33 @@ const gameFunctions = {
     return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
   },
 
+  /**
+   * Generates custom hit-box (RECTANGLE ONLY)from Tiled by creating a physics body for each tile
+   * @param {Object} tileSet Phaser tileset reference:
+   * - const map = this.add.tilemap('tilemap_key');
+   * - const tileSet = map.addTilesetImage('tileset_key');
+   * @param {Object} layer Phaser tilemap layer:
+   * - const layer = map.createStaticLayer('layer_key', [tileSet], 0, 0);
+   * @param {Object} physicsGroup Phaser physics group:
+   * - const physicsGroup = this.physics.add.staticGroup();
+   * @param {Boolean} visible Set physics group to be visible (true) or invisible (false)
+   */
+  hitBoxGenerator: (tileSet, layer, physicsGroup, visible) => {
+    layer.forEachTile(tile => {
+      const tileWorldPos = layer.tileToWorldXY(tile.x, tile.y),
+        collisionGroup = tileSet.getTileCollisionGroup(tile.index);
+
+      if (!collisionGroup || collisionGroup.objects.length <= 0) { return }
+      else {
+        collisionGroup.objects.forEach((object) => {
+          if (object.rectangle) {
+            physicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, null).setSize(object.width, object.height).setOffset(object.x, object.y).setVisible(visible);
+          } else {
+            return;
+          }
+        });
+      }
+    });
+  }
 
 }

@@ -40,8 +40,9 @@ const config = {
   render: {
     pixelArt: true
   },
-  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_2],
-  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_2"]
+  // scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_2, Scene_3],
+  scene: [Scene_3],
+  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_2", "Scene_3"]
 };
 
 try {

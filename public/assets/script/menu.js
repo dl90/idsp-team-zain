@@ -21,7 +21,8 @@ class Menu extends Phaser.Scene {
     this.load.image('logout_button', '/assets/sprites/buttons/button_logout.png');
     this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
-    this.load.audio('intro_bgm', '/assets/bgm/Meme_Intro.mp3');
+
+    this.load.audio('intro_bgm', '/assets/bgm/Meme_intro.mp3');
   }
 
   create() {
