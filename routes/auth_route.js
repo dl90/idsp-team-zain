@@ -21,6 +21,7 @@ module.exports = function (auth) {
     }
   }
 
+
   router.get('/token', (req, res) => {
     if (req.cookies.idToken) {
       admin.auth().verifyIdToken(req.cookies.idToken)
@@ -28,13 +29,14 @@ module.exports = function (auth) {
           const { uid, name } = decodedToken;
           res.json({ displayName: name, uid });
         }).catch((err) => {
-          console.log(err)
+          console.log(err);
           res.status(269).end();
         });
     } else {
       res.status(269).end();
     }
   })
+
 
   router.post('/login', (req, res) => {
     const { email, pass } = (req.body);
@@ -45,10 +47,12 @@ module.exports = function (auth) {
       .catch(err => console.log(err));
   });
 
+
   router.get('/logout', (req, res) => {
     res.clearCookie('idToken');
     res.redirect("/");
   });
+
 
   router.post("/sign_up", (req, res) => {
     const { name, email, pass } = (req.body);
@@ -69,5 +73,5 @@ module.exports = function (auth) {
       .catch(err => console.log(err));
   });
 
-  return router
+  return router;
 }

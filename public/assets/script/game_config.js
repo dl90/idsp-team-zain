@@ -11,8 +11,7 @@ const gameState = {
   uid: null,
   userDisplayName: null,
   score: null,
-  bonusScore: 0,
-  coinCount: 0
+  coinCount: 0 // @TODO change or implement to track
 };
 
 const config = {
@@ -23,7 +22,6 @@ const config = {
   backgroundColor: "e5e5e5",
   roundPixels: true,
   antialias: false,
-  // resolution: window.devicePixelRatio,
   physics: {
     default: 'arcade',
     arcade: {
@@ -42,12 +40,14 @@ const config = {
   render: {
     pixelArt: true
   },
-  scene: [Menu, Scene_1, Scene_1_end, Scene_2, ScoreBoard]
-  // scene: [ScoreBoard]
+  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_2, Scene_3],
+  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_2", "Scene_3"],
+
+  // scene: [Scene_3],
 };
 
 try {
   new Phaser.Game(config);
 } catch (error) {
-  console.log(error)
+  console.log(error);
 }
