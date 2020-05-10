@@ -57,8 +57,9 @@ const gameFunctions = {
    * @param {Object} gameState must contain the following
    * - gameState.healthBar
    * - loaded textures with corresponding values
+   * @param {Number} health player health value (this.healthVal)
    */
-  activeHealthTextures: (gameState) => {
+  activeHealthTextures: (gameState, health) => {
     const healthTickers = {
       100: () => { gameState.healthBar.setTexture('health_100') },
       93: () => { gameState.healthBar.setTexture('health_90') },
@@ -74,13 +75,12 @@ const gameFunctions = {
       24: () => { gameState.healthBar.setTexture('health_20') },
       17: () => { gameState.healthBar.setTexture('health_15') },
       10: () => { gameState.healthBar.setTexture('health_10') }
-    }
+    };
     for (const bar in healthTickers) {
-      if ((gameState.healthVal - bar >= -3.5) && (gameState.healthVal - bar <= 3.5)) {
-        healthTickers[bar]()
+      if ((health - bar >= -3.5) && (health - bar <= 3.5)) {
+        healthTickers[bar]();
       }
     }
-
   },
 
   /**
@@ -88,75 +88,75 @@ const gameFunctions = {
    * @param {Object} gameState must contain the following
    *  - gameState.player
    *  - gameState.cursors
-   *  - gameState.healthVal
    * @param {Object} sceneSettings must contain the following
    *  - sceneSettings.movementHealthCostRatio
    *  - sceneSettings.diagonalMoveSpeed
    *  - sceneSettings.twoKeyMultiplier
+   * @param {Number} health player health value (this.healthVal)
    */
-  control: (gameState, sceneSettings) => {
+  control: (gameState, sceneSettings, health) => {
     gameState && sceneSettings ? new Error('Missing things') : null;
 
     if (gameState.cursors.up.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // up
       gameState.player.setVelocityY(-sceneSettings.moveSpeed).setVelocityX(0);
       gameState.player.anims.play('b_move', true);
-      (gameState.healthVal > 0) ? gameState.healthVal -= (gameState.cursors.up.getDuration() * sceneSettings.movementHealthCostRatio) : gameState.healthVal = -1;
+      (health > 0) ? health -= (gameState.cursors.up.getDuration() * sceneSettings.movementHealthCostRatio) : health = -1;
 
     } else if (gameState.cursors.down.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // down
       gameState.player.setVelocityY(sceneSettings.moveSpeed).setVelocityX(0);
       gameState.player.anims.play('f_move', true);
-      (gameState.healthVal > 0) ? gameState.healthVal -= (gameState.cursors.down.getDuration() * sceneSettings.movementHealthCostRatio) : gameState.healthVal = -1;
+      (health > 0) ? health -= (gameState.cursors.down.getDuration() * sceneSettings.movementHealthCostRatio) : health = -1;
 
     } else if (gameState.cursors.left.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // left
       gameState.player.setVelocityX(-sceneSettings.moveSpeed).setVelocityY(0);
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
-      (gameState.healthVal > 0) ? gameState.healthVal -= (gameState.cursors.left.getDuration() * sceneSettings.movementHealthCostRatio) : gameState.healthVal = -1;
+      (health > 0) ? health -= (gameState.cursors.left.getDuration() * sceneSettings.movementHealthCostRatio) : health = -1;
 
     } else if (gameState.cursors.right.isDown && gameState.cursors.up.isUp && gameState.cursors.down.isUp) { // right
       gameState.player.setVelocityX(sceneSettings.moveSpeed).setVelocityY(0);
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
-      (gameState.healthVal > 0) ? gameState.healthVal -= (gameState.cursors.right.getDuration() * sceneSettings.movementHealthCostRatio) : gameState.healthVal = -1;
+      (health > 0) ? health -= (gameState.cursors.right.getDuration() * sceneSettings.movementHealthCostRatio) : health = -1;
 
     } else if (gameState.cursors.up.isDown && gameState.cursors.right.isDown) { // up right
       gameState.player.setVelocityX(sceneSettings.diagonalMoveSpeed).setVelocityY(-sceneSettings.diagonalMoveSpeed);
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
-      if (gameState.healthVal > 0) {
-        gameState.healthVal -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.up.getDuration() + gameState.cursors.right.getDuration()) * sceneSettings.movementHealthCostRatio);
+      if (health > 0) {
+        health -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.up.getDuration() + gameState.cursors.right.getDuration()) * sceneSettings.movementHealthCostRatio);
       } else {
-        gameState.healthVal = -1;
+        health = -1;
       }
 
     } else if (gameState.cursors.up.isDown && gameState.cursors.left.isDown) { // up left
       gameState.player.setVelocityX(-sceneSettings.diagonalMoveSpeed).setVelocityY(-sceneSettings.diagonalMoveSpeed);
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
-      if (gameState.healthVal > 0) {
-        gameState.healthVal -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.up.getDuration()) * sceneSettings.movementHealthCostRatio);
+      if (health > 0) {
+        health -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.up.getDuration()) * sceneSettings.movementHealthCostRatio);
       } else {
-        gameState.healthVal = -1;
+        health = -1;
       }
 
     } else if (gameState.cursors.down.isDown && gameState.cursors.right.isDown) { //down right
       gameState.player.setVelocityX(sceneSettings.diagonalMoveSpeed).setVelocityY(sceneSettings.diagonalMoveSpeed);
       gameState.player.flipX = true;
       gameState.player.anims.play('l_move', true);
-      if (gameState.healthVal > 0) {
-        gameState.healthVal -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.right.getDuration() + gameState.cursors.down.getDuration()) * sceneSettings.movementHealthCostRatio)
+      if (health > 0) {
+        health -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.right.getDuration() + gameState.cursors.down.getDuration()) * sceneSettings.movementHealthCostRatio)
       } else {
-        gameState.healthVal = -1
+        health = -1
       }
 
     } else if (gameState.cursors.down.isDown && gameState.cursors.left.isDown) { //down left
       gameState.player.setVelocityX(-sceneSettings.diagonalMoveSpeed).setVelocityY(sceneSettings.diagonalMoveSpeed);
       gameState.player.flipX = false;
       gameState.player.anims.play('l_move', true);
-      if (gameState.healthVal > 0) {
-        gameState.healthVal -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.down.getDuration()) * sceneSettings.movementHealthCostRatio)
+      if (health > 0) {
+        health -= (sceneSettings.twoKeyMultiplier * (gameState.cursors.left.getDuration() + gameState.cursors.down.getDuration()) * sceneSettings.movementHealthCostRatio)
       } else {
-        gameState.healthVal = -1
+        health = -1
       }
 
     } else {
@@ -165,6 +165,7 @@ const gameFunctions = {
         gameState.player.anims.pause()
       }
     }
+    return health;
   },
 
   /** 

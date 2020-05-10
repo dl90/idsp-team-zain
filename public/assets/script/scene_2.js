@@ -18,14 +18,13 @@ const scene_2_settings = {
   diagonalMoveSpeed: 70.71,
   twoKeyMultiplier: 0.707,
 
-  playerSpawnPosition: [1, 2],
-  familySpawnPosition: [46, 1],
-  levelTime: 300, // s
+  playerSpawnPosition: [0, 1],
+  familySpawnPosition: [47, 0],
+  levelTime: 300,
 
   backgroundDepth: -1,
   playerSpriteDepth: 1,
   wallSpriteDepth: 2,
-  // treeSpriteDepth: 3,
   scoreTimerBackgroundDepth: 3,
   scoreTextDepth: 5,
   healthBarDepth: 5,
@@ -92,13 +91,14 @@ class Scene_2 extends Phaser.Scene {
     gameState.player = this.physics.add.sprite(
       scene_2_settings.playerSpawnPosition[0] * 32,
       scene_2_settings.playerSpawnPosition[1] * 32,
-      'f_dog').setSize(30, 30).setOrigin(0.5).setDepth(scene_2_settings.playerSpriteDepth);
+      'f_dog').setSize(30, 30).setDepth(scene_2_settings.playerSpriteDepth).setOrigin(0);
     gameState.player.setCollideWorldBounds(true).setBounce(1);
     gameState.player.noStop = true;
 
     // healthBar
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(scene_2_settings.healthBarDepth);
     this.bonusScore = 0; // resetBonus
+    this.healthVal = this.playerHealth; // gets health from passed value
 
     // follows player
     this.cameras.main.startFollow(gameState.player, true, 0.05, 0.05);
@@ -127,7 +127,7 @@ class Scene_2 extends Phaser.Scene {
       this.time.addEvent({
         delay: 1000,
         callback: () => {
-          if (gameState.healthVal > 0) {
+          if (this.healthVal > 0) {
             this.levelTime--;
             this.timeText.setText(`Level time: ${this.levelTime}`);
           }
@@ -138,7 +138,7 @@ class Scene_2 extends Phaser.Scene {
     }, this);
 
     // score tracker
-    this.score = parseInt(this.levelTime * gameState.healthVal); // @TODO scene score || total score
+    this.score = parseInt(this.levelTime * this.healthVal); // @TODO scene score || total score
     this.scoreText = this.add.text(
       scene_2_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
@@ -146,7 +146,7 @@ class Scene_2 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_2_settings.scoreTextDepth);
 
     // scene transition
-    this.girl = this.physics.add.sprite(scene_2_settings.familySpawnPosition[0] * 32 - 16, scene_2_settings.familySpawnPosition[1] * 32 - 16, 'girl');
+    this.girl = this.physics.add.sprite(scene_2_settings.familySpawnPosition[0] * 32, scene_2_settings.familySpawnPosition[1] * 32, 'girl').setOrigin(0);
     this.physics.add.overlap(gameState.player, this.girl, () => {
       this.sound.pauseAll();
 
@@ -164,7 +164,7 @@ class Scene_2 extends Phaser.Scene {
         scene: 'Scene_2',
         score: this.score,
         bonus: this.bonusScore,
-        health: gameState.healthVal,
+        health: this.healthVal,
         time_raw: this.scene_2_time_raw
       }
       this.scene.stop("Scene_2");
@@ -248,7 +248,7 @@ class Scene_2 extends Phaser.Scene {
       audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
     gameState.emitter.on('resume_bgm', () => {
-      if (gameState.healthVal > 0 && !deathBGM.isPaused) {
+      if (this.healthVal > 0 && !deathBGM.isPaused) {
         sceneBGM.resume();
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
@@ -315,7 +315,7 @@ class Scene_2 extends Phaser.Scene {
         targets: deathBGM,
         volume: 0,
         duration: 1500,
-        onComplete: () => { this.scene.restart(this.forwardData) }
+        onComplete: () => { this.scene.restart(this.forwardData) } // restarts scene with previously passed data
       });
     });
 
@@ -344,12 +344,12 @@ class Scene_2 extends Phaser.Scene {
   }
 
   update() {
-    if (gameState.healthVal > 0) {
-      gameFunctions.control(gameState, scene_2_settings);
-      gameFunctions.activeHealthTextures(gameState);
+    if (this.healthVal > 0) {
+      this.healthVal = gameFunctions.control(gameState, scene_2_settings, this.healthVal);
+      gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
       // update score
-      this.score = this.bonusScore + parseInt(this.levelTime * gameState.healthVal);
+      this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
     } else {
       this.score = 0;

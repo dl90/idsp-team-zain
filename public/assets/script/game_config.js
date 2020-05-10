@@ -11,7 +11,7 @@ const gameState = {
   uid: null,
   userDisplayName: null,
   score: null,
-  coinCount: 0 // change
+  coinCount: 0 // @TODO change or implement to track
 };
 
 const config = {

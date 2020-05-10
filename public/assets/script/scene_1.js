@@ -19,7 +19,7 @@ const scene_1_settings = {
   twoKeyMultiplier: 0.707,
 
   playerSpawnPosition: [0, 3],
-  familySpawnPosition: [47, 1],
+  familySpawnPosition: [47, 0],
 
   enemyMoveSpeed: 85,
   enemyChaseDistance: 100,
@@ -158,7 +158,7 @@ class Scene_1 extends Phaser.Scene {
 
     // initialize health
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(scene_1_settings.healthBarDepth);
-    gameState.healthVal = 100;
+    this.healthVal = 100;
     this.bonusScore = 0;
 
     // initialize player & controls
@@ -166,7 +166,7 @@ class Scene_1 extends Phaser.Scene {
     gameState.player = this.physics.add.sprite(
       scene_1_settings.playerSpawnPosition[0] * 32,
       scene_1_settings.playerSpawnPosition[1] * 32,
-      'f_dog').setSize(30, 30).setOrigin(0.5).setDepth(scene_1_settings.playerSpriteDepth);
+      'f_dog').setSize(30, 30).setDepth(scene_1_settings.playerSpriteDepth).setOrigin(0);
     gameState.player.setCollideWorldBounds(true);
 
     // follows player
@@ -199,7 +199,7 @@ class Scene_1 extends Phaser.Scene {
         callbackScope: this,
         repeat: -1,
         callback: () => {
-          if (gameState.healthVal > 0) {
+          if (this.healthVal > 0) {
             this.levelTime--;
             this.timeText.setText(`Level time: ${this.levelTime}`);
           }
@@ -208,7 +208,7 @@ class Scene_1 extends Phaser.Scene {
     }, this);
 
     // score tracker
-    this.score = this.bonusScore + parseInt(this.levelTime * gameState.healthVal);
+    this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
     this.scoreText = this.add.text(
       scene_1_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
@@ -216,7 +216,7 @@ class Scene_1 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(scene_1_settings.scoreTextDepth);
 
     // scene transition 
-    this.girl = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32 - 16, scene_1_settings.familySpawnPosition[1] * 32 - 16, 'girl');
+    this.girl = this.physics.add.sprite(scene_1_settings.familySpawnPosition[0] * 32, scene_1_settings.familySpawnPosition[1] * 32, 'girl').setOrigin(0);
     this.physics.add.overlap(gameState.player, this.girl, () => {
       this.sound.pauseAll();
 
@@ -229,7 +229,7 @@ class Scene_1 extends Phaser.Scene {
         scene: 'Scene_1',
         score: this.score,
         bonus: this.bonusScore,
-        health: gameState.healthVal,
+        health: this.healthVal,
         time_raw: this.scene_1_time_raw
       };
       this.scene.stop("Scene_1");
@@ -266,7 +266,7 @@ class Scene_1 extends Phaser.Scene {
     gameState.emitter.on('resume_bgm', () => {
       if (this.dangerState && dangerBGM.isPaused) {
         dangerBGM.resume();
-      } else if (gameState.healthVal > 0 && !deathBGM.isPaused) {
+      } else if (this.healthVal > 0 && !deathBGM.isPaused) {
         sceneBGM.resume();
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
@@ -367,7 +367,7 @@ class Scene_1 extends Phaser.Scene {
         duration: 1500,
         onComplete: () => {
           this.sound.stopAll();
-          this.scene.restart();
+          this.scene.restart(); // no data passed due to this being the initial scene
         }
       });
     });
@@ -412,7 +412,7 @@ class Scene_1 extends Phaser.Scene {
     level_1.bone.forEach(obj => { this.consumable.create(obj.x * 32 - 16, obj.y * 32 - 16, 'bone').setSize(16, 16) });
     this.consumable.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
-        (gameState.healthVal + scene_1_settings.boneHealthRegen) > 100 ? gameState.healthVal = 100 : gameState.healthVal += scene_1_settings.boneHealthRegen;
+        (this.healthVal + scene_1_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += scene_1_settings.boneHealthRegen;
         gameObj.destroy();
         gameFunctions.activeHealthTextures(gameState);
       });
@@ -558,11 +558,11 @@ class Scene_1 extends Phaser.Scene {
 
         if (this.physics.overlap(gameState.player, gameObj)) {
           gameObj.setVelocityX(0).setVelocityY(0);
-          if (gameState.healthVal > 0) {
-            gameState.healthVal -= scene_1_settings.enemyHealthReduction;
+          if (this.healthVal > 0) {
+            this.healthVal -= scene_1_settings.enemyHealthReduction;
             this.dangerState = true;
           } else {
-            gameState.HealthVal = -1;
+            this.HealthVal = -1;
           }
         } else if (distanceCalc(gameState.player, gameObj) < scene_1_settings.enemyChaseDistance) {
           tween.pause();
@@ -584,15 +584,14 @@ class Scene_1 extends Phaser.Scene {
     });
 
     // danger_bgm emitter
-    (this.dangerState && gameState.healthVal > 0) ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
+    (this.dangerState && this.healthVal > 0) ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
 
-
-    if (gameState.healthVal > 0) {
-      gameFunctions.control(gameState, scene_1_settings);
-      gameFunctions.activeHealthTextures(gameState);
+    if (this.healthVal > 0) {
+      this.healthVal = gameFunctions.control(gameState, scene_1_settings, this.healthVal);
+      gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
       // update score
-      this.score = this.bonusScore + parseInt(this.levelTime * gameState.healthVal);
+      this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
     } else {
       this.score = 0;
