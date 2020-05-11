@@ -195,6 +195,23 @@ const gameFunctions = {
   },
 
   /**
+   * Flips animation of enemy game object based on X velocity
+   * @param {Object} enemy Phaser game object containing animations
+   * @param {String} animationKey Key for accessing the animation
+   */
+  biDirectional_enemy: (enemy, animationKey) => {
+    if (enemy.body.velocity.x > 0) {
+      enemy.flipX = false;
+      enemy.anims.play(animationKey, true);
+    } else if (enemy.body.velocity.x < 0) {
+      enemy.flipX = true;
+      enemy.anims.play(animationKey, true);
+    } else {
+      enemy.anims.pause();
+    }
+  },
+
+  /**
    * Generates custom hit-box (RECTANGLE ONLY)from Tiled by creating a physics body for each tile
    * @param {Object} tileSet Phaser tileset reference:
    * - const map = this.add.tilemap('tilemap_key');
@@ -205,7 +222,8 @@ const gameFunctions = {
    * - const physicsGroup = this.physics.add.staticGroup();
    * @param {Boolean} visible Set physics group to be visible (true) or invisible (false)
    */
-  hitBoxGenerator: (tileSet, layer, physicsGroup, visible) => {
+  hitBoxGenerator: (tileSet, layer, physicsGroup, visible = false) => {
+    !tileSet && layer && physicsGroup ? (() => { return new Error('Missing key objects') })() : null;
     layer.forEachTile(tile => {
       const tileWorldPos = layer.tileToWorldXY(tile.x, tile.y),
         collisionGroup = tileSet.getTileCollisionGroup(tile.index);
