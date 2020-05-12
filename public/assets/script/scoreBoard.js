@@ -67,7 +67,7 @@ class ScoreBoard extends Phaser.Scene {
         [topTen_byLevel, topTen_byTotal] = [data.topTen_level, data.topTen_total];
         fillRankings(topTen_byLevel);
       } else {
-        rankingsText.setText('An error occurred,\n most likely due to too many requests');
+        rankingsText.setText('An error occurred,\nmost likely due to too many requests');
       }
     }).catch(err => { console.log(err) });
 
