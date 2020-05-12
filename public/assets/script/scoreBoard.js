@@ -7,14 +7,55 @@ class ScoreBoard extends Phaser.Scene {
     super({ key: 'ScoreBoard' });
   }
 
-  preload() { }
+  init(data) {
+    this.playerScene = data.scene;
+    this.playerScore = data.score;
+    this.playerBonus = data.bonus;
+    this.playerHealth = data.health;
+    this.playerTime_raw = data.time_raw;
+    this.forwardData = data;
+  }
+
+  preload() {
+    const assetPath = './assets/sprites';
+    this.load.image('back_button', assetPath + '/buttons/button_back.png');
+    this.load.image('logout_button', assetPath + '/buttons/button_logout.png');
+    this.load.image('level_button', assetPath + '/buttons/button_level.png');
+    this.load.image('total_button', assetPath + '/buttons/button_total.png');
+  }
 
   create() {
-    this.add.text(config.width / 2, config.height / 2 - 110, 'High score', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
+    this.add.text(config.width / 2, config.height / 2 - 120, 'High score', { color: 'black', fontSize: 16 }).setOrigin(0.5);
+    const rankingsText = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: 16 }).setOrigin(0.5);
 
-    fetch('/data/score', {
-      method: 'GET',
+    const totalButton = this.add.sprite(config.width / 2, config.height - 30, 'total_button'),
+      levelButton = this.add.sprite(config.width / 2, config.height - 30, 'level_button'),
+      backButton = this.add.sprite(config.width / 2 - 96, config.height - 30, 'back_button'),
+      logoutButton = this.add.sprite(config.width / 2 + 96, config.height - 30, 'logout_button');
+
+    totalButton.setInteractive();
+    levelButton.setInteractive().setVisible(false);
+    backButton.setInteractive();
+    logoutButton.setInteractive();
+
+    const body = { scene: this.playerScene };
+    let [topTen_byLevel, topTen_byTotal] = [null, null];
+
+    function fillRankings(arr) {
+      let newRankText = '';
+      if (arr) {
+        for (let i = 0; i < arr.length; i++) {
+          newRankText += `${i + 1} \t${arr[i].displayName} \t-\t ${arr[i].score}\n`;
+        }
+        rankingsText.setText(newRankText);
+      }
+    }
+
+    fetch('/data/leader-board', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
+      body: JSON.stringify(body)
     }).then(res => {
       if (res.status === 200) {
         return res.json();
@@ -23,16 +64,43 @@ class ScoreBoard extends Phaser.Scene {
       }
     }).then(data => {
       if (data) {
-        this.scoresArr = data.data;
-        for (let i = 0; i < this.scoresArr.length; i++) {
-          this.add.text(config.width / 2, config.height / 2 - 70 + (20 * i), `${i + 1}   ${this.scoresArr[i].displayName}   ${this.scoresArr[i].score}`, { color: 'black', fontSize: '16px' }).setOrigin(0.5);
-        }
+        [topTen_byLevel, topTen_byTotal] = [data.topTen_level, data.topTen_total];
+        fillRankings(topTen_byLevel);
       } else {
-        this.add.text(config.width / 2, config.height / 2 - 70, 'An error occured', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
+        rankingsText.setText('An error occurred,\n most likely due to too many requests');
       }
-    }).catch(err => {
-      console.log(err)
+    }).catch(err => { console.log(err) });
+
+
+    totalButton.on('pointerup', () => {
+      rankingsText.setText('');
+      fillRankings(topTen_byTotal);
+      totalButton.visible ? totalButton.setVisible(false) : null;
+      !levelButton.visible ? levelButton.setVisible(true) : null;
     })
 
+    levelButton.on('pointerup', () => {
+      rankingsText.setText('');
+      fillRankings(topTen_byLevel);
+      levelButton.visible ? levelButton.setVisible(false) : null;
+      !totalButton.visible ? totalButton.setVisible(true) : null;
+    })
+
+    backButton.on('pointerup', () => {
+      this.sound.stopAll();
+      this.scene.stop(this.scene.key);
+      this.scene.get('Level_transition').scene.restart(this.forwardData);
+    })
+
+    logoutButton.on('pointerup', () => {
+      fetch("/auth/logout", { method: "GET" })
+        .then(() => {
+          this.sound.stopAll();
+          this.scene.stop('Level_transition');
+          this.scene.get("Menu").scene.restart();
+        }).catch(err => {
+          console.log(err);
+        });
+    }, this);
   }
 }

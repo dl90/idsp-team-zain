@@ -8,25 +8,37 @@ const express = require("express"),
 
 module.exports = function (fireStore) {
 
-  router.get('/score', (req, res) => {
-    fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get().then(async (snapshot) => {
-      const topTen = [];
-      await snapshot.forEach(doc => {
-        const entry = { displayName: doc.data().displayName, score: doc.data().scene_1_score };
-        topTen.push(entry);
-      })
+  router.post('/leader-board', async (req, res) => {
+    const { scene } = req.body;
+    const topTen_total = [];
+    const topTen_level = [];
+    await fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get()
+      .then((snapshot) => {
+        snapshot.forEach(doc => {
+          const entry = { displayName: doc.data().displayName, score: doc.data().totalScore };
+          topTen_total.push(entry);
+        });
 
-      topTen.sort((x, y) => {
-        let result
-        x.scene_1_score > y.scene_1_score ? result = 1 : null;
-        y.scene_1_score > x.scene_1_score ? result = -1 : null;
-        x.scene_1_score == y.scene_1_score ? result = 0 : null;
-        return result;
-      });
+        // topTen.sort((x, y) => {
+        //   let result
+        //   x.totalScore > y.totalScore ? result = 1 : null;
+        //   y.totalScore > x.totalScore ? result = -1 : null;
+        //   x.totalScore == y.totalScore ? result = 0 : null;
+        //   return result;
+        // });
+        // topTen.length > 10 ? topTen.length = 10 : null;
 
-      topTen.length > 10 ? topTen.length = 10 : null;
-      res.send(JSON.stringify({ data: topTen }));
-    })//.catch(err => console.log(err));
+      }).catch(err => console.log(err));
+
+    await fireStore.collection('user_score').where(`${scene}.score`, '>', 0).orderBy(`${scene}.score`, "desc").limit(10).get()
+      .then((snapshot) => {
+        snapshot.forEach(doc => {
+          const entry = { displayName: doc.data().displayName, score: doc.data()[scene].score };
+          topTen_level.push(entry)
+        });
+      }).catch(err => console.log(err));
+
+    res.send(JSON.stringify({ topTen_total, topTen_level }));
   });
 
 
@@ -37,7 +49,7 @@ module.exports = function (fireStore) {
     fireStore.collection("user_score").doc('/' + uid).get().then(doc => {
       const stored = doc.data(); // existing data
 
-      if (!doc.exists) {
+      if (!doc.exists) { // document doesn't exist
         const document = {
           'displayName': displayName,
           'totalScore': score,
@@ -60,7 +72,7 @@ module.exports = function (fireStore) {
             console.log(err);
           });
 
-      } else if (stored[scene] === undefined) {
+      } else if (stored[scene] === undefined) { // document exists but scene doesn't exist
         const scenes_completed = stored.scenes_completed; // collection.document.arrayUnion(arr_value);
         !scenes_completed.includes(scene) ? scenes_completed.push(scene) : console.log("This doesn't add up, uid: " + uid);
 
@@ -85,7 +97,7 @@ module.exports = function (fireStore) {
             console.log(err);
           });
 
-      } else {
+      } else { // document and scene exists
         const diff = { [scene]: { 'timestamp': firebase.firestore.FieldValue.serverTimestamp() } };
         if (stored[scene].score < score) {
           diff[scene].score = score;
@@ -94,7 +106,7 @@ module.exports = function (fireStore) {
           diff[scene].time_raw = time_raw;
 
           // re-calcs the total score
-          diff[scene].score ? diff.totalScore = stored.totalScore - stored[scene].score + diff[scene].score : null;
+          diff.totalScore = stored.totalScore - stored[scene].score + diff[scene].score;
 
           fireStore.collection("user_score").doc('/' + uid)
             .update(diff)

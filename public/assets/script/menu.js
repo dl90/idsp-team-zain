@@ -238,6 +238,5 @@ class Menu extends Phaser.Scene {
           console.log(err);
         });
     });
-
   }
 }
