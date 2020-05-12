@@ -20,7 +20,7 @@ class Scene_11 extends Phaser.Scene {
     }
 
     this.scene_11_settings = {
-      debug: true,
+      debug: false,
 
       canvasWidth: 480,
       canvasHeight: 270,

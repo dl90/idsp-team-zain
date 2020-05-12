@@ -503,7 +503,7 @@ class Scene_4 extends Phaser.Scene {
     // emitter for time
     gameState.emitter.once('end_time', () => {
       this.endTime = this.time.now;
-      this.scene_3_time_raw = this.endTime - this.startTime;
+      this.scene_4_time_raw = this.endTime - this.startTime;
     }, this)
 
     gameState.emitter.emit('play_bgm');
