@@ -10,7 +10,7 @@ class Scene_1 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_1' }) }
 
   init(data) {
-    if (data) { // not used
+    if (data) { // not used due to initial scene
       this.playerScene = data.scene;
       this.playerScore = data.score;
       this.playerBonus = data.bonus;
@@ -132,7 +132,6 @@ class Scene_1 extends Phaser.Scene {
     // map from JSON option (throws error if load from static folder)
     // this.load.json('mapData', 'maps/level_1.json');
   }
-
 
   create() {
     // destroys loading assets

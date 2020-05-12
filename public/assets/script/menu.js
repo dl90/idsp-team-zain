@@ -7,7 +7,6 @@
  * @date April 15, 2020
  * @note Game Menu
  */
-
 class Menu extends Phaser.Scene {
   constructor() { super({ key: 'Menu' }) }
 
@@ -32,7 +31,7 @@ class Menu extends Phaser.Scene {
 
     const sound_config = {
       mute: false,
-      volume: 1,
+      volume: 0.8,
       rate: 1,
       detune: 0,
       seek: 0,

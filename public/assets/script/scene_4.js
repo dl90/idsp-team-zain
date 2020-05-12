@@ -19,14 +19,13 @@ class Scene_4 extends Phaser.Scene {
       this.forwardData = data;
     }
 
-
     this.scene_4_settings = {
-      debug: true,
+      debug: false,
 
       canvasWidth: 480,
       canvasHeight: 270,
-      worldWidth: 32 * 143,
-      worldHeight: 32 * 70,
+      worldWidth: 32 * 80,
+      worldHeight: 32 * 80,
 
       moveSpeed: 100,
       movementHealthCostRatio: 0.000005,
@@ -34,9 +33,9 @@ class Scene_4 extends Phaser.Scene {
       twoKeyMultiplier: 0.707,
 
       playerSpawnPosition: [0, 0],
-      familySpawnPosition: [3, 3],
+      familySpawnPosition: [79, 79],
 
-      levelTime: 400, // s
+      levelTime: 350, // s
       boneHealthRegen: 30,
       coinScoreBonus: 1000,
 
@@ -53,6 +52,20 @@ class Scene_4 extends Phaser.Scene {
       messageDepth: 10,
       buttonDepth: 10,
 
+      enemyMoveSpeed: 85,
+      enemyChaseDistance: 100,
+      enemyHealthReduction: 0.1, // per 16ms
+      enemyTweenDurationMultiplier: 500,
+      enemyTweenLoopDelay: 20000,
+
+      enemy: [
+        { "id": 1, "x": -28, "y": -15, "tweenX": 0, "tweenY": -7 },
+        { "id": 2, "x": 7, "y": -28, "tweenX": -10, "tweenY": 0 },
+        { "id": 3, "x": 8, "y": -1, "tweenX": 0, "tweenY": 7 },
+        { "id": 4, "x": -24, "y": 12, "tweenX": 7, "tweenY": 0 },
+        { "id": 5, "x": -4, "y": 26, "tweenX": 0, "tweenY": 7 },
+        { "id": 6, "x": 40, "y": 25, "tweenX": 0, "tweenY": -7 }
+      ]
     }
   }
 
@@ -83,6 +96,7 @@ class Scene_4 extends Phaser.Scene {
 
     // tilemap and tileset
     this.load.image('office_tileset', './assets/tileset/Office_Tileset.png');
+    this.load.image('things', './assets/tileset/things.png');
     this.load.tilemapTiledJSON('scene_4', './assets/tilemaps/Office_Level1Map.json');
   }
 
@@ -164,7 +178,7 @@ class Scene_4 extends Phaser.Scene {
 
     // scene transition
     this.girl = this.physics.add.sprite(
-      this.scene_4_settings.familySpawnPosition[0] * 32 - 32,
+      this.scene_4_settings.familySpawnPosition[0] * 32,
       this.scene_4_settings.familySpawnPosition[1] * 32,
       'girl'
     ).setOrigin(0).setDepth(this.scene_4_settings.playerSpriteDepth);
@@ -192,7 +206,8 @@ class Scene_4 extends Phaser.Scene {
 
     // ------ map ------ //
     const map = this.add.tilemap('scene_4'),
-      tileSet = map.addTilesetImage('office_level_1', 'office_tileset');
+      tileSet = map.addTilesetImage('office_level_1', 'office_tileset'),
+      things = map.addTilesetImage('things');
 
     // background
     map.createStaticLayer('background', [tileSet], 0, 0).setDepth(this.scene_4_settings.backgroundDepth);
@@ -270,11 +285,98 @@ class Scene_4 extends Phaser.Scene {
       }
     });
 
-    
+    // coin
+    const coin = map.createStaticLayer('coin', [things], 0, 0).setVisible(false);
+    const coinPhysicsGroup = this.physics.add.group();
+    coin.forEachTile(tile => {
+      const tileWorldPos = coin.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.coin) {
+        coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(30 / 2, 1, 1).setDepth(this.scene_4_settings.itemSpriteDepth);
+      }
+    });
+    coinPhysicsGroup.getChildren().forEach(gameObj => {
+      this.physics.add.overlap(gameState.player, gameObj, () => {
+        this.bonusScore += this.scene_4_settings.coinScoreBonus;
+        this.coinCount += 1; // @TODO
+        gameObj.destroy();
+      });
+    });
+
+    // bone
+    const bone = map.createStaticLayer('bone', [things], 0, 0).setVisible(false);
+    const bonePhysicsGroup = this.physics.add.group();
+    bone.forEachTile(tile => {
+      const tileWorldPos = bone.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.bone) {
+        bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(5, 10, 10).setDepth(this.scene_4_settings.itemSpriteDepth);
+      }
+    });
+    bonePhysicsGroup.getChildren().forEach(gameObj => {
+      this.physics.add.overlap(gameState.player, gameObj, () => {
+        (this.healthVal + this.scene_4_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += this.scene_4_settings.boneHealthRegen;
+
+        // play bone audio
+        audioPlaying ? boneClip.play() : null;
+        gameObj.destroy();
+        gameFunctions.activeHealthTextures(gameState);
+      });
+    });
+
+    // const catchers = map.createFromObjects('catcher', 28, { key: 's_catcher' }); //gid = 28
+    // catchers.forEach(sprite => {
+    //   // note map is not centered at (0,0) but (-32,-32)
+    //   enemies.create((sprite.x + 32 * 32), (sprite.y + 32 * 32), 's_catcher').setCollideWorldBounds(true).setDepth(2)
+    // })
+
+    const enemyPhysicsGroup = this.physics.add.group();
+    this.scene_4_settings.enemy.forEach(function (obj) {
+      enemyPhysicsGroup.create((obj.x + 32) * 32 + 16, (obj.y + 32) * 32 + 16, 's_catcher').setCollideWorldBounds(true)
+        .setData({
+          "id": obj.id,
+          "x": obj.x + 32,
+          "y": obj.y + 32,
+          "tweenX": obj.tweenX,
+          "tweenY": obj.tweenY
+        });
+    }, this);
+    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
+      this.physics.add.collider(gameObj, [wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup, enemyPhysicsGroup]);
+
+      // tween
+      if (gameObj.getData("tweenX") !== 0) {
+        this.tweens.add({
+          targets: gameObj,
+          x: (gameObj.getData("x") * 32 + gameObj.getData("tweenX") * 32) + 16,
+          ease: 'Linear',
+          duration: Math.abs(gameObj.getData("tweenX")) * this.scene_4_settings.enemyTweenDurationMultiplier,
+          repeat: -1,
+          yoyo: true,
+          loopDelay: this.scene_4_settings.enemyTweenLoopDelay
+        });
+      } else if (gameObj.getData("tweenY") !== 0) {
+        this.tweens.add({
+          targets: gameObj,
+          y: (gameObj.getData("y") * 32 + gameObj.getData("tweenY") * 32) + 16,
+          ease: 'Linear',
+          duration: Math.abs(gameObj.getData("tweenY")) * this.scene_4_settings.enemyTweenDurationMultiplier,
+          repeat: -1,
+          yoyo: true,
+          loopDelay: this.scene_4_settings.enemyTweenLoopDelay
+        });
+      }
+    }, this);
+
+    /**
+     * events by location:
+     * layer.setTileLocationCallback(x, y, tile-size-x, tile-size-y, () => { 
+     * - multiple times
+     * one time = layer.setTileLocationCallback(x, y, tile-size-x, tile-size-y, null)
+     * });
+     * events by index:
+     * layer.setTileIndexCallback([...], () => {});
+     */
+
     // ------ map ------ //
-
-
-
 
     // audio department
     const sound_config = {
@@ -486,11 +588,6 @@ class Scene_4 extends Phaser.Scene {
             this.physics.moveTo(gameObj, gameObj.getData("x") * 32 + 16, gameObj.getData("y") * 32 + 16);
           }
         }
-
-        // enemy drag over semiWalls
-        this.physics.overlap(gameObj, this.semiWalls) ?
-          gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
-          gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_4_settings.enemyMoveSpeed);
       }
     });
 

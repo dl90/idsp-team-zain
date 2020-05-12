@@ -6,7 +6,6 @@
  * @author Don (dl90)
  * @date May 7, 2020
  */
-
 class Level_transition extends Phaser.Scene {
   constructor() { super({ key: 'Level_transition' }) }
 
