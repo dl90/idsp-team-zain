@@ -34,7 +34,5 @@ class ScoreBoard extends Phaser.Scene {
       console.log(err)
     })
 
-
-
   }
 }

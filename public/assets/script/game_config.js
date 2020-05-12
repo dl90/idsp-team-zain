@@ -6,7 +6,6 @@
  * @author Don (dl90)
  * @date April 15, 2020
  */
-
 const gameState = {
   uid: null,
   userDisplayName: null,
@@ -40,10 +39,10 @@ const config = {
   render: {
     pixelArt: true
   },
-  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_2, Scene_3],
-  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_2", "Scene_3"],
+  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_3, Scene_4, Scene_11, Scene_13, Scene_15],
+  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_3", "Scene_4", "Scene_11", "Scene_13", "Scene_15"],
 
-  // scene: [Scene_3],
+  // scene: [Scene_15]
 };
 
 try {
