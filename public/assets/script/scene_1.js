@@ -485,7 +485,7 @@ class Scene_1 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    this.physics.add.collider(gameObj, [walls, this.moveable, enemiesPhysicsGroup]);
+    this.physics.add.collider(enemiesPhysicsGroup, [enemiesPhysicsGroup, walls, this.moveable]);
 
     enemiesPhysicsGroup.getChildren().forEach(function (gameObj) {
       // X or Y axis tween
