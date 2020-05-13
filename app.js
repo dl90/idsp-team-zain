@@ -14,7 +14,6 @@ const express = require("express"),
   // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
   app = express();
 
-
 const fbConfig = {
   "apiKey": process.env.apiKey || firebaseConfig.apiKey,
   "authDomain": process.env.authDomain || firebaseConfig.authDomain,
@@ -24,9 +23,7 @@ const fbConfig = {
   "messagingSenderId": process.env.messagingSenderId || firebaseConfig.messagingSenderId,
   "appId": process.env.appId || firebaseConfig.appId,
   "measurementId": process.env.measurementId || firebaseConfig.measurementId
-}
-
-const fbService = {
+}, fbService = {
   "type": process.env.type || firebaseService.type,
   "project_id": process.env.project_id || firebaseService.project_id,
   "private_key_id": process.env.private_key_id || firebaseService.private_key_id,
@@ -37,7 +34,7 @@ const fbService = {
   "token_uri": process.env.token_uri || firebaseService.token_uri,
   "auth_provider_x509_cert_url": process.env.auth_provider_x509_cert_url || firebaseService.auth_provider_x509_cert_url,
   "client_x509_cert_url": process.env.client_x509_cert_url || firebaseService.client_x509_cert_url
-}
+};
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: false }));
