@@ -1,5 +1,6 @@
 on:
-  deployment: master
+  push:
+    branches: master
 
 jobs:
   zap_scan:
