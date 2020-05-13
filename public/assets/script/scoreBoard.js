@@ -87,7 +87,7 @@ class ScoreBoard extends Phaser.Scene {
 
     backButton.on('pointerup', () => {
       this.sound.stopAll();
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get('Level_transition').scene.restart(this.forwardData);
     })
 
@@ -95,7 +95,7 @@ class ScoreBoard extends Phaser.Scene {
       fetch("/auth/logout", { method: "GET" })
         .then(() => {
           this.sound.stopAll();
-          this.scene.stop('Level_transition');
+          this.scene.stop();
           this.scene.get("Menu").scene.restart();
         }).catch(err => {
           console.log(err);

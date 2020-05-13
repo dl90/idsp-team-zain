@@ -97,7 +97,7 @@ class Scene_4 extends Phaser.Scene {
     // tilemap and tileset
     this.load.image('office_tileset', './assets/tileset/Office_Tileset.png');
     this.load.image('things', './assets/tileset/things.png');
-    this.load.tilemapTiledJSON('scene_4', './assets/tilemaps/Office_Level1Map.json');
+    this.load.tilemapTiledJSON('scene_4', './assets/tilemaps/level_4.json');
   }
 
   create() {
@@ -199,7 +199,7 @@ class Scene_4 extends Phaser.Scene {
         health: this.healthVal,
         time_raw: this.scene_4_time_raw
       }
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
@@ -254,11 +254,11 @@ class Scene_4 extends Phaser.Scene {
     this.physics.add.collider(gameState.player, bookshelfPhysicsGroup);
 
     // chair
-    const chair = map.createStaticLayer('office_chair', [tileSet], 0, 0).setVisible(false);
+    const chair = map.createStaticLayer('chair', [tileSet], 0, 0).setVisible(false);
     const chairPhysicsGroup = this.physics.add.group();
     gameFunctions.hitBoxGenerator(tileSet, chair, chairPhysicsGroup, true);
     chairPhysicsGroup.getChildren().forEach(obj => {
-      obj.setTexture('chair').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(3).setSize(24, 18).setOffset(4, 6);
+      obj.setTexture('office_chair').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(3).setSize(24, 18).setOffset(4, 6);
     });
     let chairCollider = true
     this.physics.add.collider(chairPhysicsGroup, [wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup]);
@@ -338,10 +338,9 @@ class Scene_4 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
-      this.physics.add.collider(gameObj, [wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup, enemyPhysicsGroup]);
+    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup]);
 
-      // tween
+    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,

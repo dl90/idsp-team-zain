@@ -208,7 +208,7 @@ class Scene_15 extends Phaser.Scene {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: 0,
+      detune: 500,
       seek: 0,
       loop: true,
       delay: 0

@@ -232,7 +232,7 @@ class Scene_1 extends Phaser.Scene {
         health: this.healthVal,
         time_raw: this.scene_1_time_raw
       };
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
@@ -474,9 +474,9 @@ class Scene_1 extends Phaser.Scene {
     });
 
     // enemy group
-    this.enemies = this.physics.add.group();
+    const enemiesPhysicsGroup = this.physics.add.group();
     this.scene_1_settings.enemy.forEach(function (obj) {
-      this.enemies.create(obj.x * 32 - 16, obj.y * 32 - 16, 's_catcher').setCollideWorldBounds(true) // s_catcher == spriteSheet
+      enemiesPhysicsGroup.create(obj.x * 32 - 16, obj.y * 32 - 16, 's_catcher').setCollideWorldBounds(true) // s_catcher == spriteSheet
         .setData({
           "id": obj.id,
           "x": obj.x,
@@ -485,10 +485,9 @@ class Scene_1 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    this.enemies.getChildren().forEach(function (gameObj) {
-      // enemy colliders
-      this.physics.add.collider(gameObj, [walls, this.moveable, this.enemies]);
+    this.physics.add.collider(gameObj, [walls, this.moveable, enemiesPhysicsGroup]);
 
+    enemiesPhysicsGroup.getChildren().forEach(function (gameObj) {
       // X or Y axis tween
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({

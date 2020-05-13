@@ -205,7 +205,7 @@ class Scene_3 extends Phaser.Scene {
         health: this.healthVal,
         time_raw: this.scene_3_time_raw
       }
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
@@ -309,9 +309,9 @@ class Scene_3 extends Phaser.Scene {
     // ------ map ------ //
 
     // enemy group
-    this.enemies = this.physics.add.group();
+    const enemies = thiPhysicsGroups.physics.add.group();
     this.scene_3_settings.enemy.forEach(function (obj) {
-      this.enemies.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
+      enemiesPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
         .setData({
           "id": obj.id,
           "x": obj.x,
@@ -320,11 +320,9 @@ class Scene_3 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    this.enemies.getChildren().forEach(function (gameObj) {
-      // enemy colliders
-      this.physics.add.collider(gameObj, [wallsPhysicsGroup, this.bushPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup, this.enemies]);
+    this.physics.add.collider(enemiesPhysicsGroup, [enemiesPhysicsGroup, wallsPhysicsGroup, this.bushPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup]);
 
-      // tween
+    enemiesPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,
@@ -353,7 +351,7 @@ class Scene_3 extends Phaser.Scene {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: 0,
+      detune: -200,
       seek: 0,
       loop: true,
       delay: 0
