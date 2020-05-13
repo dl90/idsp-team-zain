@@ -107,7 +107,7 @@ class Scene_13 extends Phaser.Scene {
     // tilemap and tileset
     this.load.image('item', './assets/tileset/item.png');
     this.load.image('playground', './assets/tileset/Group 1.png');
-    this.load.tilemapTiledJSON('scene_13', './assets/tilemaps/level13.json');
+    this.load.tilemapTiledJSON('scene_13', './assets/tilemaps/level_13.json');
   }
 
   create() {
@@ -209,7 +209,7 @@ class Scene_13 extends Phaser.Scene {
         health: this.healthVal,
         time_raw: this.scene_4_time_raw
       }
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
@@ -327,10 +327,9 @@ class Scene_13 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
-      this.physics.add.collider(gameObj, [enemyPhysicsGroup, boxPhysicsGroup, treePhysicsGroup, playthingPhysicsGroup, ballPhysicsGroup]);
+    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, boxPhysicsGroup, treePhysicsGroup, playthingPhysicsGroup, ballPhysicsGroup]);
 
-      // tween
+    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,

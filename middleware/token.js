@@ -6,7 +6,7 @@ function verifyToken(req, res, next) {
       .then(() => {
         next();
       }).catch((err) => {
-        console.log(err)
+        console.log(err.message);
         res.status(403).end();
       });
   } else {

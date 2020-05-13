@@ -204,7 +204,7 @@ class Scene_11 extends Phaser.Scene {
         health: this.healthVal,
         time_raw: this.scene_11_time_raw
       }
-      this.scene.stop(this.scene.key);
+      this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
@@ -339,10 +339,9 @@ class Scene_11 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
-      this.physics.add.collider(gameObj, [enemyPhysicsGroup, class_chairPhysicsGroup, chalkboard_wallPhysicsGroup, dividerPhysicsGroup, front_deskPhysicsGroup, boxesPhysicsGroup, class_deskPhysicsGroup]);
+    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, class_chairPhysicsGroup, chalkboard_wallPhysicsGroup, dividerPhysicsGroup, front_deskPhysicsGroup, boxesPhysicsGroup, class_deskPhysicsGroup]);
 
-      // tween
+    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,

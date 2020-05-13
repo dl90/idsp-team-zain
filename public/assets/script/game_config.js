@@ -39,10 +39,10 @@ const config = {
   render: {
     pixelArt: true
   },
-  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_3, Scene_4, Scene_11, Scene_13, Scene_14, Scene_15],
-  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_3", "Scene_4", "Scene_11", "Scene_13", "Scene_14", "Scene_15"],
+  scene: [Menu, Level_transition, ScoreBoard, Scene_1, Scene_3, Scene_4, Scene_7, Scene_11, Scene_13, Scene_14, Scene_15],
+  sceneKeys: ["Menu", "Level_transition", "ScoreBoard", "Scene_1", "Scene_3", "Scene_4", "Scene_7", "Scene_11", "Scene_13", "Scene_14", "Scene_15"],
 
-  // scene: [Scene_14]
+  // scene: [Scene_7]
 };
 
 try {
