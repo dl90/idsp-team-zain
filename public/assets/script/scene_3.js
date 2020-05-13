@@ -308,7 +308,6 @@ class Scene_3 extends Phaser.Scene {
     });
     // ------ map ------ //
 
-
     // enemy group
     this.enemies = this.physics.add.group();
     this.scene_3_settings.enemy.forEach(function (obj) {

@@ -71,7 +71,6 @@ class ScoreBoard extends Phaser.Scene {
       }
     }).catch(err => { console.log(err) });
 
-
     totalButton.on('pointerup', () => {
       rankingsText.setText('');
       fillRankings(topTen_byTotal);

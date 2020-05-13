@@ -73,7 +73,7 @@ class Level_transition extends Phaser.Scene {
     }).then(resData => {
       let newStatusText = ''
 
-      resData.msg ? newStatusText += "First time for everything!" : null
+      resData.msg ? newStatusText += "First time for everything!\n" : null;
       if (resData.score < this.playerScore) {
         newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
       } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
@@ -84,7 +84,7 @@ class Level_transition extends Phaser.Scene {
           resData.bonus_score < this.playerBonus ? newStatusText += `\tgot ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
         }
       } else {
-        newStatusText += 'Nothing new';
+        newStatusText += 'Nothing new here\n';
       }
 
       status.setText(newStatusText);
