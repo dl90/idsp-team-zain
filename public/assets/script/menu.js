@@ -14,6 +14,7 @@ class Menu extends Phaser.Scene {
     gameFunctions.loading.call(this);
     this.load.html('login_form', '/assets/util/login_form.html');
     this.load.html('signup_form', '/assets/util/signup_form.html');
+    // this.load.html('video', '/assets/util/video.html');
 
     this.load.image('logo', '/assets/sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', '/assets/sprites/buttons/button_play.png');
@@ -22,6 +23,8 @@ class Menu extends Phaser.Scene {
     this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
 
     this.load.audio('intro_bgm', '/assets/bgm/Meme_intro.mp3');
+    this.load.video('tutorial', '/assets/video/tutorial.mp4');
+
   }
 
   create() {
@@ -52,6 +55,7 @@ class Menu extends Phaser.Scene {
     const prompt = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
     const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false);
     const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
+    // const videoDom = this.add.dom(config.width / 2, config.height / 2).createFromCache('video').setOrigin(0.5).setVisible(false);
 
     const msgFlash = (target) => {
       this.tweens.add({
@@ -64,6 +68,25 @@ class Menu extends Phaser.Scene {
         onComplete: () => { target.alpha = 1 }
       });
     }
+
+    const fadeIn = (target, duration, callback) => {
+      target.alpha = 0
+      this.tweens.add({
+        targets: target,
+        alpha: 1,
+        duration: duration,
+        ease: 'Linear',
+        onComplete: callback
+      })
+    }
+
+    const video = this.add.video(0, 0, 'tutorial');
+    video.setOrigin(0).setVisible(false).setDepth(2).setInteractive();
+    video.on('pointerup', () => {
+      video.stop();
+      this.scene.stop('Menu');
+      this.scene.start('Scene_1');
+    });
 
     fetch("/auth/token", { method: "GET" })
       .then((res) => {
@@ -217,9 +240,14 @@ class Menu extends Phaser.Scene {
         volume: 0,
         duration: 1500,
         onComplete: () => {
-          this.scene.stop('Menu');
           intro_bgm.stop();
-          this.scene.start('Scene_1');
+          video.setVisible(true).play();
+          fadeIn(video, 1000, () => {
+            video.on('complete', () => {
+              this.scene.stop('Menu');
+              this.scene.start('Scene_1');
+            })
+          })
         }
       });
     });

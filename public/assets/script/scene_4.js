@@ -89,8 +89,8 @@ class Scene_4 extends Phaser.Scene {
     this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
     this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
 
-    this.load.image('girl', './assets/sprites/family/girl.png');
-    this.load.image('chair', './assets/sprites/office/desk_chair.png');
+    this.load.image('father', './assets/sprites/family/father.png');
+    this.load.image('office_chair', './assets/sprites/office/desk_chair.png');
     this.load.image('coin', './assets/sprites/items/coin.png');
     this.load.image('bone', './assets/sprites/items/bone.png');
 
@@ -107,7 +107,6 @@ class Scene_4 extends Phaser.Scene {
 
     this.camera = this.cameras.main.setBounds(0, 0, this.scene_4_settings.worldWidth, this.scene_4_settings.worldHeight);
     this.physics.world.setBounds(0, 0, this.scene_4_settings.worldWidth, this.scene_4_settings.worldHeight);
-
 
     // level title
     this.levelText = this.add.text(
@@ -177,12 +176,12 @@ class Scene_4 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_4_settings.scoreTextDepth);
 
     // scene transition
-    this.girl = this.physics.add.sprite(
+    this.father = this.physics.add.sprite(
       this.scene_4_settings.familySpawnPosition[0] * 32,
       this.scene_4_settings.familySpawnPosition[1] * 32,
-      'girl'
+      'father'
     ).setOrigin(0).setDepth(this.scene_4_settings.playerSpriteDepth);
-    this.physics.add.overlap(gameState.player, this.girl, () => {
+    this.physics.add.overlap(gameState.player, this.father, () => {
       this.sound.pauseAll();
 
       // timer (end of scene)
@@ -255,7 +254,7 @@ class Scene_4 extends Phaser.Scene {
     this.physics.add.collider(gameState.player, bookshelfPhysicsGroup);
 
     // chair
-    const chair = map.createStaticLayer('chair', [tileSet], 0, 0).setVisible(false);
+    const chair = map.createStaticLayer('office_chair', [tileSet], 0, 0).setVisible(false);
     const chairPhysicsGroup = this.physics.add.group();
     gameFunctions.hitBoxGenerator(tileSet, chair, chairPhysicsGroup, true);
     chairPhysicsGroup.getChildren().forEach(obj => {
