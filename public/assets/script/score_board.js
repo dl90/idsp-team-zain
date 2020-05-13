@@ -57,7 +57,12 @@ class Score_board extends Phaser.Scene {
       credentials: "same-origin",
       body: JSON.stringify(body)
     }).then(res => {
-      (res.status === 200) ? (() => { return res.json() })() : (() => { return null })();
+
+      if (res.status === 200) {
+        return res.json();
+      } else {
+        return null;
+      }
     }).then(data => {
       if (data) {
         [topTen_byLevel, topTen_byTotal] = [data.topTen_level, data.topTen_total];
