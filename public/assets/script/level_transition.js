@@ -113,7 +113,7 @@ class Level_transition extends Phaser.Scene {
     leaderBoardButton.on('pointerup', () => {
       this.sound.stopAll();
       this.scene.stop(this.scene.key);
-      this.scene.get('ScoreBoard').scene.restart(this.forwardData);
+      this.scene.get('Score_board').scene.restart(this.forwardData);
     }, this);
 
     logoutButton.on('pointerup', () => {

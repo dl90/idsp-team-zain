@@ -19,7 +19,7 @@ class Scene_15 extends Phaser.Scene {
       this.forwardData = data;
     }
 
-    this.scene_15_settings = {
+    this.scene_settings = {
       debug: false,
 
       canvasWidth: 480,
@@ -82,43 +82,43 @@ class Scene_15 extends Phaser.Scene {
     this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
     this.assetText ? (() => { this.assetText.destroy(); delete this.assetText; })() : null
 
-    this.camera = this.cameras.main.setBounds(0, 0, this.scene_15_settings.worldWidth, this.scene_15_settings.worldHeight);
-    this.physics.world.setBounds(0, 0, this.scene_15_settings.worldWidth, this.scene_15_settings.worldHeight);
+    this.camera = this.cameras.main.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
+    this.physics.world.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
 
     // level title
     this.levelText = this.add.text(
-      this.scene_15_settings.canvasWidth / 2,
-      this.scene_15_settings.canvasHeight / 2,
+      this.scene_settings.canvasWidth / 2,
+      this.scene_settings.canvasHeight / 2,
       'Level 15',
       { fontSize: 30, color: '#000000' }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_15_settings.messageDepth);
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 
     // control (cursors need to be recreated per scene)
     gameState.cursors = this.input.keyboard.createCursorKeys();
     gameState.player = this.physics.add.sprite(
-      this.scene_15_settings.playerSpawnPosition[0] * 32,
-      this.scene_15_settings.playerSpawnPosition[1] * 32,
-      'f_dog').setSize(30, 30).setDepth(this.scene_15_settings.playerSpriteDepth).setOrigin(0);
+      this.scene_settings.playerSpawnPosition[0] * 32,
+      this.scene_settings.playerSpawnPosition[1] * 32,
+      'f_dog').setSize(30, 30).setDepth(this.scene_settings.playerSpriteDepth).setOrigin(0);
     gameState.player.setCollideWorldBounds(true).setBounce(1);
     gameState.player.noStop = true;
 
     // healthBar
-    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_15_settings.healthBarDepth);
-    this.scene_15_settings.debug ? this.healthVal = 100 : this.healthVal = this.playerHealth; // gets health from passed value
+    gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_settings.healthBarDepth);
+    this.scene_settings.debug ? this.healthVal = 100 : this.healthVal = this.playerHealth; // gets health from passed value
     [this.bonusScore, this.coinCount] = [0, 0]; // @TODO coinCount
 
     // follows player
     this.cameras.main.startFollow(gameState.player, true, 0.05, 0.05);
 
     // time tracker
-    this.levelTime = this.scene_15_settings.levelTime;
-    this.add.rectangle(this.scene_15_settings.canvasWidth / 2 + 70, 10, 260, 15)
-      .setFillStyle(0xffffff, 0.5).setScrollFactor(0).setDepth(this.scene_15_settings.scoreTimerBackgroundDepth);
+    this.levelTime = this.scene_settings.levelTime;
+    this.add.rectangle(this.scene_settings.canvasWidth / 2 + 70, 10, 260, 15)
+      .setFillStyle(0xffffff, 0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTimerBackgroundDepth);
     this.timeText = this.add.text(
-      this.scene_15_settings.canvasWidth / 2, 10,
+      this.scene_settings.canvasWidth / 2, 10,
       `Level time: ${this.levelTime}`,
       { fontSize: 12, color: '#000000' }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_15_settings.messageDepth);
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 
     // keydown event
     this.input.keyboard.once('keydown', () => {
@@ -148,13 +148,13 @@ class Scene_15 extends Phaser.Scene {
     // score tracker
     this.score = parseInt(this.levelTime * this.healthVal); // @TODO scene score || total score
     this.scoreText = this.add.text(
-      this.scene_15_settings.canvasWidth / 2 + 150, 10,
+      this.scene_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
       { fontSize: 12, color: '#000000' }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_15_settings.scoreTextDepth);
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTextDepth);
 
     // scene transition
-    this.girl = this.physics.add.sprite(this.scene_15_settings.familySpawnPosition[0] * 32, this.scene_15_settings.familySpawnPosition[1] * 32, 'girl').setOrigin(0);
+    this.girl = this.physics.add.sprite(this.scene_settings.familySpawnPosition[0] * 32, this.scene_settings.familySpawnPosition[1] * 32, 'girl').setOrigin(0);
     this.physics.add.overlap(gameState.player, this.girl, () => {
       this.sound.pauseAll();
 
@@ -171,7 +171,7 @@ class Scene_15 extends Phaser.Scene {
         score: this.score,
         bonus: this.bonusScore,
         health: this.healthVal,
-        time_raw: this.scene_15_time_raw
+        time_raw: this.scene_time_raw
       }
       this.scene.stop(this.scene.key);
       this.scene.get("Level_transition").scene.restart(forwardData);
@@ -181,8 +181,8 @@ class Scene_15 extends Phaser.Scene {
     const map = this.add.tilemap('scene_15');
     const tileSet = map.addTilesetImage('level_1');
 
-    map.createStaticLayer('background', [tileSet], 0, 0).setDepth(this.scene_15_settings.backgroundDepth);
-    const collider = map.createStaticLayer('collider', [tileSet], 0, 0).setDepth(this.scene_15_settings.wallSpriteDepth);
+    map.createStaticLayer('background', [tileSet], 0, 0).setDepth(this.scene_settings.backgroundDepth);
+    const collider = map.createStaticLayer('collider', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
     const coins = map.createFromObjects('coins', 27, { key: "face" }); // used coins layer to represent face (gid = 27)
 
     // collider.setCollisionByProperty({ collide: true });
@@ -196,7 +196,7 @@ class Scene_15 extends Phaser.Scene {
     facePhysicsGroup.getChildren().forEach(gameObj => {
       gameObj.body.setCircle(14).setOffset(1, 1);
       gameObj.body.setVelocity(Phaser.Math.Between(50, 100), Phaser.Math.Between(50, 100)).setMaxVelocity(150).setMass(3).setBounce(1).setCollideWorldBounds(true);
-      gameObj.setDepth(this.scene_15_settings.faceSpriteDepth);
+      gameObj.setDepth(this.scene_settings.faceSpriteDepth);
       Math.random() > 0.5 ? gameObj.body.velocity.x *= -1 : gameObj.body.velocity.y *= -1;
     });
     this.physics.add.collider(facePhysicsGroup, [walls, facePhysicsGroup]);
@@ -225,9 +225,9 @@ class Scene_15 extends Phaser.Scene {
 
     // audio button
     const audioButton = this.add.sprite(
-      this.scene_15_settings.canvasWidth - 20,
-      this.scene_15_settings.canvasHeight - 20,
-      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_15_settings.buttonDepth).setInteractive();
+      this.scene_settings.canvasWidth - 20,
+      this.scene_settings.canvasHeight - 20,
+      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive();
     audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     gameState.emitter = new Phaser.Events.EventEmitter();
@@ -249,10 +249,10 @@ class Scene_15 extends Phaser.Scene {
     gameState.emitter.once('death_bgm', () => {
       this.levelText.destroy();
       this.levelText = this.add.text(
-        this.scene_15_settings.canvasWidth / 2,
-        this.scene_15_settings.canvasHeight / 2 - 50,
+        this.scene_settings.canvasWidth / 2,
+        this.scene_settings.canvasHeight / 2 - 50,
         'Game Over',
-        { fontSize: 30, color: 'white' }).setScrollFactor(0).setOrigin(0.5).setDepth(this.scene_15_settings.messageDepth);
+        { fontSize: 30, color: 'white' }).setScrollFactor(0).setOrigin(0.5).setDepth(this.scene_settings.messageDepth);
       this.tweens.add({
         targets: this.levelText,
         alpha: 0,
@@ -266,7 +266,7 @@ class Scene_15 extends Phaser.Scene {
         this.camera.centerX - 10,
         this.camera.centerY - 10,
         this.camera.displayWidth + 20,
-        this.camera.displayHeight + 20).setFillStyle(0x000000, 0.2).setScrollFactor(0).setDepth(this.scene_15_settings.deathBackgroundMaskDepth);
+        this.camera.displayHeight + 20).setFillStyle(0x000000, 0.2).setScrollFactor(0).setDepth(this.scene_settings.deathBackgroundMaskDepth);
       this.tweens.add({
         targets: mask,
         duration: 4000,
@@ -277,7 +277,7 @@ class Scene_15 extends Phaser.Scene {
         this.camera.centerX + this.camera.displayWidth / 2 - 20,
         this.camera.centerY + this.camera.displayHeight / 2 - 20,
         10
-      ).setFillStyle(0xffffff, 0).setScrollFactor(0).setDepth(this.scene_15_settings.deathBackgroundUnmaskDepth);
+      ).setFillStyle(0xffffff, 0).setScrollFactor(0).setDepth(this.scene_settings.deathBackgroundUnmaskDepth);
       this.tweens.add({
         targets: unmask,
         duration: 4000,
@@ -300,15 +300,15 @@ class Scene_15 extends Phaser.Scene {
     // emitter for time
     gameState.emitter.once('end_time', () => {
       this.endTime = this.time.now;
-      this.scene_15_time_raw = this.endTime - this.startTime;
+      this.scene_time_raw = this.endTime - this.startTime;
     }, this)
 
     gameState.emitter.emit('play_bgm');
 
     this.backButton = this.add.sprite(
-      this.scene_15_settings.canvasWidth / 2,
-      this.scene_15_settings.canvasHeight / 2 + 50,
-      'back_button').setDepth(this.scene_15_settings.buttonDepth).setVisible(false).setOrigin(0.5).setInteractive().setScrollFactor(0);
+      this.scene_settings.canvasWidth / 2,
+      this.scene_settings.canvasHeight / 2 + 50,
+      'back_button').setDepth(this.scene_settings.buttonDepth).setVisible(false).setOrigin(0.5).setInteractive().setScrollFactor(0);
     this.backButton.on('pointerup', () => {
       this.tweens.add({
         targets: deathBGM,
@@ -328,19 +328,19 @@ class Scene_15 extends Phaser.Scene {
     this.anims.create({
       key: 'f_move',
       frames: this.anims.generateFrameNumbers('f_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_15_settings.moveSpeed / 15),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
       repeat: -1
     });
     this.anims.create({
       key: 'b_move',
       frames: this.anims.generateFrameNumbers('b_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_15_settings.moveSpeed / 15),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
       repeat: -1
     });
     this.anims.create({
       key: 'l_move',
       frames: this.anims.generateFrameNumbers('l_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_15_settings.moveSpeed / 15),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
       repeat: -1
     });
   }
@@ -348,7 +348,7 @@ class Scene_15 extends Phaser.Scene {
   update() {
     // health check
     if (this.healthVal > 0) {
-      this.healthVal = gameFunctions.control(gameState, this.scene_15_settings, this.healthVal);
+      this.healthVal = gameFunctions.control(gameState, this.scene_settings, this.healthVal);
       gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
       // update score
