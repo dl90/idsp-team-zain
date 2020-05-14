@@ -22,9 +22,9 @@ class Menu extends Phaser.Scene {
     this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
 
+    this.load.image('background', '/assets/sprites/landing/background.png');
     this.load.audio('intro_bgm', '/assets/bgm/Meme_intro.mp3');
     this.load.video('tutorial', '/assets/video/tutorial.mp4');
-
   }
 
   create() {
@@ -42,7 +42,8 @@ class Menu extends Phaser.Scene {
       delay: 0
     };
 
-    this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
+    this.add.image(config.width / 2, config.height / 2, 'background').setDepth(-1);
+    //this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
     const intro_bgm = this.sound.add('intro_bgm', sound_config);
     const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button');
     const logoutButton = this.add.sprite((config.width / 2), config.height - 80, 'logout_button');
@@ -50,14 +51,23 @@ class Menu extends Phaser.Scene {
 
     playButton.setInteractive().setVisible(false);
     logoutButton.setInteractive().setVisible(false);
-    audioButton.setInteractive();
+    audioButton.setInteractive().setAlpha(0.5);
 
     const prompt = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
     const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false);
     const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
     // const videoDom = this.add.dom(config.width / 2, config.height / 2).createFromCache('video').setOrigin(0.5).setVisible(false);
 
+    playButton.on('pointerover', () => { playButton.alpha = 0.8 });
+    playButton.on('pointerout', () => { playButton.alpha = 1 });
+    logoutButton.on('pointerover', () => { logoutButton.alpha = 0.8 });
+    logoutButton.on('pointerout', () => { logoutButton.alpha = 1 });
+    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
+    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
+
+    let flash = true;
     const msgFlash = (target) => {
+      flash = false
       this.tweens.add({
         targets: target,
         alpha: 0,
@@ -65,7 +75,7 @@ class Menu extends Phaser.Scene {
         loop: 2,
         ease: 'Linear',
         yoyo: true,
-        onComplete: () => { target.alpha = 1 }
+        onComplete: () => { target.alpha = 1; flash = true }
       });
     }
 
@@ -130,16 +140,16 @@ class Menu extends Phaser.Scene {
               return res.json();
             } else if (res.status === 401) {
               prompt.setText('Invalid username or password');
-              msgFlash(prompt);
+              flash ? msgFlash(prompt) : null
             } else if (res.status == 429) {
               prompt.setText('Too many attempts, 30min timeout');
-              msgFlash(prompt);
+              flash ? msgFlash(prompt) : null
             } else {
               console.log('something else');
             }
           }, (reject) => {
             prompt.setText(reject.reason);
-            msgFlash(prompt);
+            flash ? msgFlash(prompt) : null
           }).then((resData) => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
@@ -151,13 +161,13 @@ class Menu extends Phaser.Scene {
           }).catch(err => { console.log(err) });
         } else if (event.target.id === "login-submit") {
           prompt.setText('Invalid input');
-          msgFlash(prompt);
+          flash ? msgFlash(prompt) : null
         } else if (event.target.id === "login-to-sign-up") {
           prompt.setText('Sign up');
           loginForm.setVisible(false);
           signupForm.setVisible(true);
         }
-      });
+      }, this);
     }
 
     function signUp() {
@@ -182,14 +192,14 @@ class Menu extends Phaser.Scene {
               return res.json();
             } else if (res.status == 429) {
               prompt.setText('Too many attempts, 5min timeout');
-              msgFlash(prompt);
+              flash ? msgFlash(prompt) : null
             } else {
               prompt.setText("Signup unsuccessful");
-              msgFlash(prompt);
+              flash ? msgFlash(prompt) : null
             }
           }, (reject) => {
             prompt.setText(reject.reason);
-            msgFlash(prompt);
+            flash ? msgFlash(prompt) : null
           }).then((resData) => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
@@ -204,7 +214,7 @@ class Menu extends Phaser.Scene {
 
         } else if (event.target.id === "sign-up-submit") {
           prompt.setText('Invalid input');
-          msgFlash(prompt);
+          flash ? msgFlash(prompt) : null
         } else if (event.target.id === "sign-up-to-login") {
           prompt.setText('Login');
           signupForm.setVisible(false);
