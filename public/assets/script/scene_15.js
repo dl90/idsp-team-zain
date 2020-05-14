@@ -34,7 +34,10 @@ class Scene_15 extends Phaser.Scene {
 
       playerSpawnPosition: [0, 1],
       familySpawnPosition: [47, 0],
-      levelTime: 200,
+
+      levelTime: 200, // s
+      boneHealthRegen: 30,
+      coinScoreBonus: 1000,
 
       backgroundDepth: -1,
       wallSpriteDepth: 1,
@@ -227,7 +230,9 @@ class Scene_15 extends Phaser.Scene {
     const audioButton = this.add.sprite(
       this.scene_settings.canvasWidth - 20,
       this.scene_settings.canvasHeight - 20,
-      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive();
+      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
+    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
+    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
     audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     gameState.emitter = new Phaser.Events.EventEmitter();

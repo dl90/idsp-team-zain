@@ -6,7 +6,6 @@
  * @author Don (dl90)
  * @date April 23, 2020
  */
-
 const gameFunctions = {
   // loading screen
   loading: function loading() {

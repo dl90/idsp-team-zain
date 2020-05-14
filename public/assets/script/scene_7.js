@@ -337,7 +337,9 @@ class Scene_7 extends Phaser.Scene {
           duration: Math.abs(gameObj.getData("tweenX")) * this.scene_settings.enemyTweenDurationMultiplier,
           repeat: -1,
           yoyo: true,
-          loopDelay: this.scene_settings.enemyTweenLoopDelay
+          loopDelay: this.scene_settings.enemyTweenLoopDelay,
+          onYoyo: () => { gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX = false }
         });
       } else if (gameObj.getData("tweenY") !== 0) {
         this.tweens.add({
@@ -347,7 +349,9 @@ class Scene_7 extends Phaser.Scene {
           duration: Math.abs(gameObj.getData("tweenY")) * this.scene_settings.enemyTweenDurationMultiplier,
           repeat: -1,
           yoyo: true,
-          loopDelay: this.scene_settings.enemyTweenLoopDelay
+          loopDelay: this.scene_settings.enemyTweenLoopDelay,
+          onYoyo: () => { gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX = false }
         });
       }
     }, this);
@@ -377,7 +381,9 @@ class Scene_7 extends Phaser.Scene {
     const audioButton = this.add.sprite(
       this.scene_settings.canvasWidth - 20,
       this.scene_settings.canvasHeight - 20,
-      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive();
+      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
+    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
+    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
     audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     gameState.emitter = new Phaser.Events.EventEmitter();

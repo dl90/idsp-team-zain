@@ -45,9 +45,18 @@ class Level_transition extends Phaser.Scene {
       logoutButton = this.add.sprite(config.width / 2, config.height - 30, 'logout_button');
 
     playButton.setInteractive();
+    logoutButton.setInteractive();
     redoButton.setInteractive();
     leaderBoardButton.setInteractive();
-    logoutButton.setInteractive();
+
+    playButton.on('pointerover', () => { playButton.alpha = 0.8 });
+    playButton.on('pointerout', () => { playButton.alpha = 1 });
+    logoutButton.on('pointerover', () => { logoutButton.alpha = 0.8 });
+    logoutButton.on('pointerout', () => { logoutButton.alpha = 1 });
+    redoButton.on('pointerover', () => { audioButton.alpha = 0.8 });
+    redoButton.on('pointerout', () => { audioButton.alpha = 1 });
+    leaderBoardButton.on('pointerover', () => { audioButton.alpha = 0.8 });
+    leaderBoardButton.on('pointerout', () => { audioButton.alpha = 1 });
 
     const body = {
       'uid': gameState.uid,
@@ -71,7 +80,7 @@ class Level_transition extends Phaser.Scene {
         status.setText("Data not posted");
       }
     }).then(resData => {
-      let newStatusText = ''
+      let newStatusText = `Well done ${gameState.userDisplayName}\n`
 
       resData.msg ? newStatusText += "First time for everything!\n" : null;
       if (resData.score < this.playerScore) {
