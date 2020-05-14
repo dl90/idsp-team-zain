@@ -309,7 +309,7 @@ class Scene_3 extends Phaser.Scene {
     // ------ map ------ //
 
     // enemy group
-    const enemies = thiPhysicsGroups.physics.add.group();
+    const enemiesPhysicsGroup = this.physics.add.group();
     this.scene_settings.enemy.forEach(function (obj) {
       enemiesPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
         .setData({
