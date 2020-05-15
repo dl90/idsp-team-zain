@@ -14,9 +14,7 @@ class Menu extends Phaser.Scene {
     gameFunctions.loading.call(this);
     this.load.html('login_form', '/assets/util/login_form.html');
     this.load.html('signup_form', '/assets/util/signup_form.html');
-    // this.load.html('video', '/assets/util/video.html');
 
-    this.load.image('logo', '/assets/sprites/logo/B&W_LOGO_FINAL.png');
     this.load.image('play_button', '/assets/sprites/buttons/button_play.png');
     this.load.image('logout_button', '/assets/sprites/buttons/button_logout.png');
     this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
@@ -43,20 +41,18 @@ class Menu extends Phaser.Scene {
     };
 
     this.add.image(config.width / 2, config.height / 2, 'background').setDepth(-1);
-    //this.add.image((config.width / 2 + 5), (config.height * 0.22), 'logo').setScale(0.2);
-    const intro_bgm = this.sound.add('intro_bgm', sound_config);
-    const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button');
-    const logoutButton = this.add.sprite((config.width / 2), config.height - 80, 'logout_button');
-    const audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.5);
+    const intro_bgm = this.sound.add('intro_bgm', sound_config),
+      playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button'),
+      logoutButton = this.add.sprite((config.width / 2), config.height - 80, 'logout_button'),
+      audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.5);
 
     playButton.setInteractive().setVisible(false);
     logoutButton.setInteractive().setVisible(false);
     audioButton.setInteractive().setAlpha(0.5);
 
-    const prompt = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5);
-    const loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false);
-    const signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
-    // const videoDom = this.add.dom(config.width / 2, config.height / 2).createFromCache('video').setOrigin(0.5).setVisible(false);
+    const prompt = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5),
+      loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false),
+      signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
 
     playButton.on('pointerover', () => { playButton.alpha = 0.8 });
     playButton.on('pointerout', () => { playButton.alpha = 1 });
@@ -92,11 +88,21 @@ class Menu extends Phaser.Scene {
 
     const video = this.add.video(0, 0, 'tutorial');
     video.setOrigin(0).setVisible(false).setDepth(2).setInteractive();
-    video.on('pointerup', () => {
-      video.stop();
-      this.scene.stop('Menu');
-      this.scene.start('Scene_1');
-    });
+    if (video.isPlaying()) {
+      video.on('pointerup', () => {
+        video.stop();
+        video.destroy()
+        this.scene.stop('Menu');
+        this.scene.start('Scene_1');
+      });
+      this.input.keyboard.once('keydown', () => {
+        video.stop();
+        video.destroy()
+        this.scene.stop('Menu');
+        this.scene.start('Scene_1');
+      });
+    }
+
 
     fetch("/auth/token", { method: "GET" })
       .then((res) => {
