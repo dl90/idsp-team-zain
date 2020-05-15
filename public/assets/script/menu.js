@@ -10,6 +10,12 @@
 class Menu extends Phaser.Scene {
   constructor() { super({ key: 'Menu' }) }
 
+  init() {
+    this.scene_settings = {
+      start: 'Scene_1'
+    }
+  }
+
   preload() {
     gameFunctions.loading.call(this);
     this.load.html('login_form', '/assets/util/login_form.html');
@@ -88,21 +94,12 @@ class Menu extends Phaser.Scene {
 
     const video = this.add.video(0, 0, 'tutorial');
     video.setOrigin(0).setVisible(false).setDepth(2).setInteractive();
-    if (video.isPlaying()) {
-      video.on('pointerup', () => {
-        video.stop();
-        video.destroy()
-        this.scene.stop('Menu');
-        this.scene.start('Scene_1');
-      });
-      this.input.keyboard.once('keydown', () => {
-        video.stop();
-        video.destroy()
-        this.scene.stop('Menu');
-        this.scene.start('Scene_1');
-      });
+    const transition = () => {
+      video.stop();
+      video.destroy()
+      this.scene.stop('Menu');
+      this.scene.start(this.scene_settings.start);
     }
-
 
     fetch("/auth/token", { method: "GET" })
       .then((res) => {
@@ -259,10 +256,13 @@ class Menu extends Phaser.Scene {
           intro_bgm.stop();
           video.setVisible(true).play();
           fadeIn(video, 1000, () => {
-            video.on('complete', () => {
-              this.scene.stop('Menu');
-              this.scene.start('Scene_1');
-            })
+            if (video.isPlaying()) {
+              video.on('pointerup', transition);
+              this.input.keyboard.once('keydown', transition);
+              video.on('complete', transition);
+            } else {
+              transition();
+            }
           })
         }
       });
