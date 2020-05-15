@@ -80,23 +80,24 @@ class Level_transition extends Phaser.Scene {
         status.setText("Data not posted");
       }
     }).then(resData => {
-      let newStatusText = `Well done ${gameState.userDisplayName}!\n`
-
-      resData.msg ? newStatusText += "First time for everything!\n" : null;
-      if (resData.score < this.playerScore) {
-        newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
-      } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
-        newStatusText += `Didn't beat your old record, but:\n`;
-        resData.time_raw > this.playerTime_raw ? newStatusText += `\tyour ${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
-        resData.health < this.playerHealth ? newStatusText += `\tgot ${this.playerHealth - resData.health} more health\n` : null;
-        if (resData.bonus_score) {
-          resData.bonus_score < this.playerBonus ? newStatusText += `\tgot ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
+      if (resData) {
+        let newStatusText = `Well done ${gameState.userDisplayName}!\n`
+        resData.msg ? newStatusText += "First time for everything!\n" : null;
+        if (resData.score < this.playerScore) {
+          newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
+        } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
+          newStatusText += `Didn't beat your old record, but:\n`;
+          resData.time_raw > this.playerTime_raw ? newStatusText += `\tyour ${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
+          resData.health < this.playerHealth ? newStatusText += `\tgot ${this.playerHealth - resData.health} more health\n` : null;
+          if (resData.bonus_score) {
+            resData.bonus_score < this.playerBonus ? newStatusText += `\tgot ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
+          }
+        } else {
+          newStatusText += 'Nothing new here\n';
         }
-      } else {
-        newStatusText += 'Nothing new here\n';
-      }
 
-      status.setText(newStatusText);
+        status.setText(newStatusText);
+      }
     }).catch(err => console.log(err));
 
     // finds next scene through array

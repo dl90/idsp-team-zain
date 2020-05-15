@@ -16,6 +16,7 @@
   },
   "rules": {},
   "ignorePatterns": [
-    "**/public/lib/phaser.js"
+    "**/lib/**.js",
+    "**/util/scrollcam.js"
   ]
 }

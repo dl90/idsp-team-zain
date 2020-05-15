@@ -32,7 +32,7 @@ class Scene_13 extends Phaser.Scene {
       diagonalMoveSpeed: 70.71,
       twoKeyMultiplier: 0.707,
 
-      playerSpawnPosition: [0, 0],
+      playerSpawnPosition: [0, 3],
       familySpawnPosition: [90, 60],
 
       levelTime: 400, // s
