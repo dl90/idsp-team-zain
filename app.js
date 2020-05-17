@@ -11,7 +11,7 @@ const express = require("express"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
+  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
   app = express();
 
 const fbConfig = {

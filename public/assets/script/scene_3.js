@@ -4,7 +4,7 @@
 
 /**
  * @author Don (dl90)
- * @date May 9, 2020
+ * @date May 10, 2020
  */
 class Scene_3 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_3' }) }
@@ -21,21 +21,22 @@ class Scene_3 extends Phaser.Scene {
 
     this.scene_settings = {
       debug: false,
+      introText: 'Level 3',
 
       canvasWidth: 480,
       canvasHeight: 270,
-      worldWidth: 32 * 79,
-      worldHeight: 32 * 63,
+      worldWidth: 32 * 80,
+      worldHeight: 32 * 80,
 
       moveSpeed: 100,
       movementHealthCostRatio: 0.000005,
       diagonalMoveSpeed: 70.71,
       twoKeyMultiplier: 0.707,
 
-      playerSpawnPosition: [0, 4],
-      familySpawnPosition: [79, 30],
+      playerSpawnPosition: [0, 0],
+      familySpawnPosition: [79, 79],
 
-      levelTime: 300, // s
+      levelTime: 350, // s
       boneHealthRegen: 30,
       coinScoreBonus: 1000,
 
@@ -59,19 +60,12 @@ class Scene_3 extends Phaser.Scene {
       enemyTweenLoopDelay: 20000,
 
       enemy: [
-        { "id": 1, "x": 17, "y": 11, "tweenX": 6, "tweenY": 0 },
-        { "id": 2, "x": 6, "y": 19, "tweenX": 0, "tweenY": -6 },
-        { "id": 3, "x": 15, "y": 24, "tweenX": 0, "tweenY": -6 },
-        { "id": 4, "x": 35, "y": 13, "tweenX": 0, "tweenY": -6 },
-        { "id": 5, "x": 40, "y": 25, "tweenX": 0, "tweenY": -7 },
-        { "id": 6, "x": 55, "y": 21, "tweenX": 0, "tweenY": -7 },
-        { "id": 7, "x": 74, "y": 13, "tweenX": -6, "tweenY": 0 },
-        { "id": 8, "x": 20, "y": 45, "tweenX": 0, "tweenY": 7 },
-        { "id": 9, "x": 12, "y": 61, "tweenX": 0, "tweenY": -6 },
-        { "id": 10, "x": 39, "y": 45, "tweenX": -6, "tweenY": 0 },
-        { "id": 11, "x": 48, "y": 59, "tweenX": 0, "tweenY": -6 },
-        { "id": 12, "x": 74, "y": 50, "tweenX": -8, "tweenY": 0 },
-        { "id": 13, "x": 50, "y": 43, "tweenX": 6, "tweenY": 0 },
+        { "id": 1, "x": -28, "y": -15, "tweenX": 0, "tweenY": -7 },
+        { "id": 2, "x": 7, "y": -28, "tweenX": -10, "tweenY": 0 },
+        { "id": 3, "x": 8, "y": -1, "tweenX": 0, "tweenY": 7 },
+        { "id": 4, "x": -24, "y": 12, "tweenX": 7, "tweenY": 0 },
+        { "id": 5, "x": -4, "y": 26, "tweenX": 0, "tweenY": 7 },
+        { "id": 6, "x": 40, "y": 25, "tweenX": 0, "tweenY": -7 }
       ]
     }
   }
@@ -96,15 +90,15 @@ class Scene_3 extends Phaser.Scene {
     this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
     this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
 
-    this.load.image('girl', './assets/sprites/family/girl.png');
-    this.load.image('recycle_bin', './assets/sprites/level_1/recycle_bin.png');
+    this.load.image('father', './assets/sprites/family/father.png');
+    this.load.image('office_chair', './assets/sprites/office/desk_chair.png');
     this.load.image('coin', './assets/sprites/items/coin.png');
     this.load.image('bone', './assets/sprites/items/bone.png');
 
     // tilemap and tileset
-    this.load.image('level_1', './assets/tileset/level_1.png');
-    this.load.image('extruded', './assets/tileset/extruded.png');
-    this.load.tilemapTiledJSON('scene_3', './assets/tilemaps/level_3.json');
+    this.load.image('office_tileset', './assets/tileset/Office_Tileset.png');
+    this.load.image('things', './assets/tileset/things.png');
+    this.load.tilemapTiledJSON('scene_4', './assets/tilemaps/level_4.json');
   }
 
   create() {
@@ -119,7 +113,7 @@ class Scene_3 extends Phaser.Scene {
     this.levelText = this.add.text(
       this.scene_settings.canvasWidth / 2,
       this.scene_settings.canvasHeight / 2,
-      'Level 3',
+      'Level 4',
       { fontSize: 30, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 
@@ -183,12 +177,12 @@ class Scene_3 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTextDepth);
 
     // scene transition
-    this.girl = this.physics.add.sprite(
-      this.scene_settings.familySpawnPosition[0] * 32 - 32,
+    this.father = this.physics.add.sprite(
+      this.scene_settings.familySpawnPosition[0] * 32,
       this.scene_settings.familySpawnPosition[1] * 32,
-      'girl'
+      'father'
     ).setOrigin(0).setDepth(this.scene_settings.playerSpriteDepth);
-    this.physics.add.overlap(gameState.player, this.girl, () => {
+    this.physics.add.overlap(gameState.player, this.father, () => {
       this.sound.pauseAll();
 
       // timer (end of scene)
@@ -211,42 +205,67 @@ class Scene_3 extends Phaser.Scene {
     });
 
     // ------ map ------ //
-    const map = this.add.tilemap('scene_3'),
-      tileSet = map.addTilesetImage('level_1'),
-      extruded = map.addTilesetImage('extruded');
+    const map = this.add.tilemap('scene_4'),
+      tileSet = map.addTilesetImage('office_level_1', 'office_tileset'),
+      things = map.addTilesetImage('things');
 
-    // extruded
-    map.createStaticLayer('extruded', [extruded], 0, 0).setDepth(this.scene_settings.backgroundDepth);
+    // background
+    map.createStaticLayer('background', [tileSet], 0, 0).setDepth(this.scene_settings.backgroundDepth);
 
-    // wall layer // walls.setCollisionByProperty({ collide: true });
+    // wall
     const wall = map.createStaticLayer('wall', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
     const wallsPhysicsGroup = this.physics.add.staticGroup();
     gameFunctions.hitBoxGenerator(tileSet, wall, wallsPhysicsGroup, false);
     this.physics.add.collider(gameState.player, wallsPhysicsGroup);
 
-    // bush layer
-    const bush = map.createStaticLayer('bush', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
-    this.bushPhysicsGroup = this.physics.add.staticGroup();
-    gameFunctions.hitBoxGenerator(tileSet, bush, this.bushPhysicsGroup, false);
+    // coffee_counter
+    const counter = map.createStaticLayer('coffee_counter', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    const coffee_counterPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, counter, coffee_counterPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, coffee_counterPhysicsGroup);
 
-    // tree layer
-    const tree = map.createStaticLayer('tree', [tileSet], 0, 0).setDepth(this.scene_settings.treeSpriteDepth);
-    const treesPhysicsGroup = this.physics.add.staticGroup();
-    gameFunctions.hitBoxGenerator(tileSet, tree, treesPhysicsGroup, false);
-    this.physics.add.collider(gameState.player, treesPhysicsGroup);
+    // desk
+    const desk = map.createStaticLayer('desk', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    const deskPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, desk, deskPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, deskPhysicsGroup);
 
-    // interactive layer
-    const recycleBins = map.createStaticLayer('interactive', [tileSet], 0, 0).setVisible(false);
-    const recyclePhysicsGroup = this.physics.add.group();
-    gameFunctions.hitBoxGenerator(tileSet, recycleBins, recyclePhysicsGroup, true);
-    recyclePhysicsGroup.getChildren().forEach(obj => {
-      obj.setTexture('recycle_bin').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(3).setSize(20, 24);
+    // printer
+    const printer = map.createStaticLayer('printer', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    const printerPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, printer, printerPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, printerPhysicsGroup);
+
+    // trash_bin
+    const trash_bin = map.createStaticLayer('trash_bin', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    const trash_binPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, trash_bin, trash_binPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, trash_binPhysicsGroup);
+
+    // water_cooler
+    const water_cooler = map.createStaticLayer('water_cooler', [tileSet], 0, 0).setDepth(this.scene_settings.treeSpriteDepth);
+    const water_coolerPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, water_cooler, water_coolerPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, water_coolerPhysicsGroup);
+
+    // bookshelf
+    const bookshelf = map.createStaticLayer('bookshelf', [tileSet], 0, 0).setDepth(this.scene_settings.treeSpriteDepth);
+    const bookshelfPhysicsGroup = this.physics.add.staticGroup();
+    gameFunctions.hitBoxGenerator(tileSet, bookshelf, water_coolerPhysicsGroup, false);
+    this.physics.add.collider(gameState.player, bookshelfPhysicsGroup);
+
+    // chair
+    const chair = map.createStaticLayer('chair', [tileSet], 0, 0).setVisible(false);
+    const chairPhysicsGroup = this.physics.add.group();
+    gameFunctions.hitBoxGenerator(tileSet, chair, chairPhysicsGroup, true);
+    chairPhysicsGroup.getChildren().forEach(obj => {
+      obj.setTexture('office_chair').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(3).setSize(24, 18).setOffset(4, 6);
     });
-    let recycleCollider = true
-    this.physics.add.collider(recyclePhysicsGroup, [wallsPhysicsGroup, this.bushPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup]);
-    this.physics.add.collider(recyclePhysicsGroup, gameState.player, () => {
-      if (recycleCollider) {
-        const str = 'Bark';
+    let chairCollider = true
+    this.physics.add.collider(chairPhysicsGroup, [wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup]);
+    this.physics.add.collider(chairPhysicsGroup, gameState.player, () => {
+      if (chairCollider) {
+        const str = 'Wolf';
         const message = this.add.text(
           this.scene_settings.canvasWidth / 2,
           this.scene_settings.canvasHeight - 30,
@@ -260,36 +279,21 @@ class Scene_3 extends Phaser.Scene {
           loop: 2,
           ease: 'Linear',
           yoyo: false,
-          onComplete: () => { message.destroy(); recycleCollider = true }
+          onComplete: () => { message.destroy(); chairCollider = true }
         });
-        recycleCollider = false;
+        chairCollider = false;
       }
     });
 
-    // consumables layer
-    const consumables = map.createStaticLayer('consumables', [tileSet], 0, 0).setVisible(false);
+    // coin
+    const coin = map.createStaticLayer('coin', [things], 0, 0).setVisible(false);
     const coinPhysicsGroup = this.physics.add.group();
-    const bonePhysicsGroup = this.physics.add.group();
-
-    consumables.forEachTile(tile => {
-      const tileWorldPos = consumables.tileToWorldXY(tile.x, tile.y),
-        collisionGroup = tileSet.getTileCollisionGroup(tile.index);
-      // collisionGroup ? console.log(collisionGroup.objects) : null
-
-      if (!collisionGroup || collisionGroup.objects.length <= 0) { return }
-      else {
-        collisionGroup.objects.forEach(object => {
-          if (object.ellipse) { // using circle for now
-            if (tile.properties.coin) {
-              coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(object.width / 2, object.x, object.y).setDepth(this.scene_settings.itemSpriteDepth);
-            } else if (tile.properties.bone) {
-              bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(object.width / 2, object.x, object.y).setDepth(this.scene_settings.itemSpriteDepth);
-            }
-          }
-        })
+    coin.forEachTile(tile => {
+      const tileWorldPos = coin.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.coin) {
+        coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(30 / 2, 1, 1).setDepth(this.scene_settings.itemSpriteDepth);
       }
     });
-
     coinPhysicsGroup.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         this.bonusScore += this.scene_settings.coinScoreBonus;
@@ -298,6 +302,15 @@ class Scene_3 extends Phaser.Scene {
       });
     });
 
+    // bone
+    const bone = map.createStaticLayer('bone', [things], 0, 0).setVisible(false);
+    const bonePhysicsGroup = this.physics.add.group();
+    bone.forEachTile(tile => {
+      const tileWorldPos = bone.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.bone) {
+        bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(5, 10, 10).setDepth(this.scene_settings.itemSpriteDepth);
+      }
+    });
     bonePhysicsGroup.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         (this.healthVal + this.scene_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += this.scene_settings.boneHealthRegen;
@@ -308,23 +321,21 @@ class Scene_3 extends Phaser.Scene {
         gameFunctions.activeHealthTextures(gameState);
       });
     });
-    // ------ map ------ //
 
-    // enemy group
-    const enemiesPhysicsGroup = this.physics.add.group();
+    const enemyPhysicsGroup = this.physics.add.group();
     this.scene_settings.enemy.forEach(function (obj) {
-      enemiesPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
+      enemyPhysicsGroup.create((obj.x + 32) * 32 + 16, (obj.y + 32) * 32 + 16, 's_catcher').setCollideWorldBounds(true)
         .setData({
           "id": obj.id,
-          "x": obj.x,
-          "y": obj.y,
+          "x": obj.x + 32,
+          "y": obj.y + 32,
           "tweenX": obj.tweenX,
           "tweenY": obj.tweenY
         });
     }, this);
-    this.physics.add.collider(enemiesPhysicsGroup, [enemiesPhysicsGroup, wallsPhysicsGroup, this.bushPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup]);
+    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, wallsPhysicsGroup, coffee_counterPhysicsGroup, deskPhysicsGroup, printerPhysicsGroup, trash_binPhysicsGroup, water_coolerPhysicsGroup, bookshelfPhysicsGroup, chairPhysicsGroup]);
 
-    enemiesPhysicsGroup.getChildren().forEach(function (gameObj) {
+    enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,
@@ -351,13 +362,14 @@ class Scene_3 extends Phaser.Scene {
         });
       }
     }, this);
+    // ------ map ------ //
 
     // audio department
     const sound_config = {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: -200,
+      detune: 0,
       seek: 0,
       loop: true,
       delay: 0
@@ -564,11 +576,6 @@ class Scene_3 extends Phaser.Scene {
             this.physics.moveTo(gameObj, gameObj.getData("x") * 32 + 16, gameObj.getData("y") * 32 + 16);
           }
         }
-
-        // enemy drag over semiWalls
-        this.physics.overlap(gameObj, this.semiWalls) ?
-          gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
-          gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.enemyMoveSpeed);
       }
     });
 
@@ -592,5 +599,4 @@ class Scene_3 extends Phaser.Scene {
       this.backButton.setVisible(true);
     }
   }
-
 }

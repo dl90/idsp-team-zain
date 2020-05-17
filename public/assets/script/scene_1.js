@@ -20,6 +20,8 @@ class Scene_1 extends Phaser.Scene {
     }
 
     this.scene_settings = {
+      introText: 'Level 1',
+
       canvasWidth: 480,
       canvasHeight: 270,
       worldWidth: 32 * 48,
@@ -153,7 +155,7 @@ class Scene_1 extends Phaser.Scene {
     this.levelText = this.add.text(
       this.scene_settings.canvasWidth / 2,
       this.scene_settings.canvasHeight / 2,
-      'Level 1',
+      this.scene_settings.introText,
       { fontSize: 30, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 

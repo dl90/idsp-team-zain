@@ -6,8 +6,8 @@
  * @author Don (dl90)
  * @date April 24, 2020
  */
-class Scene_15 extends Phaser.Scene {
-  constructor() { super({ key: 'Scene_15' }) }
+class Scene_bonus extends Phaser.Scene {
+  constructor() { super({ key: 'Scene_bonus' }) }
 
   init(data) {
     if (data) {
@@ -21,6 +21,7 @@ class Scene_15 extends Phaser.Scene {
 
     this.scene_settings = {
       debug: false,
+      introText: 'Bonus',
 
       canvasWidth: 480,
       canvasHeight: 270,
@@ -92,7 +93,7 @@ class Scene_15 extends Phaser.Scene {
     this.levelText = this.add.text(
       this.scene_settings.canvasWidth / 2,
       this.scene_settings.canvasHeight / 2,
-      'Level 15',
+      this.scene_settings.levelText,
       { fontSize: 30, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 
