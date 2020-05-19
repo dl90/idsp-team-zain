@@ -3,6 +3,7 @@
 
 const express = require("express"),
   helmet = require("helmet"),
+  compression = require('compression'),
   admin = require("firebase-admin"),
   firebase = require("firebase"),
   // functions = require('firebase-functions'),
@@ -11,7 +12,7 @@ const express = require("express"),
   cookieParser = require('cookie-parser'),
   { checkUrl } = require("./middleware/checkUrl"),
   { verifyToken } = require("./middleware/token"),
-  { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
+  // { firebaseConfig, firebaseService } = require("./firebase_config"), // comment on deploy
   app = express();
 
 const fbConfig = {
@@ -39,11 +40,13 @@ const fbConfig = {
 app.use(helmet());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(express.static("public"));
 app.use(cookieParser());
+app.use(compression());
 app.use(requestIp.mw());
 app.set('trust proxy', true);
 process.env.apiKey ? app.use(checkUrl) : null;
+
+app.use(express.static("public", { maxAge: "2h" }));
 
 const authLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }),
   dataLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 5 })

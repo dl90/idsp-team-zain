@@ -3,42 +3,42 @@
 
 const express = require("express"),
   router = express.Router(),
-  firebase = require("firebase"),
-  admin = require("firebase-admin");
+  firebase = require("firebase");
 
 module.exports = function (fireStore) {
 
+
+  router.get('/level-data', (req, res) => {
+    if (res.locals.decodedToken) {
+      try {
+        fireStore.collection("user_score").doc('/' + res.locals.decodedToken.uid).get()
+          .then(doc => { res.send(JSON.stringify(doc.data())) })
+          .catch(error => { console.log(error) });
+      } catch (error) {
+        res.status(401).end();
+        console.log(error);
+      }
+    } else {
+      res.status(401).end();
+    }
+  })
+
+
   router.post('/leader-board', async (req, res) => {
-    const { scene } = req.body;
-    const topTen_total = [];
-    const topTen_level = [];
-    await fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get()
-      .then((snapshot) => {
-        snapshot.forEach(doc => {
-          const entry = { displayName: doc.data().displayName, score: doc.data().totalScore };
-          topTen_total.push(entry);
-        });
+    const { scene } = req.body,
+      [topTen_total, topTen_level] = [[], []];
 
-        // topTen.sort((x, y) => {
-        //   let result
-        //   x.totalScore > y.totalScore ? result = 1 : null;
-        //   y.totalScore > x.totalScore ? result = -1 : null;
-        //   x.totalScore == y.totalScore ? result = 0 : null;
-        //   return result;
-        // });
-        // topTen.length > 10 ? topTen.length = 10 : null;
+    try {
+      await fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get()
+        .then(snapshot => { snapshot.forEach(doc => { topTen_total.push({ displayName: doc.data().displayName, score: doc.data().totalScore }) }) })
+        .catch(err => console.log(err));
 
-      }).catch(err => console.log(err));
+      await fireStore.collection('user_score').where(`${scene}.score`, '>', 0).orderBy(`${scene}.score`, "desc").limit(10).get()
+        .then(snapshot => { snapshot.forEach(doc => { topTen_level.push({ displayName: doc.data().displayName, score: doc.data()[scene].score }) }) })
+        .catch(err => console.log(err));
 
-    await fireStore.collection('user_score').where(`${scene}.score`, '>', 0).orderBy(`${scene}.score`, "desc").limit(10).get()
-      .then((snapshot) => {
-        snapshot.forEach(doc => {
-          const entry = { displayName: doc.data().displayName, score: doc.data()[scene].score };
-          topTen_level.push(entry)
-        });
-      }).catch(err => console.log(err));
-
-    res.send(JSON.stringify({ topTen_total, topTen_level }));
+      res.send(JSON.stringify({ topTen_total, topTen_level }));
+    } catch (error) { console.log(error) }
   });
 
 
@@ -68,10 +68,7 @@ module.exports = function (fireStore) {
           fireStore.collection("user_score").doc('/' + uid)
             .set(document)
             .then(() => { res.send(JSON.stringify({ msg: 'ok' })) })
-            .catch((err) => {
-              res.status(401).end();
-              console.log(err);
-            });
+            .catch(err => { console.log(err) });
 
         } else if (stored[scene] === undefined) { // document exists but scene doesn't exist
           const scenes_completed = stored.scenes_completed; // collection.document.arrayUnion(arr_value);
@@ -93,10 +90,7 @@ module.exports = function (fireStore) {
           fireStore.collection("user_score").doc('/' + uid)
             .update(document)
             .then(() => { res.send(JSON.stringify({ msg: 'ok' })) })
-            .catch((err) => {
-              res.status(401).end();
-              console.log(err);
-            });
+            .catch(err => { console.log(err) });
 
         } else { // document and scene exists
           const diff = { [scene]: { 'timestamp': firebase.firestore.FieldValue.serverTimestamp() } };
@@ -112,10 +106,8 @@ module.exports = function (fireStore) {
             fireStore.collection("user_score").doc('/' + uid)
               .update(diff)
               .then(() => { res.send(JSON.stringify(stored[scene])) })
-              .catch(err => {
-                res.status(401).end();
-                console.log(err);
-              });
+              .catch(err => { console.log(err) });
+
           } else {
             res.send(JSON.stringify(stored[scene]));
           }

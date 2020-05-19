@@ -10,12 +10,13 @@ process.env.apiKey ? deploy = true : deploy = false;
 module.exports = function (auth) {
   const token = (user, res) => {
     if (user) {
-      auth.currentUser.getIdToken(true).then(function (idToken) {
-        res.cookie('idToken', idToken, { httpOnly: true, secure: deploy, sameSite: 'strict', maxAge: 12 * 60 * 60 * 1000 }).json({ displayName: user.displayName, uid: user.uid }).end();
-      }).catch(err => {
-        console.log(err);
-        res.status(401).end();
-      })
+      auth.currentUser.getIdToken(true)
+        .then(function (idToken) {
+          res.cookie('idToken', idToken, { httpOnly: true, secure: deploy, sameSite: 'strict', maxAge: 60 * 60 * 1000 }).json({ displayName: user.displayName, uid: user.uid }).end();
+        }).catch(err => {
+          console.log(err);
+          res.status(401).end();
+        })
     } else {
       res.status(401).end();
     }
