@@ -4,7 +4,7 @@
 
 /**
  * @author Don (dl90)
- * @date May 14, 2020
+ * @date May 12, 2020
  */
 class Scene_5 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_5' }) }
@@ -21,30 +21,30 @@ class Scene_5 extends Phaser.Scene {
 
     this.scene_settings = {
       debug: false,
+      introText: 'Level 5',
 
       canvasWidth: 480,
       canvasHeight: 270,
-      worldWidth: 32 * 80,
-      worldHeight: 32 * 80,
+      worldWidth: 32 * 127,
+      worldHeight: 32 * 56,
 
       moveSpeed: 100,
       movementHealthCostRatio: 0.000005,
       diagonalMoveSpeed: 70.71,
       twoKeyMultiplier: 0.707,
 
-      playerSpawnPosition: [0, 1],
-      familySpawnPosition: [42, 46],
+      playerSpawnPosition: [0, 4],
+      familySpawnPosition: [125, 54],
 
-      levelTime: 350, // s
+      levelTime: 400, // s
       boneHealthRegen: 30,
       coinScoreBonus: 1000,
 
       backgroundDepth: -1,
       wallSpriteDepth: 1,
       playerSpriteDepth: 2,
-      enemySpriteDepth: 2,
       itemSpriteDepth: 2,
-      overlapSpriteDepth: 3,
+      treeSpriteDepth: 3,
       scoreTimerBackgroundDepth: 4,
       scoreTextDepth: 5,
       healthBarDepth: 5,
@@ -58,6 +58,24 @@ class Scene_5 extends Phaser.Scene {
       enemyHealthReduction: 0.1, // per 16ms
       enemyTweenDurationMultiplier: 500,
       enemyTweenLoopDelay: 20000,
+
+      enemy: [
+        { "id": 1, "x": 18, "y": 2, "tweenX": 0, "tweenY": 7 },
+        { "id": 2, "x": 33, "y": 12, "tweenX": 0, "tweenY": -7 },
+        { "id": 3, "x": 17, "y": 27, "tweenX": 0, "tweenY": -7 },
+        { "id": 4, "x": 54, "y": 16, "tweenX": 0, "tweenY": 10 },
+        { "id": 5, "x": 47, "y": 30, "tweenX": 0, "tweenY": -10 },
+        { "id": 6, "x": 66, "y": 19, "tweenX": 10, "tweenY": 0 },
+        { "id": 7, "x": 98, "y": 17, "tweenX": 7, "tweenY": 0 },
+        { "id": 8, "x": 117, "y": 13, "tweenX": 0, "tweenY": 12 },
+        { "id": 9, "x": 1, "y": 36, "tweenX": 0, "tweenY": 10 },
+        { "id": 10, "x": 11, "y": 43, "tweenX": 8, "tweenY": 0 },
+        { "id": 11, "x": 32, "y": 53, "tweenX": 15, "tweenY": 0 },
+        { "id": 12, "x": 47, "y": 30, "tweenX": 0, "tweenY": 10 },
+        { "id": 13, "x": 70, "y": 53, "tweenX": 7, "tweenY": 0 },
+        { "id": 14, "x": 87, "y": 36, "tweenX": 0, "tweenY": 7 },
+        { "id": 15, "x": 116, "y": 46, "tweenX": 0, "tweenY": 7 },
+      ]
     }
   }
 
@@ -81,18 +99,17 @@ class Scene_5 extends Phaser.Scene {
     this.load.audio('bone_audio', '/assets/bgm/clips/Zain_bone.mp3');
     this.load.audio('death_event_audio', '/assets/bgm/clips/Zain_death_clip.mp3');
 
-    this.load.image('father', '/assets/sprites/family/father.png');
+    this.load.image('mother', '/assets/sprites/family/mother.png');
     this.load.image('coin', '/assets/sprites/items/coin.png');
     this.load.image('bone', '/assets/sprites/items/bone.png');
-    this.load.image('chair', '/assets/sprites/office/desk_chair.png');
+    this.load.image('cart', '/assets/sprites/grocery/cart.png')
 
     // tilemap and tileset
-    this.load.image('background', '/assets/tileset/white_floor.png');
-    this.load.image('tileset', '/assets/tileset/Office_Tileset.png');
+    this.load.image('floor', '/assets/tileset/grocery_floor.png');
+    this.load.image('tileset', '/assets/tileset/Group 6.png');
     this.load.image('things', '/assets/tileset/things.png');
-    this.load.tilemapTiledJSON('tilemap', '/assets/tilemaps/level_5.json');
+    this.load.tilemapTiledJSON('tilemap', '/assets/tilemaps/level_7.json');
   }
-
 
   create() {
     this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
@@ -106,7 +123,7 @@ class Scene_5 extends Phaser.Scene {
     this.levelText = this.add.text(
       this.scene_settings.canvasWidth / 2,
       this.scene_settings.canvasHeight / 2,
-      'Level 5',
+      this.scene_settings.levelText,
       { fontSize: 30, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
 
@@ -120,7 +137,7 @@ class Scene_5 extends Phaser.Scene {
 
     // healthBar
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_settings.healthBarDepth);
-    this.scene_settings.debug ? this.healthVal = 1000 : this.healthVal = this.playerHealth;
+    this.scene_settings.debug ? this.healthVal = 1000 : this.healthVal = this.playerHealth; // gets health from passed value
     [this.bonusScore, this.coinCount] = [0, 0];
 
     // follows player
@@ -162,7 +179,7 @@ class Scene_5 extends Phaser.Scene {
     }, this);
 
     // score tracker
-    this.score = parseInt(this.levelTime * this.healthVal);
+    this.score = parseInt(this.levelTime * this.healthVal); // @TODO scene score || total score
     this.scoreText = this.add.text(
       this.scene_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
@@ -170,12 +187,12 @@ class Scene_5 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTextDepth);
 
     // scene transition
-    this.father = this.physics.add.sprite(
+    this.mother = this.physics.add.sprite(
       this.scene_settings.familySpawnPosition[0] * 32,
       this.scene_settings.familySpawnPosition[1] * 32,
-      'father'
+      'mother'
     ).setOrigin(0).setDepth(this.scene_settings.playerSpriteDepth);
-    this.physics.add.overlap(gameState.player, this.father, () => {
+    this.physics.add.overlap(gameState.player, this.mother, () => {
       this.sound.pauseAll();
 
       // timer (end of scene)
@@ -199,53 +216,42 @@ class Scene_5 extends Phaser.Scene {
 
     // ------ map ------ //
     const map = this.add.tilemap('tilemap'),
-      background = map.addTilesetImage('background'),
       tileset = map.addTilesetImage('tileset'),
+      floor = map.addTilesetImage('floor'),
       things = map.addTilesetImage('things');
 
-    // background_1
-    map.createStaticLayer('background_1', [tileset], 0, 0).setDepth(this.scene_settings.backgroundDepth);
-    // background_2
-    map.createStaticLayer('background_2', [background], 0, 0).setDepth(this.scene_settings.backgroundDepth);
+    // background
+    map.createStaticLayer('background', [floor], 0, 0).setDepth(this.scene_settings.backgroundDepth);
 
-    // static physics group
     const staticBodyPhysicsGroup = this.physics.add.staticGroup();
 
     // wall
     const wall = map.createStaticLayer('wall', [tileset], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
     gameFunctions.hitBoxGenerator(tileset, wall, staticBodyPhysicsGroup, false);
     // counter
-    const counter = map.createStaticLayer('counter', [tileset], 0, 0).setDepth(this.scene_settings.overlapSpriteDepth);
+    const counter = map.createStaticLayer('counter', [tileset], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
     gameFunctions.hitBoxGenerator(tileset, counter, staticBodyPhysicsGroup, false);
-    // printer
-    const printer = map.createStaticLayer('printer', [tileset], 0, 0).setDepth(this.scene_settings.overlapSpriteDepth);
-    gameFunctions.hitBoxGenerator(tileset, printer, staticBodyPhysicsGroup, false);
-    // shelve
-    const shelve = map.createStaticLayer('shelve', [tileset], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
-    gameFunctions.hitBoxGenerator(tileset, shelve, staticBodyPhysicsGroup, false);
-    // desk
-    const desk = map.createStaticLayer('desk', [tileset], 0, 0).setDepth(this.scene_settings.overlapSpriteDepth);
-    gameFunctions.hitBoxGenerator(tileset, desk, staticBodyPhysicsGroup, false);
-    // water
-    const water = map.createStaticLayer('water', [tileset], 0, 0).setDepth(this.scene_settings.overlapSpriteDepth);
-    gameFunctions.hitBoxGenerator(tileset, water, staticBodyPhysicsGroup, false);
+    // fridge
+    const fridge = map.createStaticLayer('fridge', [tileset], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    gameFunctions.hitBoxGenerator(tileset, fridge, staticBodyPhysicsGroup, false);
+    // apple_basket
+    const apple_basket = map.createStaticLayer('apple_basket', [tileset], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
+    gameFunctions.hitBoxGenerator(tileset, apple_basket, staticBodyPhysicsGroup, false);
 
-    // static physics group collider
     this.physics.add.collider(gameState.player, staticBodyPhysicsGroup);
 
-    let [chairCollider] = [true];
-
-    // chair (movable)
-    const chair = map.createStaticLayer('chair', [tileset], 0, 0).setVisible(false);
-    const chairPhysicsGroup = this.physics.add.group();
-    gameFunctions.hitBoxGenerator(tileset, chair, chairPhysicsGroup, true);
-    chairPhysicsGroup.getChildren().forEach(obj => {
-      obj.setTexture('chair').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(2).setDepth(this.scene_settings.itemSpriteDepth);
+    // cart (movable)
+    const cart = map.createStaticLayer('cart', [tileset], 0, 0).setVisible(false);
+    const cartPhysicsGroup = this.physics.add.group();
+    gameFunctions.hitBoxGenerator(tileset, cart, cartPhysicsGroup, true);
+    cartPhysicsGroup.getChildren().forEach(obj => {
+      obj.setTexture('cart').setInteractive().setCollideWorldBounds(true).setDamping(true).setDrag(0.2).setMaxVelocity(30).setMass(3).setSize(30, 20);
     });
-    this.physics.add.collider(chairPhysicsGroup, [chairPhysicsGroup, staticBodyPhysicsGroup]);
-    this.physics.add.collider(chairPhysicsGroup, gameState.player, () => {
-      if (chairCollider) {
-        const str = 'bork bork';
+    let cartCollider = true
+    this.physics.add.collider(cartPhysicsGroup, [cartPhysicsGroup, staticBodyPhysicsGroup]);
+    this.physics.add.collider(cartPhysicsGroup, gameState.player, () => {
+      if (cartCollider) {
+        const str = 'Zoom Zoom';
         const message = this.add.text(
           this.scene_settings.canvasWidth / 2,
           this.scene_settings.canvasHeight - 30,
@@ -259,44 +265,21 @@ class Scene_5 extends Phaser.Scene {
           loop: 2,
           ease: 'Linear',
           yoyo: false,
-          onComplete: () => { message.destroy(); chairCollider = true }
+          onComplete: () => { message.destroy(); cartCollider = true }
         });
-        chairCollider = false;
+        cartCollider = false;
       }
     });
 
-    // things layer (consumables)
-    const thingsLayer = map.createStaticLayer('things', [things], 0, 0).setVisible(false);
-    const coinPhysicsGroup = this.physics.add.group();
+    // bone
+    const bone = map.createStaticLayer('bone', [things], 0, 0).setVisible(false);
     const bonePhysicsGroup = this.physics.add.group();
-
-    thingsLayer.forEachTile(tile => {
-      const tileWorldPos = thingsLayer.tileToWorldXY(tile.x, tile.y),
-        collisionGroup = things.getTileCollisionGroup(tile.index);
-
-      if (!collisionGroup || collisionGroup.objects.length <= 0) { return }
-      else {
-        collisionGroup.objects.forEach(object => {
-          if (object.ellipse) { // identifies ellipse hit box
-            if (tile.properties.coin) {
-              coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(object.width / 2, object.x, object.y).setDepth(this.scene_settings.itemSpriteDepth);
-            } else if (tile.properties.bone) {
-              bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(object.width / 2, object.x, object.y).setDepth(this.scene_settings.itemSpriteDepth);
-            }
-          }
-        })
+    bone.forEachTile(tile => {
+      const tileWorldPos = bone.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.bone) {
+        bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(5, 10, 10).setDepth(this.scene_settings.itemSpriteDepth);
       }
-      tile.destroy();
     });
-
-    coinPhysicsGroup.getChildren().forEach(gameObj => {
-      this.physics.add.overlap(gameState.player, gameObj, () => {
-        this.bonusScore += this.scene_settings.coinScoreBonus;
-        this.coinCount += 1; // @TODO
-        gameObj.destroy();
-      });
-    });
-
     bonePhysicsGroup.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         (this.healthVal + this.scene_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += this.scene_settings.boneHealthRegen;
@@ -308,30 +291,42 @@ class Scene_5 extends Phaser.Scene {
       });
     });
 
-    // enemy
-    const enemies = map.createFromObjects('enemies', 29, { key: 's_catcher' });
-    const enemyPhysicsGroup = this.physics.add.group();
-    enemies.forEach(sprite => {
-      sprite.setVisible(false);
-      const enemy = enemyPhysicsGroup.create(sprite.x, sprite.y, 's_catcher').setCollideWorldBounds(true).setDepth(this.scene_settings.enemySpriteDepth);
-      const data = sprite.data.getAll();
-      if (data && data[0]) {
-        const port = {
-          [data[0].name]: data[0].value,
-          x: sprite.x,
-          y: sprite.y
-        }
-        enemy.setData(port);
+    // coin
+    const coin = map.createStaticLayer('coin', [things], 0, 0).setVisible(false);
+    const coinPhysicsGroup = this.physics.add.group();
+    coin.forEachTile(tile => {
+      const tileWorldPos = coin.tileToWorldXY(tile.x, tile.y);
+      if (tile.properties.coin) {
+        coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(30 / 2, 1, 1).setDepth(this.scene_settings.itemSpriteDepth);
       }
-      sprite.destroy();
-    })
-    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, staticBodyPhysicsGroup, chairPhysicsGroup]);
+    });
+    coinPhysicsGroup.getChildren().forEach(gameObj => {
+      this.physics.add.overlap(gameState.player, gameObj, () => {
+        this.bonusScore += this.scene_settings.coinScoreBonus;
+        this.coinCount += 1; // @TODO
+        gameObj.destroy();
+      });
+    });
+
+    // enemy
+    const enemyPhysicsGroup = this.physics.add.group();
+    this.scene_settings.enemy.forEach(function (obj) {
+      enemyPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
+        .setData({
+          "id": obj.id,
+          "x": obj.x,
+          "y": obj.y,
+          "tweenX": obj.tweenX,
+          "tweenY": obj.tweenY
+        });
+    }, this);
+    this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, staticBodyPhysicsGroup, cartPhysicsGroup]);
 
     enemyPhysicsGroup.getChildren().forEach(function (gameObj) {
-      if (gameObj.getData("tweenX")) {
+      if (gameObj.getData("tweenX") !== 0) {
         this.tweens.add({
           targets: gameObj,
-          x: gameObj.x + (gameObj.getData("tweenX") * 32) + 16,
+          x: (gameObj.getData("x") * 32 + gameObj.getData("tweenX") * 32) + 16,
           ease: 'Linear',
           duration: Math.abs(gameObj.getData("tweenX")) * this.scene_settings.enemyTweenDurationMultiplier,
           repeat: -1,
@@ -340,10 +335,10 @@ class Scene_5 extends Phaser.Scene {
           onYoyo: () => { gameObj.flipX = true },
           onRepeat: () => { gameObj.flipX = false }
         });
-      } else if (gameObj.getData("tweenY")) {
+      } else if (gameObj.getData("tweenY") !== 0) {
         this.tweens.add({
           targets: gameObj,
-          y: gameObj.y + (gameObj.getData("tweenY") * 32) + 16,
+          y: (gameObj.getData("y") * 32 + gameObj.getData("tweenY") * 32) + 16,
           ease: 'Linear',
           duration: Math.abs(gameObj.getData("tweenY")) * this.scene_settings.enemyTweenDurationMultiplier,
           repeat: -1,
@@ -354,14 +349,14 @@ class Scene_5 extends Phaser.Scene {
         });
       }
     }, this);
-    // ------map ------ //
+    // ------ map ------ //
 
     // audio department
     const sound_config = {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: 200,
+      detune: 0,
       seek: 0,
       loop: true,
       delay: 0
@@ -388,7 +383,7 @@ class Scene_5 extends Phaser.Scene {
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.once('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
-      this.sound.pauseAll();
+      this.sound.pauseAll()
       audioPlaying = false;
       audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
@@ -400,7 +395,7 @@ class Scene_5 extends Phaser.Scene {
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
       }
-      audioPlaying = true;
+      audioPlaying = true
       audioButton.setTexture('audio_button_on').setScale(0.5);
     }, this);
     gameState.emitter.once('death_bgm', () => {
@@ -534,7 +529,15 @@ class Scene_5 extends Phaser.Scene {
   }
 
   update() {
+    if (gameState.player) {
+      this.physics.overlap(gameState.player, this.flowersPhysicsGroup) ?
+        gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) :
+        gameState.player.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.moveSpeed);
+    }
+
     this.dangerState = false;
+    const distanceCalc = gameFunctions.distanceCalc;
+
     this.tweens.getAllTweens().forEach(tween => {
       const gameObj = tween.targets[0];
       if (gameObj.type === "Sprite") {
@@ -548,15 +551,15 @@ class Scene_5 extends Phaser.Scene {
           } else {
             this.HealthVal = -1;
           }
-        } else if (gameFunctions.distanceCalc(gameState.player, gameObj) < this.scene_settings.enemyChaseDistance) {
+        } else if (distanceCalc(gameState.player, gameObj) < this.scene_settings.enemyChaseDistance) {
           tween.pause();
           this.physics.moveToObject(gameObj, gameState.player, this.scene_settings.enemyMoveSpeed);
           this.dangerState = true;
         } else {
-          if (Math.round(gameObj.x) === gameObj.getData("x") && Math.round(gameObj.y) === gameObj.getData("y")) {
+          if (Math.round(gameObj.x) === gameObj.getData("x") * 32 + 16 && Math.round(gameObj.y) === gameObj.getData("y") * 32 + 16) {
             tween.play();
           } else {
-            this.physics.moveTo(gameObj, gameObj.getData("x"), gameObj.getData("y"));
+            this.physics.moveTo(gameObj, gameObj.getData("x") * 32 + 16, gameObj.getData("y") * 32 + 16);
           }
         }
 
@@ -581,6 +584,7 @@ class Scene_5 extends Phaser.Scene {
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
+      // gameState.player.noStop = null;
       gameState.emitter.emit('end_time');
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);

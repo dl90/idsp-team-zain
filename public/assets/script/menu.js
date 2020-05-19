@@ -22,6 +22,7 @@ class Menu extends Phaser.Scene {
     this.load.html('signup_form', '/assets/util/signup_form.html');
 
     this.load.image('play_button', '/assets/sprites/buttons/button_play.png');
+    this.load.image('level_button', '/assets/sprites/buttons/button_level.png')
     this.load.image('logout_button', '/assets/sprites/buttons/button_logout.png');
     this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
     this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
@@ -49,23 +50,27 @@ class Menu extends Phaser.Scene {
     this.add.image(config.width / 2, config.height / 2, 'background').setDepth(-1);
     const intro_bgm = this.sound.add('intro_bgm', sound_config),
       playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button'),
-      logoutButton = this.add.sprite((config.width / 2), config.height - 80, 'logout_button'),
+      levelButton = this.add.sprite((config.width / 2), config.height - 83, 'level_button'),
+      logoutButton = this.add.sprite((config.width / 2), config.height - 66, 'logout_button'),
       audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.5);
 
     playButton.setInteractive().setVisible(false);
+    levelButton.setInteractive().setVisible(false);
     logoutButton.setInteractive().setVisible(false);
     audioButton.setInteractive().setAlpha(0.5);
 
-    const prompt = this.add.text(config.width / 2, config.height / 2, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5),
-      loginForm = this.add.dom(config.width / 2, config.height / 2 + 50).createFromCache('login_form').setOrigin(0.5).setVisible(false),
-      signupForm = this.add.dom(config.width / 2, config.height / 2 + 63).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
-
     playButton.on('pointerover', () => { playButton.alpha = 0.8 });
     playButton.on('pointerout', () => { playButton.alpha = 1 });
+    levelButton.on('pointerover', () => { levelButton.alpha = 0.8 });
+    levelButton.on('pointerout', () => { levelButton.alpha = 1 });
     logoutButton.on('pointerover', () => { logoutButton.alpha = 0.8 });
     logoutButton.on('pointerout', () => { logoutButton.alpha = 1 });
     audioButton.on('pointerover', () => { audioButton.alpha = 1 });
     audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
+
+    const prompt = this.add.text(config.width / 2, config.height / 2 + 15, '', { color: 'black', fontSize: '16px' }).setOrigin(0.5),
+      loginForm = this.add.dom(config.width / 2, config.height / 2 + 60).createFromCache('login_form').setOrigin(0.5).setVisible(false),
+      signupForm = this.add.dom(config.width / 2, config.height / 2 + 68).createFromCache('signup_form').setOrigin(0.5).setVisible(false);
 
     let flash = true;
     const msgFlash = (target) => {
@@ -101,8 +106,8 @@ class Menu extends Phaser.Scene {
       this.scene.start(this.scene_settings.start);
     }
 
-    fetch("/auth/token", { method: "GET" })
-      .then((res) => {
+    fetch("/auth/token", { method: "GET", credentials: 'same-origin' })
+      .then(res => {
         if (res.status === 200) {
           return res.json();
         } else {
@@ -112,12 +117,13 @@ class Menu extends Phaser.Scene {
           signUp();
         }
       })
-      .then((resData) => {
+      .then(resData => {
         if (resData) {
           prompt.setText(`Welcome back ${resData.displayName}`)
           gameState.userDisplayName = resData.displayName;
           gameState.uid = resData.uid;
           playButton.setVisible(true);
+          levelButton.setVisible(true);
           logoutButton.setVisible(true);
         }
       }).catch((err) => { console.log(err) })
@@ -150,18 +156,20 @@ class Menu extends Phaser.Scene {
             } else {
               console.log('something else');
             }
-          }, (reject) => {
+          }, reject => {
             prompt.setText(reject.reason);
             flash ? msgFlash(prompt) : null
-          }).then((resData) => {
+          }).then(resData => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
               playButton.setVisible(true);
+              levelButton.setVisible(true);
               logoutButton.setVisible(true);
             }
           }).catch(err => { console.log(err) });
+
         } else if (event.target.id === "login-submit") {
           prompt.setText('Invalid input');
           flash ? msgFlash(prompt) : null
@@ -200,15 +208,16 @@ class Menu extends Phaser.Scene {
               prompt.setText("Signup unsuccessful");
               flash ? msgFlash(prompt) : null
             }
-          }, (reject) => {
+          }, reject => {
             prompt.setText(reject.reason);
             flash ? msgFlash(prompt) : null
-          }).then((resData) => {
+          }).then(resData => {
             if (resData) {
               prompt.setText(`Welcome ${resData.displayName}`);
               gameState.userDisplayName = resData.displayName;
               gameState.uid = resData.uid;
               playButton.setVisible(true);
+              levelButton.setVisible(true);
               logoutButton.setVisible(true);
             }
           }).catch(err => {
@@ -247,7 +256,8 @@ class Menu extends Phaser.Scene {
 
     // transition
     playButton.on('pointerup', () => {
-      logoutButton.removeListener('pointerup')
+      logoutButton.removeListener('pointerup');
+      levelButton.removeListener('pointerup');
       this.tweens.add({
         targets: intro_bgm,
         volume: 0,
@@ -268,6 +278,13 @@ class Menu extends Phaser.Scene {
       });
     });
 
+    levelButton.on('pointerup', () => {
+      logoutButton.removeListener('pointerup');
+      playButton.removeListener('pointerup');
+      this.scene.stop('Menu');
+      this.scene.start('Scene_select');
+    })
+
     // logout
     logoutButton.on('pointerup', () => {
       fetch("/auth/logout", { method: "GET" })
@@ -275,6 +292,7 @@ class Menu extends Phaser.Scene {
           prompt.setText('Please login or create an account to proceed');
           loginForm.setVisible(true);
           playButton.setVisible(false);
+          levelButton.setVisible(false);
           logoutButton.setVisible(false);
           login();
           signUp();
