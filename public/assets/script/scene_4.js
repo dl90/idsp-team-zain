@@ -366,8 +366,8 @@ class Scene_4 extends Phaser.Scene {
       seek: 0,
       loop: true,
       delay: 0
-    }
-    const sceneBGM = this.sound.add('scene_1_bgm', sound_config),
+    },
+      sceneBGM = this.sound.add('scene_1_bgm', sound_config),
       deathBGM = this.sound.add('death_audio', sound_config),
       dangerBGM = this.sound.add('danger_audio', sound_config),
       boneClip = this.sound.add('bone_audio', sound_config.loop = false),
@@ -492,6 +492,8 @@ class Scene_4 extends Phaser.Scene {
       this.scene_settings.canvasWidth / 2,
       this.scene_settings.canvasHeight / 2 + 50,
       'back_button').setDepth(this.scene_settings.buttonDepth).setVisible(false).setOrigin(0.5).setInteractive().setScrollFactor(0);
+    this.backButton.on('pointerover', () => { this.backButton.alpha = 0.8 });
+    this.backButton.on('pointerout', () => { this.backButton.alpha = 1 });
     this.backButton.on('pointerup', () => {
       this.tweens.add({
         targets: deathBGM,
@@ -560,11 +562,6 @@ class Scene_4 extends Phaser.Scene {
             this.physics.moveTo(gameObj, gameObj.getData("x"), gameObj.getData("y"));
           }
         }
-
-        // enemy drag over semiWalls
-        this.physics.overlap(gameObj, this.flowerPhysicsGroup) ?
-          gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
-          gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.enemyMoveSpeed);
       }
     });
 

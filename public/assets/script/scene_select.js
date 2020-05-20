@@ -150,15 +150,12 @@ class Scene_select extends Phaser.Scene {
       .catch(err => {
         console.log(err);
         this.scene.stop();
-        this.scene.get('Menu').scene.restart(forwardData);
+        this.scene.get('Menu').scene.restart();
       });
 
     this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) { this.camera.scrollY += deltaY / 2 }, this);
 
-    console.log(this.sound)
     backButton.on('pointerup', () => {
-      console.log(this.sound)
-      this.sound.pauseAll()
       this.scene.stop();
       this.scene.get('Menu').scene.restart();
     })

@@ -95,7 +95,6 @@ class Scene_7 extends Phaser.Scene {
     this.load.tilemapTiledJSON('tilemap', '/assets/tilemaps/level_9.json');
   }
 
-
   create() {
     this.loadingText ? (() => { this.loadingText.destroy(); delete this.loadingText; })() : null
     this.percentText ? (() => { this.percentText.destroy(); delete this.percentText; })() : null
@@ -145,9 +144,7 @@ class Scene_7 extends Phaser.Scene {
         targets: this.levelText,
         duration: 1000,
         alpha: 0,
-        onComplete: () => {
-          this.levelText.destroy();
-        }
+        onComplete: () => { this.levelText.destroy() }
       });
 
       this.time.addEvent({

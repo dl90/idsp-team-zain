@@ -43,7 +43,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(compression());
 app.use(requestIp.mw());
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 process.env.apiKey ? app.use(checkUrl) : null;
 
 app.use(express.static("public", { maxAge: "2h" }));
@@ -63,7 +63,9 @@ firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     let { displayName, email, emailVerified, photoURL, isAnonymous, uid, providerData } = user;
     console.log("\n----------------------- auth activity ----------------------------")
-    console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName}, emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous}, \nproviderData: ${JSON.stringify(providerData)}\n`);
+    console.log(`uid: ${uid}, email: ${email}, displayName: ${displayName},` +
+      `emailVerified: ${emailVerified}, photoURL ${photoURL}, isAnonymous ${isAnonymous},` +
+      `\nproviderData: ${JSON.stringify(providerData)}\n`);
   }
 });
 
