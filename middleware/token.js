@@ -6,7 +6,8 @@ function verifyToken(req, res, next) {
       .then(decodedToken => {
         res.locals.decodedToken = decodedToken;
         next();
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.log(err.message);
         res.status(403).end();
       });

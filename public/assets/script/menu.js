@@ -47,12 +47,18 @@ class Menu extends Phaser.Scene {
       delay: 0
     };
 
+    let audioRef;
+    if (this.sound.get('intro_bgm')) {
+      audioRef = this.sound.get('intro_bgm');
+    } else {
+      audioRef = this.sound.add('intro_bgm', sound_config);
+    }
+
     this.add.image(config.width / 2, config.height / 2, 'background').setDepth(-1);
-    const intro_bgm = this.sound.add('intro_bgm', sound_config),
-      playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button'),
+    const playButton = this.add.sprite((config.width / 2), config.height - 100, 'play_button'),
       levelButton = this.add.sprite((config.width / 2), config.height - 83, 'level_button'),
       logoutButton = this.add.sprite((config.width / 2), config.height - 66, 'logout_button'),
-      audioButton = this.add.sprite((config.width - 20), config.height - 20, 'audio_button_on').setScale(0.5);
+      audioButton = this.add.sprite((config.width - 20), config.height - 20, audioRef.isPlaying ? 'audio_button_on' : 'audio_button_off').setScale(0.5);
 
     playButton.setInteractive().setVisible(false);
     levelButton.setInteractive().setVisible(false);
@@ -100,10 +106,10 @@ class Menu extends Phaser.Scene {
     const video = this.add.video(0, 0, 'tutorial');
     video.setOrigin(0).setVisible(false).setDepth(2).setInteractive();
     const transition = () => {
-      video.stop();
-      video.destroy()
-      this.scene.stop('Menu');
-      this.scene.start(this.scene_settings.start);
+      audioRef.destroy();
+      video.stop().destroy();
+      this.scene.stop();
+      this.scene.get(this.scene_settings.start).scene.restart({ audioToggle });
     }
 
     fetch("/auth/token", { method: "GET", credentials: 'same-origin' })
@@ -236,35 +242,43 @@ class Menu extends Phaser.Scene {
     }
 
     // audio department
+    let audioToggle;
     this.sound.pauseOnBlur = false;
     const emitter = new Phaser.Events.EventEmitter();
-    emitter.on('play_bgm', () => { intro_bgm.play() }, this);
+    emitter.on('play_bgm', () => {
+      if (!audioRef.isPlaying && !audioRef.isPaused) {
+        audioRef.play();
+        audioButton.setTexture('audio_button_on').setScale(0.5);
+        audioToggle = true;
+      }
+    }, this);
     emitter.on('pause_bgm', () => {
-      intro_bgm.pause();
-      playing = false;
+      audioRef.pause();
       audioButton.setTexture('audio_button_off').setScale(0.5);
+      audioToggle = false;
     }, this);
     emitter.on('resume_bgm', () => {
-      intro_bgm.resume();
-      playing = true;
+      audioRef.resume();
       audioButton.setTexture('audio_button_on').setScale(0.5);
+      audioToggle = true;
     }, this);
 
-    let playing = true;
-    audioButton.on('pointerup', () => { playing ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
-    playing ? emitter.emit('play_bgm') : null;
+    audioButton.on('pointerup', () => { audioRef.isPlaying ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
+    emitter.emit('play_bgm');
 
     // transition
     playButton.on('pointerup', () => {
       logoutButton.removeListener('pointerup');
       levelButton.removeListener('pointerup');
       this.tweens.add({
-        targets: intro_bgm,
+        targets: audioRef,
         volume: 0,
         duration: 1500,
         onComplete: () => {
-          intro_bgm.stop();
+          audioRef.pause();
           video.setVisible(true).play();
+          audioToggle ? video.setVolume(sound_config.volume) : video.setVolume(0);
+
           fadeIn(video, 1000, () => {
             if (video.isPlaying()) {
               video.on('pointerup', transition);

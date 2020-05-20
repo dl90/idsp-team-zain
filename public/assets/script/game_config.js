@@ -19,12 +19,12 @@ const config = {
   height: 270,
   parent: "game",
   backgroundColor: "e5e5e5",
-  roundPixels: true,
+  roundPixels: false,
   antialias: false,
   physics: {
     default: 'arcade',
     arcade: {
-      // debug: true,
+      debug: true,
       gravity: { y: 0 },
       enableBody: true,
     }

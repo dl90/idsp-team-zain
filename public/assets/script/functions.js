@@ -5,10 +5,11 @@
 /**
  * @author Don (dl90)
  * @date April 23, 2020
+ * @note common functions shared by many scenes
  */
 const gameFunctions = {
   // loading screen
-  loading: function loading() {
+  "loading": function loading() {
     this.loadingText = this.make.text({
       x: config.width / 2 - 50, y: config.height / 2,
       text: 'Loading:',
@@ -33,7 +34,7 @@ const gameFunctions = {
   },
 
   // loads health textures
-  loadHealthTextures: function loadHealthTextures() {
+  "loadHealthTextures": function loadHealthTextures() {
     const healthPath = './assets/sprites/health-bar'
     this.load.image('health_100', healthPath + '/health_100.png');
     this.load.image('health_90', healthPath + '/health_90.png');
@@ -58,7 +59,7 @@ const gameFunctions = {
    * - loaded textures with corresponding values
    * @param {Number} health player health value (this.healthVal)
    */
-  activeHealthTextures: (gameState, health) => {
+  "activeHealthTextures": (gameState, health) => {
     const healthTickers = {
       100: () => { gameState.healthBar.setTexture('health_100') },
       93: () => { gameState.healthBar.setTexture('health_90') },
@@ -88,12 +89,13 @@ const gameFunctions = {
    *  - gameState.player
    *  - gameState.cursors
    * @param {Object} sceneSettings must contain the following
-   *  - sceneSettings.movementHealthCostRatio
+   *  - sceneSettings.moveSpeed
    *  - sceneSettings.diagonalMoveSpeed
+   *  - sceneSettings.movementHealthCostRatio
    *  - sceneSettings.twoKeyMultiplier
    * @param {Number} health player health value (this.healthVal)
    */
-  control: (gameState, sceneSettings, health) => {
+  "control": (gameState, sceneSettings, health) => {
     gameState && sceneSettings ? new Error('Missing things') : null;
 
     if (gameState.cursors.up.isDown && gameState.cursors.right.isUp && gameState.cursors.left.isUp) { // up
@@ -161,7 +163,7 @@ const gameFunctions = {
     } else {
       if (!gameState.player.noStop) {
         gameState.player.setVelocityX(0).setVelocityY(0);
-        gameState.player.anims.pause()
+        gameState.player.anims.pause();
       }
     }
     return health;
@@ -173,14 +175,14 @@ const gameFunctions = {
    * @param {Object} gameObj2 Phaser game object
    * @return {Number} Distance between
    */
-  distanceCalc: (gameObj1, gameObj2) => { return Phaser.Math.Distance.Between(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y) },
+  "distanceCalc": (gameObj1, gameObj2) => { return Phaser.Math.Distance.Between(gameObj1.x, gameObj1.y, gameObj2.x, gameObj2.y) },
 
   /**
    * Converts ms to make it easier to read
    * @param {Number} ms Milliseconds to convert
    * @return {String} formatted time
    */
-  timeConvert: (ms) => {
+  "timeConvert": (ms) => {
     let milliseconds = parseInt((ms % 1000)),
       seconds = parseInt((ms / 1000) % 60),
       minutes = parseInt((ms / (1000 * 60)) % 60),
@@ -198,7 +200,7 @@ const gameFunctions = {
    * @param {Object} enemy Phaser game object containing animations
    * @param {String} animationKey Key for accessing the animation
    */
-  biDirectional_enemy: (enemy, animationKey) => {
+  "biDirectional_enemy": (enemy, animationKey) => {
     if (enemy.body.velocity.x > 0) {
       enemy.flipX = false;
       enemy.anims.play(animationKey, true);
@@ -211,7 +213,7 @@ const gameFunctions = {
   },
 
   /**
-   * Generates custom hit-box (RECTANGLE ONLY)from Tiled by creating a physics body for each tile
+   * Generates custom hit-box (RECTANGLE ONLY) from Tiled by creating a physics body for each tile
    * @param {Object} tileSet Phaser tileset reference:
    * - const map = this.add.tilemap('tilemap_key');
    * - const tileSet = map.addTilesetImage('tileset_key');
@@ -221,8 +223,8 @@ const gameFunctions = {
    * - const physicsGroup = this.physics.add.staticGroup();
    * @param {Boolean} visible Set physics group to be visible (true) or invisible (false)
    */
-  hitBoxGenerator: (tileSet, layer, physicsGroup, visible = false) => {
-    !tileSet && layer && physicsGroup ? (() => { return new Error('Missing key objects') })() : null;
+  "hitBoxGenerator": (tileSet, layer, physicsGroup, visible = false) => {
+    !tileSet && layer && physicsGroup ? (() => { return new Error("Missing key objects") })() : null;
     layer.forEachTile(tile => {
       const tileWorldPos = layer.tileToWorldXY(tile.x, tile.y),
         collisionGroup = tileSet.getTileCollisionGroup(tile.index);
@@ -237,6 +239,8 @@ const gameFunctions = {
           }
         });
       }
+
+      visible ? tile.destroy() : null;
     });
   }
 
