@@ -23,7 +23,7 @@ class Scene_2 extends Phaser.Scene {
     }
 
     this.scene_settings = {
-      debug: true,
+      debug: false,
       introText: 'Level 2',
 
       canvasWidth: 480,
