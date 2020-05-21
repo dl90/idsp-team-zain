@@ -91,7 +91,7 @@ class Level_transition extends Phaser.Scene {
         } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
           newStatusText += `Didn't beat your old record, but:\n`;
           resData.time_raw > this.playerTime_raw ? newStatusText += `\tyou were ${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
-          resData.health < this.playerHealth ? newStatusText += `\tyou got ${this.playerHealth - resData.health} more health\n` : null;
+          resData.health < this.playerHealth ? newStatusText += `\tyou got ${(this.playerHealth - resData.health).toFixed(2)} more health\n` : null;
           if (resData.bonus_score) {
             resData.bonus_score < this.playerBonus ? newStatusText += `\tyou got ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
           }

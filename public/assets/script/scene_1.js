@@ -19,7 +19,7 @@ class Scene_1 extends Phaser.Scene {
       data.bonus ? this.playerBonus = data.bonus : null;
       data.health ? this.playerHealth = data.health : null;
       data.time_raw ? this.playerTime_raw = data.time_raw : null;
-      data.audioToggle ? this.audioToggle = data.audioToggle : null;
+      data.audioToggle ? this.audioToggle = data.audioToggle : this.audioToggle = true;
     }
 
     this.scene_settings = {
