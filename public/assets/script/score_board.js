@@ -8,12 +8,14 @@ class Score_board extends Phaser.Scene {
   }
 
   init(data) {
-    this.playerScene = data.scene;
-    this.playerScore = data.score;
-    this.playerBonus = data.bonus;
-    this.playerHealth = data.health;
-    this.playerTime_raw = data.time_raw;
     this.forwardData = data;
+
+    data.scene ? this.playerScene = data.scene : null;
+    data.score ? this.playerScore = data.score : null;
+    data.bonus ? this.playerBonus = data.bonus : null;
+    data.health ? this.playerHealth = data.health : null;
+    data.time_raw ? this.playerTime_raw = data.time_raw : null;
+    data.audioToggle ? this.audioToggle = data.audioToggle : null;
   }
 
   preload() {

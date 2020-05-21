@@ -35,7 +35,7 @@ const gameFunctions = {
 
   // loads health textures
   "loadHealthTextures": function loadHealthTextures() {
-    const healthPath = './assets/sprites/health-bar'
+    const healthPath = '/assets/sprites/health-bar'
     this.load.image('health_100', healthPath + '/health_100.png');
     this.load.image('health_90', healthPath + '/health_90.png');
     this.load.image('health_85', healthPath + '/health_85.png');
@@ -50,6 +50,45 @@ const gameFunctions = {
     this.load.image('health_20', healthPath + '/health_20.png');
     this.load.image('health_15', healthPath + '/health_15.png');
     this.load.image('health_10', healthPath + '/health_10.png');
+  },
+
+  /**
+   * Loads player spritesheet:
+   * - 'f_dog' : '/assets/sprites/dog/re_f_sheet.png'
+   * - 'b_dog' : '/assets/sprites/dog/re_b_sheet.png'
+   * - 'l_dog' : '/assets/sprites/dog/re_l_sheet.png'
+   */
+  "loadPlayerSpritesheet": function loadPlayerSpritesheet() {
+    this.load.spritesheet('f_dog', '/assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('b_dog', '/assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('l_dog', '/assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
+  },
+
+  /**
+   * Creates player movement animations:
+   * - 'f_move'
+   * - 'b_move'
+   * - 'l_move'
+   */
+  "animatePlayerSpritesheet": function animatePlayerSpritesheet() {
+    this.anims.create({
+      key: 'f_move',
+      frames: this.anims.generateFrameNumbers('f_dog', { start: 0, end: 2 }),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'b_move',
+      frames: this.anims.generateFrameNumbers('b_dog', { start: 0, end: 2 }),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'l_move',
+      frames: this.anims.generateFrameNumbers('l_dog', { start: 0, end: 2 }),
+      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
+      repeat: -1
+    });
   },
 
   /**
