@@ -5,18 +5,21 @@
 /**
  * @author Don (dl90)
  * @date May 9, 2020
+ * @note park theme
  */
 class Scene_2 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_2' }) }
 
   init(data) {
     if (data) {
-      this.playerScene = data.scene;
-      this.playerScore = data.score;
-      this.playerBonus = data.bonus;
-      this.playerHealth = data.health;
-      this.playerTime_raw = data.time_raw;
       this.forwardData = data;
+
+      data.scene ? this.playerScene = data.scene : null;
+      data.score ? this.playerScore = data.score : null;
+      data.bonus ? this.playerBonus = data.bonus : null;
+      data.health ? this.playerHealth = data.health : null;
+      data.time_raw ? this.playerTime_raw = data.time_raw : null;
+      data.audioToggle ? this.audioToggle = data.audioToggle : null;
     }
 
     this.scene_settings = {
@@ -78,12 +81,10 @@ class Scene_2 extends Phaser.Scene {
   }
 
   preload() {
-    gameFunctions.loading.call(this);
-    gameFunctions.loadHealthTextures.call(this);
+    gameFunctions.loading.apply(this);
+    gameFunctions.loadHealthTextures.apply(this);
+    gameFunctions.loadPlayerSpritesheet.apply(this);
 
-    this.load.spritesheet('f_dog', './assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('b_dog', './assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', './assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image('back_button', './assets/sprites/buttons/button_back.png');
@@ -105,7 +106,7 @@ class Scene_2 extends Phaser.Scene {
     // tilemap and tileset
     this.load.image('level_1', './assets/tileset/level_1.png');
     this.load.image('extruded', './assets/tileset/extruded.png');
-    this.load.tilemapTiledJSON('scene_3', './assets/tilemaps/level_3.json');
+    this.load.tilemapTiledJSON('tilemap', './assets/tilemaps/level_2.json');
   }
 
   create() {
@@ -132,10 +133,12 @@ class Scene_2 extends Phaser.Scene {
       'f_dog').setSize(30, 30).setDepth(this.scene_settings.playerSpriteDepth).setOrigin(0);
     gameState.player.setCollideWorldBounds(true).setBounce(1);
 
+    // initialize health
+    [this.bonusScore, this.coinCount, this.healthVal] = [0, 0, this.playerHealth];
+
     // healthBar
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_settings.healthBarDepth);
-    this.scene_settings.debug ? this.healthVal = 100 : this.healthVal = this.playerHealth; // gets health from passed value
-    [this.bonusScore, this.coinCount] = [0, 0];
+    this.scene_settings.debug ? this.healthVal = 100 : null;
 
     // follows player
     this.cameras.main.startFollow(gameState.player, true, 0.05, 0.05);
@@ -176,7 +179,7 @@ class Scene_2 extends Phaser.Scene {
     }, this);
 
     // score tracker
-    this.score = parseInt(this.levelTime * this.healthVal); // @TODO scene score || total score
+    this.score = parseInt(this.levelTime * this.healthVal);
     this.scoreText = this.add.text(
       this.scene_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
@@ -194,25 +197,26 @@ class Scene_2 extends Phaser.Scene {
 
       // timer (end of scene)
       gameState.emitter.emit('end_time');
-      audioPlaying ? this.sound.play('success_audio') : null
+      this.audioToggle ? this.sound.play('success_audio') : null
 
       // @TODO
       this.cumulativeScore = this.playerScore + this.score;
 
       // forwarded data
       const forwardData = {
-        scene: this.scene.key,
-        score: this.score,
-        bonus: this.bonusScore,
-        health: this.healthVal,
-        time_raw: this.scene_time_raw
+        "scene": this.scene.key,
+        "score": this.score,
+        "bonus": this.bonusScore,
+        "health": this.healthVal,
+        "time_raw": this.scene_time_raw,
+        "audioToggle": this.audioToggle
       }
       this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
     // ------ map ------ //
-    const map = this.add.tilemap('scene_3'),
+    const map = this.add.tilemap('tilemap'),
       tileSet = map.addTilesetImage('level_1'),
       extruded = map.addTilesetImage('extruded');
 
@@ -304,7 +308,7 @@ class Scene_2 extends Phaser.Scene {
         (this.healthVal + this.scene_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += this.scene_settings.boneHealthRegen;
 
         // play bone audio
-        audioPlaying ? boneClip.play() : null;
+        this.audioToggle ? boneClip.play() : null;
         gameObj.destroy();
         gameFunctions.activeHealthTextures(gameState);
       });
@@ -371,23 +375,23 @@ class Scene_2 extends Phaser.Scene {
     const deathClip = this.sound.add('death_event_audio', sound_config.loop = false);
 
     this.sound.pauseOnBlur = false;
-    let audioPlaying = true,
-      danger_bgm_toggle = true;
+    let danger_bgm_toggle = true;
 
     // audio button
     const audioButton = this.add.sprite(
       this.scene_settings.canvasWidth - 20,
       this.scene_settings.canvasHeight - 20,
-      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
+      this.audioToggle ? 'audio_button_on' : 'audio_button_off')
+      .setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
     audioButton.on('pointerover', () => { audioButton.alpha = 1 });
     audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
-    audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
+    audioButton.on('pointerup', () => { this.audioToggle ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.once('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
-      audioPlaying = false;
+      this.audioToggle = false;
       audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
     gameState.emitter.on('resume_bgm', () => {
@@ -398,7 +402,7 @@ class Scene_2 extends Phaser.Scene {
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
       }
-      audioPlaying = true
+      this.audioToggle = true
       audioButton.setTexture('audio_button_on').setScale(0.5);
     }, this);
     gameState.emitter.once('death_bgm', () => {
@@ -440,7 +444,7 @@ class Scene_2 extends Phaser.Scene {
       });
 
       this.sound.pauseAll();
-      if (audioPlaying) {
+      if (this.audioToggle) {
         deathClip.play();
         deathBGM.setVolume(0).play();
         this.tweens.add({
@@ -452,7 +456,7 @@ class Scene_2 extends Phaser.Scene {
       }
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
-      if (danger_bgm_toggle && audioPlaying) {
+      if (danger_bgm_toggle && this.audioToggle) {
         sceneBGM.pause();
         dangerBGM.setVolume(0).play();
         this.tweens.add({
@@ -461,11 +465,11 @@ class Scene_2 extends Phaser.Scene {
           duration: 1000,
         });
         danger_bgm_toggle = false
-        audioPlaying = true
+        this.audioToggle = true
       }
     }, this);
     gameState.emitter.on('danger_bgm_stop', () => {
-      if (!danger_bgm_toggle && audioPlaying) {
+      if (!danger_bgm_toggle && this.audioToggle) {
         dangerBGM.stop();
         sceneBGM.setVolume(0).resume();
         this.tweens.add({
@@ -483,7 +487,7 @@ class Scene_2 extends Phaser.Scene {
       this.scene_time_raw = this.endTime - this.startTime;
     }, this)
 
-    gameState.emitter.emit('play_bgm');
+    this.audioToggle ? gameState.emitter.emit('play_bgm') : null;
 
     this.backButton = this.add.sprite(
       this.scene_settings.canvasWidth / 2,
@@ -496,7 +500,7 @@ class Scene_2 extends Phaser.Scene {
         duration: 1500,
         onComplete: () => {
           this.sound.stopAll();
-          this.scene.restart(this.forwardData); // restarts scene with previously passed data
+          this.scene.restart(this.forwardData);
         }
       });
     });
@@ -505,24 +509,7 @@ class Scene_2 extends Phaser.Scene {
   }
 
   animate() {
-    this.anims.create({
-      key: 'f_move',
-      frames: this.anims.generateFrameNumbers('f_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'b_move',
-      frames: this.anims.generateFrameNumbers('b_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'l_move',
-      frames: this.anims.generateFrameNumbers('l_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
+    gameFunctions.animatePlayerSpritesheet.apply(this);
     this.anims.create({
       key: 's_catcher',
       frames: this.anims.generateFrameNumbers('s_catcher', { start: 0, end: 1 }),

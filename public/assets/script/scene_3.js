@@ -5,6 +5,7 @@
 /**
  * @author Don (dl90)
  * @date May 10, 2020
+ * @note office theme
  */
 class Scene_3 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_3' }) }
@@ -95,6 +96,12 @@ class Scene_3 extends Phaser.Scene {
     this.load.image('coin', './assets/sprites/items/coin.png');
     this.load.image('bone', './assets/sprites/items/bone.png');
 
+    //story
+    this.load.image('story_1', '/assets/sprites/story/scene_3.1.png');
+    this.load.image('story_2', '/assets/sprites/story/scene_3.2.png');
+    this.load.image('story_3', '/assets/sprites/story/scene_3.3.png');
+    this.load.image('next_button', '/assets/sprites/buttons/button_next.png');
+
     // tilemap and tileset
     this.load.image('office_tileset', './assets/tileset/Office_Tileset.png');
     this.load.image('things', './assets/tileset/things.png');
@@ -108,6 +115,50 @@ class Scene_3 extends Phaser.Scene {
 
     this.camera = this.cameras.main.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
     this.physics.world.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
+
+    // story element
+    const introMask = this.add.rectangle(
+      this.camera.centerX - 10,
+      this.camera.centerY - 10,
+      this.camera.displayWidth + 20,
+      this.camera.displayHeight + 20).setFillStyle(0x000000, 1).setScrollFactor(0).setDepth(11),
+      story_1 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_1`).setOrigin(0.5).setDepth(11).setVisible(true).setAlpha(0),
+      story_2 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_2`).setOrigin(0.5).setDepth(11).setVisible(false),
+      story_3 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_3`).setOrigin(0.5).setDepth(11).setVisible(false),
+      nextButton = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight - 40, 'next_button').setInteractive().setScrollFactor(0).setDepth(12).setAlpha(0);
+    this.tweens.add({
+      targets: [story_1, nextButton],
+      duration: 1000,
+      alpha: 1
+    })
+
+    let [story_arr, i] = [[story_1, story_2, story_3], 1];
+    nextButton.on('pointerover', () => { nextButton.alpha = 0.8 });
+    nextButton.on('pointerout', () => { nextButton.alpha = 1 });
+    nextButton.on('pointerup', () => {
+      i > 0 ? story_arr[i - 1].setVisible(false) : null;
+
+      if (i < story_arr.length) {
+        story_arr[i].setVisible(true);
+        i++
+      } else {
+        story_arr[i - 1].setVisible(false);
+        nextButton.setVisible(false)
+        this.tweens.add({
+          targets: introMask,
+          duration: 4000,
+          fillAlpha: 0,
+          onComplete: () => {
+            introMask.destroy();
+            nextButton.destroy();
+            story_1.destroy();
+            story_2.destroy();
+            story_3.destroy();
+            story_arr = null;
+          }
+        });
+      }
+    });
 
     // level title
     this.levelText = this.add.text(

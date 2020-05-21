@@ -5,6 +5,7 @@
 /**
  * @author Don (dl90)
  * @date April 15, 2020
+ * @note park theme
  */
 class Scene_1 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_1' }) }
@@ -51,10 +52,10 @@ class Scene_1 extends Phaser.Scene {
       coinScoreBonus: 1000,
 
       backgroundDepth: -1,
-      wallSpriteDepth: 1,
+      wallSpriteDepth: 0,
+      enemySpriteDepth: 1,
+      itemSpriteDepth: 1,
       playerSpriteDepth: 2,
-      enemySpriteDepth: 2,
-      itemSpriteDepth: 2,
       benchSpriteDepth: 3,
       lampSpriteDepth: 3,
       treeSpriteDepth: 4,
@@ -72,12 +73,10 @@ class Scene_1 extends Phaser.Scene {
   }
 
   preload() {
-    gameFunctions.loading.call(this);
-    gameFunctions.loadHealthTextures.call(this);
+    gameFunctions.loading.apply(this);
+    gameFunctions.loadHealthTextures.apply(this);
+    gameFunctions.loadPlayerSpritesheet.apply(this);
 
-    this.load.spritesheet('f_dog', '/assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('b_dog', '/assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('l_dog', '/assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', '/assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image('back_button', '/assets/sprites/buttons/button_back.png');
@@ -99,7 +98,6 @@ class Scene_1 extends Phaser.Scene {
     // tilemap and tileset
     this.load.image('extruded', '/assets/tileset/extruded.png');
     this.load.image('tileset', '/assets/tileset/level_1.png');
-    this.load.image('things', '/assets/tileset/things.png');
     this.load.tilemapTiledJSON('tilemap', '/assets/tilemaps/level_1.json');
   }
 
@@ -199,11 +197,12 @@ class Scene_1 extends Phaser.Scene {
 
       // forwarded data
       const forwardData = {
-        scene: this.scene.key,
-        score: this.score,
-        bonus: this.bonusScore,
-        health: this.healthVal,
-        time_raw: this.scene_time_raw
+        "scene": this.scene.key,
+        "score": this.score,
+        "bonus": this.bonusScore,
+        "health": this.healthVal,
+        "time_raw": this.scene_time_raw,
+        "audioToggle": this.audioToggle
       }
       this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
@@ -212,8 +211,7 @@ class Scene_1 extends Phaser.Scene {
     // ------ map ------ //
     const map = this.add.tilemap('tilemap'),
       extruded = map.addTilesetImage('extruded'),
-      tileset = map.addTilesetImage('level_1', 'tileset'),
-      things = map.addTilesetImage('things');
+      tileset = map.addTilesetImage('level_1', 'tileset');
 
     // background
     map.createStaticLayer('background', [extruded], 0, 0).setDepth(this.scene_settings.backgroundDepth);
@@ -329,6 +327,7 @@ class Scene_1 extends Phaser.Scene {
     const enemyPhysicsGroup = this.physics.add.group();
     enemies.forEach(sprite => {
       sprite.setVisible(false);
+      // @note enemy hit hox: 32X32
       const enemy = enemyPhysicsGroup.create(sprite.x, sprite.y, 's_catcher').setCollideWorldBounds(true).setDepth(this.scene_settings.enemySpriteDepth);
       const data = sprite.data.getAll();
       if (data && data[0]) {
@@ -530,24 +529,7 @@ class Scene_1 extends Phaser.Scene {
   }
 
   animate() {
-    this.anims.create({
-      key: 'f_move',
-      frames: this.anims.generateFrameNumbers('f_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'b_move',
-      frames: this.anims.generateFrameNumbers('b_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'l_move',
-      frames: this.anims.generateFrameNumbers('l_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
+    gameFunctions.animatePlayerSpritesheet.apply(this);
     this.anims.create({
       key: 's_catcher',
       frames: this.anims.generateFrameNumbers('s_catcher', { start: 0, end: 1 }),
@@ -599,7 +581,6 @@ class Scene_1 extends Phaser.Scene {
           gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.moveSpeed);
       } else if (gameObj.type === "Sprite") {
         tween.pause();
-        // gameObj.setVelocityX(0).setVelocityY(0);
       }
     });
 
@@ -624,5 +605,4 @@ class Scene_1 extends Phaser.Scene {
       this.backButton.setVisible(true);
     }
   }
-
 }
