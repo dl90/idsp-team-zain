@@ -104,9 +104,9 @@ class Scene_2 extends Phaser.Scene {
     this.load.image('bone', './assets/sprites/items/bone.png');
 
     // tilemap and tileset
-    this.load.image('level_1', './assets/tileset/level_1.png');
-    this.load.image('extruded', './assets/tileset/extruded.png');
-    this.load.tilemapTiledJSON('tilemap', './assets/tilemaps/level_2.json');
+    this.load.image('level_1', '/assets/tileset/level_1.png');
+    this.load.image('extruded', '/assets/tileset/extruded.png');
+    this.load.tilemapTiledJSON('level_2', '/assets/tilemaps/level_2.json');
   }
 
   create() {
@@ -216,12 +216,12 @@ class Scene_2 extends Phaser.Scene {
     });
 
     // ------ map ------ //
-    const map = this.add.tilemap('tilemap'),
+    const map = this.add.tilemap('level_2'),
       tileSet = map.addTilesetImage('level_1'),
       extruded = map.addTilesetImage('extruded');
 
     // extruded
-    map.createStaticLayer('extruded', [extruded], 0, 0).setDepth(this.scene_settings.backgroundDepth);
+    map.createStaticLayer('background', [extruded], 0, 0).setDepth(this.scene_settings.backgroundDepth);
 
     // wall layer // walls.setCollisionByProperty({ collide: true });
     const wall = map.createStaticLayer('wall', [tileSet], 0, 0).setDepth(this.scene_settings.wallSpriteDepth);
@@ -240,8 +240,8 @@ class Scene_2 extends Phaser.Scene {
     gameFunctions.hitBoxGenerator(tileSet, tree, treesPhysicsGroup, false);
     this.physics.add.collider(gameState.player, treesPhysicsGroup);
 
-    // interactive layer
-    const recycleBins = map.createStaticLayer('interactive', [tileSet], 0, 0).setVisible(false);
+    // recycle layer
+    const recycleBins = map.createStaticLayer('recycle', [tileSet], 0, 0).setVisible(false);
     const recyclePhysicsGroup = this.physics.add.group();
     gameFunctions.hitBoxGenerator(tileSet, recycleBins, recyclePhysicsGroup, true);
     recyclePhysicsGroup.getChildren().forEach(obj => {
@@ -271,13 +271,13 @@ class Scene_2 extends Phaser.Scene {
       }
     });
 
-    // consumables layer
-    const consumables = map.createStaticLayer('consumables', [tileSet], 0, 0).setVisible(false);
+    // things layer
+    const things = map.createStaticLayer('things', [tileSet], 0, 0).setVisible(false);
     const coinPhysicsGroup = this.physics.add.group();
     const bonePhysicsGroup = this.physics.add.group();
 
-    consumables.forEachTile(tile => {
-      const tileWorldPos = consumables.tileToWorldXY(tile.x, tile.y),
+    things.forEachTile(tile => {
+      const tileWorldPos = things.tileToWorldXY(tile.x, tile.y),
         collisionGroup = tileSet.getTileCollisionGroup(tile.index);
       // collisionGroup ? console.log(collisionGroup.objects) : null
 
@@ -327,7 +327,7 @@ class Scene_2 extends Phaser.Scene {
           "tweenY": obj.tweenY
         });
     }, this);
-    this.physics.add.collider(enemiesPhysicsGroup, [enemiesPhysicsGroup, wallsPhysicsGroup, this.bushPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup]);
+    this.physics.add.collider(enemiesPhysicsGroup, [enemiesPhysicsGroup, wallsPhysicsGroup, treesPhysicsGroup, recyclePhysicsGroup]);
 
     enemiesPhysicsGroup.getChildren().forEach(function (gameObj) {
       if (gameObj.getData("tweenX") !== 0) {
@@ -554,7 +554,7 @@ class Scene_2 extends Phaser.Scene {
         }
 
         // enemy drag over semiWalls
-        this.physics.overlap(gameObj, this.semiWalls) ?
+        this.physics.overlap(gameObj, this.bushPhysicsGroup) ?
           gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
           gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.enemyMoveSpeed);
       }

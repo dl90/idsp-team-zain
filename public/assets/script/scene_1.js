@@ -98,7 +98,7 @@ class Scene_1 extends Phaser.Scene {
     // tilemap and tileset
     this.load.image('extruded', '/assets/tileset/extruded.png');
     this.load.image('tileset', '/assets/tileset/level_1.png');
-    this.load.tilemapTiledJSON('tilemap', '/assets/tilemaps/level_1.json');
+    this.load.tilemapTiledJSON('level_1', '/assets/tilemaps/level_1.json');
   }
 
   create() {
@@ -204,12 +204,13 @@ class Scene_1 extends Phaser.Scene {
         "time_raw": this.scene_time_raw,
         "audioToggle": this.audioToggle
       }
+      map.destroy();
       this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
     // ------ map ------ //
-    const map = this.add.tilemap('tilemap'),
+    const map = this.add.tilemap('level_1'),
       extruded = map.addTilesetImage('extruded'),
       tileset = map.addTilesetImage('level_1', 'tileset');
 
