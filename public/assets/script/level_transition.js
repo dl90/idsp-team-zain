@@ -70,38 +70,42 @@ class Level_transition extends Phaser.Scene {
       'bonus_score': this.playerBonus
     };
 
-    fetch('/data/score', {
-      method: 'POST',
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify(body)
-    }).then(res => {
-      if (res.status === 200) {
-        return res.json();
-      } else {
-        status.setText("Data not posted");
-      }
-    }).then(resData => {
-      if (resData) {
-        let newStatusText = `Well done ${gameState.userDisplayName}!\n`
-        if (resData.msg) {
-          newStatusText += "First time for everything!\n"
-        } else if (resData.score < this.playerScore) {
-          newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
-        } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
-          newStatusText += `Didn't beat your old record, but:\n`;
-          resData.time_raw > this.playerTime_raw ? newStatusText += `\tyou were ${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
-          resData.health < this.playerHealth ? newStatusText += `\tyou got ${(this.playerHealth - resData.health).toFixed(2)} more health\n` : null;
-          if (resData.bonus_score) {
-            resData.bonus_score < this.playerBonus ? newStatusText += `\tyou got ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
-          }
+    let fetchToggle = true
+    if (fetchToggle) {
+      fetchToggle = false
+      fetch('/data/score', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(body)
+      }).then(res => {
+        if (res.status === 200) {
+          return res.json();
         } else {
-          newStatusText += 'Nothing new here\n';
+          status.setText("Data not posted");
         }
+      }).then(resData => {
+        if (resData) {
+          let newStatusText = `Well done ${gameState.userDisplayName}!\n`
+          if (resData.msg) {
+            newStatusText += "First time for everything!\n"
+          } else if (resData.score < this.playerScore) {
+            newStatusText += `Beat your old score by: ${this.playerScore - resData.score}\n`;
+          } else if (resData.time_raw > this.playerTime_raw || resData.health < this.playerHealth || resData.bonus_score < this.playerBonus) {
+            newStatusText += `Didn't beat your old record, but:\n`;
+            resData.time_raw > this.playerTime_raw ? newStatusText += `\tyou were ${gameFunctions.timeConvert(resData.time_raw - this.playerTime_raw)} faster\n` : null;
+            resData.health < this.playerHealth ? newStatusText += `\tyou got ${(this.playerHealth - resData.health).toFixed(2)} more health\n` : null;
+            if (resData.bonus_score) {
+              resData.bonus_score < this.playerBonus ? newStatusText += `\tyou got ${this.playerBonus - resData.bonusScore} more bonus points\n` : null;
+            }
+          } else {
+            newStatusText += 'Nothing new here\n';
+          }
+          status.setText(newStatusText);
+        }
+      }).catch(err => console.log(err));
+    }
 
-        status.setText(newStatusText);
-      }
-    }).catch(err => console.log(err));
 
     // finds next scene through array
     this.sceneIndex = config.sceneKeys.indexOf(this.playerScene);
