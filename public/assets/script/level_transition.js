@@ -108,13 +108,13 @@ class Level_transition extends Phaser.Scene {
     if (this.sceneIndex < config.sceneKeys.length) {
       this.nextScene = config.sceneKeys[this.sceneIndex + 1];
     } else {
-      null; // @TODO credits scene
+      this.scene.get('Menu').scene.restart(this.forwardData);
     }
 
     playButton.on('pointerup', () => {
       this.sound.stopAll();
       this.scene.stop(this.scene.key);
-      this.scene.start(this.nextScene, this.forwardData);
+      this.nextScene !== undefined ? this.scene.get(this.nextScene).scene.restart(this.forwardData) : this.scene.get('Menu').scene.restart(this.forwardData)
     }, this);
 
     redoButton.on('pointerup', () => {
@@ -140,5 +140,4 @@ class Level_transition extends Phaser.Scene {
         });
     }, this);
   }
-
 }
