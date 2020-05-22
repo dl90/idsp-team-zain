@@ -42,6 +42,8 @@ module.exports = function (auth) {
   router.post('/login', (req, res) => {
     const { email, pass } = (req.body);
     !ips.includes(req.clientIp) ? ips.push(req.clientIp) : console.log(req.clientIp);
+    pass.trim().length < 6 ? (() => { console.log('Bad pass /login: ', pass); return res.status(401) })() : null;
+    email.trim().length < 6 ? (() => { console.log('Bad email /login: ', email); return res.status(401) })() : null;
 
     auth.signInWithEmailAndPassword(email, pass)
       .then(() => { auth.onAuthStateChanged(user => { token(user, res) }) }, (rejected) => { res.status(401).json({ rejected }) })
@@ -58,6 +60,9 @@ module.exports = function (auth) {
   router.post("/sign_up", (req, res) => {
     const { name, email, pass } = (req.body);
     !ips.includes(req.clientIp) ? ips.push(req.clientIp) : console.log(req.clientIp);
+    name.trim().length < 3 ? (() => { console.log('Bad name /sign_up: ', name); return res.status(401) })() : null;
+    pass.trim().length < 6 ? (() => { console.log('Bad pass /sign_up: ', pass); return res.status(401) })() : null;
+    email.trim().length < 6 ? (() => { console.log('Bad email /sign_up: ', email); return res.status(401) })() : null;
 
     auth.createUserWithEmailAndPassword(email, pass)
       .then(() => {
@@ -71,7 +76,7 @@ module.exports = function (auth) {
           }
         });
       }, (rejected) => { res.status(401).json({ rejected }) })
-      .catch(err => console.log(err));
+      .catch(err => { console.log(err); res.status(401) });
   });
 
   return router;

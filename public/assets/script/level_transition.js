@@ -15,10 +15,10 @@ class Level_transition extends Phaser.Scene {
 
     data.scene ? this.playerScene = data.scene : null;
     data.score ? this.playerScore = data.score : null;
-    data.bonus ? this.playerBonus = data.bonus : null;
+    data.bonus > 0 ? this.playerBonus = data.bonus : this.playerBonus = 0;
     data.health ? this.playerHealth = data.health : null;
     data.time_raw ? this.playerTime_raw = data.time_raw : null;
-    data.audioToggle ? this.audioToggle = data.audioToggle : null;
+    typeof data.audioToggle === 'boolean' ? this.audioToggle = data.audioToggle : this.audioToggle = true;
   }
 
   preload() {

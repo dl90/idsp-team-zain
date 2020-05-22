@@ -39,7 +39,7 @@ class Menu extends Phaser.Scene {
 
     const sound_config = {
       mute: false,
-      volume: 0.8,
+      volume: 0.7,
       rate: 1,
       detune: 0,
       seek: 0,
@@ -296,7 +296,7 @@ class Menu extends Phaser.Scene {
       logoutButton.removeListener('pointerup');
       playButton.removeListener('pointerup');
       this.scene.stop('Menu');
-      this.scene.start('Scene_select');
+      this.scene.get('Scene_select').scene.restart({ audioToggle, audioRef });
     })
 
     // logout
