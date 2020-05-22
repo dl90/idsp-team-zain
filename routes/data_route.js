@@ -27,6 +27,7 @@ module.exports = function (fireStore) {
   router.post('/leader-board', async (req, res) => {
     const { scene } = req.body,
       [topTen_total, topTen_level] = [[], []];
+    scene.trim().length < 7 ? (() => { console.log('Bad scene /leader-board: ', scene); return res.status(401) })() : null;
 
     try {
       await fireStore.collection('user_score').orderBy("totalScore", "desc").limit(10).get()
@@ -38,15 +39,22 @@ module.exports = function (fireStore) {
         .catch(err => console.log(err));
 
       res.send(JSON.stringify({ topTen_total, topTen_level }));
-    } catch (error) { console.log(error) }
+    } catch (error) { console.log(error); res.status(401) }
   });
 
 
   router.post('/score', (req, res) => {
     const { uid, displayName, scene, score, time_raw, health, bonus_score } = req.body;
-    if (uid) {
-      uid.trim().length < 28 ? (() => { return res.status(401) })() : null;
 
+    uid.trim().length < 28 ? (() => { console.log('Bad uid /score: ', uid); return res.status(401) })() : null;
+    displayName.trim().length < 3 ? (() => { console.log('Bad displayName /score: ', displayName); return res.status(401) })() : null;
+    scene.trim().length < 7 ? (() => { console.log('Bad scene /score: ', scene); return res.status(401) })() : null;
+    typeof score !== 'number' ? (() => { console.log('Bad score /score: ', score); return res.status(401) })() : null;
+    typeof time_raw !== 'number' ? (() => { console.log('Bad time_raw /score: ', time_raw); return res.status(401) })() : null;
+    typeof health !== 'number' ? (() => { console.log('Bad health /score: ', health); return res.status(401) })() : null;
+    typeof bonus_score !== 'number' ? (() => { console.log('Bad bonus_score /score: ', bonus_score); return res.status(401) })() : null;
+
+    if (uid) {
       fireStore.collection("user_score").doc('/' + uid).get().then(doc => {
         const stored = doc.data(); // existing data
 

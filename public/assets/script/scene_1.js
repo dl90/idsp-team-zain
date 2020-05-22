@@ -16,10 +16,10 @@ class Scene_1 extends Phaser.Scene {
 
       data.scene ? this.playerScene = data.scene : null;
       data.score ? this.playerScore = data.score : null;
-      data.bonus ? this.playerBonus = data.bonus : null;
+      data.bonus > 0 ? this.playerBonus = data.bonus : this.playerBonus = 0;
       data.health ? this.playerHealth = data.health : null;
       data.time_raw ? this.playerTime_raw = data.time_raw : null;
-      data.audioToggle ? this.audioToggle = data.audioToggle : this.audioToggle = true;
+      typeof data.audioToggle === 'boolean' ? this.audioToggle = data.audioToggle : this.audioToggle = true;
     }
 
     this.scene_settings = {
@@ -31,6 +31,10 @@ class Scene_1 extends Phaser.Scene {
       worldWidth: 32 * 50,
       worldHeight: 32 * 50,
 
+      levelTime: 200, // second
+      boneHealthRegen: 30,
+      coinScoreBonus: 1000,
+
       moveSpeed: 100,
       movementHealthCostRatio: 0.000005,
       diagonalMoveSpeed: 70.71,
@@ -40,22 +44,18 @@ class Scene_1 extends Phaser.Scene {
       playerSpawnPosition: [0, 3],
       familySpawnPosition: [49, 0],
 
-      enemyMoveSpeed: 90,
-      enemyChaseDistance: 130,
+      enemyMoveSpeed: 80,
+      enemyChaseDistance: 100,
       enemyHealthReduction: 0.1, // per 16ms
 
       enemyBushDrag: 0.2,
       playerBushDrag: 0.4,
 
-      levelTime: 200, // second
-      boneHealthRegen: 30,
-      coinScoreBonus: 1000,
-
       backgroundDepth: -1,
       wallSpriteDepth: 0,
-      enemySpriteDepth: 1,
       itemSpriteDepth: 1,
       playerSpriteDepth: 2,
+      enemySpriteDepth: 2,
       benchSpriteDepth: 3,
       lampSpriteDepth: 3,
       treeSpriteDepth: 4,
@@ -95,7 +95,7 @@ class Scene_1 extends Phaser.Scene {
     this.load.image('bone', '/assets/sprites/items/bone.png');
     this.load.image('recycle', './assets/sprites/level_1/recycle_bin.png');
 
-    // tilemap and tileset
+    // tilemap and tileset (key needs to be different to avoid caching)
     this.load.image('extruded', '/assets/tileset/extruded.png');
     this.load.image('tileset', '/assets/tileset/level_1.png');
     this.load.tilemapTiledJSON('level_1', '/assets/tilemaps/level_1.json');
@@ -324,20 +324,23 @@ class Scene_1 extends Phaser.Scene {
     });
 
     // enemy
-    const enemies = map.createFromObjects('enemies', 84, { key: 's_catcher' });
-    const enemyPhysicsGroup = this.physics.add.group();
+    const enemies = map.createFromObjects('enemies', 84, { key: 's_catcher' }),
+      enemyPhysicsGroup = this.physics.add.group();
     enemies.forEach(sprite => {
       sprite.setVisible(false);
       // @note enemy hit hox: 32X32
       const enemy = enemyPhysicsGroup.create(sprite.x, sprite.y, 's_catcher').setCollideWorldBounds(true).setDepth(this.scene_settings.enemySpriteDepth);
       const data = sprite.data.getAll();
+      let face = false
       if (data && data[0]) {
+        data[0].value < 0 ? face = true : null;
         const port = {
           [data[0].name]: data[0].value,
           x: sprite.x,
           y: sprite.y
         }
         enemy.setData(port);
+        enemy.flipX = face;
       }
       sprite.destroy();
     })
@@ -353,8 +356,8 @@ class Scene_1 extends Phaser.Scene {
           repeat: -1,
           yoyo: true,
           loopDelay: this.scene_settings.enemyTweenLoopDelay,
-          onYoyo: () => { gameObj.flipX = true },
-          onRepeat: () => { gameObj.flipX = false }
+          onYoyo: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true }
         });
       } else if (gameObj.getData("tweenY")) {
         this.tweens.add({
@@ -365,8 +368,8 @@ class Scene_1 extends Phaser.Scene {
           repeat: -1,
           yoyo: true,
           loopDelay: this.scene_settings.enemyTweenLoopDelay,
-          onYoyo: () => { gameObj.flipX = true },
-          onRepeat: () => { gameObj.flipX = false }
+          onYoyo: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true }
         });
       }
     }, this);
@@ -377,7 +380,7 @@ class Scene_1 extends Phaser.Scene {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: 0,
+      detune: -100,
       seek: 0,
       loop: true,
       delay: 0
@@ -403,7 +406,7 @@ class Scene_1 extends Phaser.Scene {
       if (this.dangerState && dangerBGM.isPaused) {
         dangerBGM.resume();
       } else if (this.healthVal > 0 && !deathBGM.isPaused) {
-        sceneBGM.isPaused ? sceneBGM.resume() : sceneBGM.play()
+        sceneBGM.isPaused ? sceneBGM.resume() : sceneBGM.play();
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
       }
@@ -495,7 +498,7 @@ class Scene_1 extends Phaser.Scene {
       this.scene_time_raw = this.endTime - this.startTime;
     }, this)
 
-    this.audioToggle ? gameState.emitter.emit('play_bgm') : null;
+    this.audioToggle === true ? gameState.emitter.emit('play_bgm') : null;
 
     // buttons
     const audioButton = this.add.sprite(
@@ -579,7 +582,7 @@ class Scene_1 extends Phaser.Scene {
         // enemy drag over pass through static bodies
         this.physics.overlap(gameObj, this.bushPhysicsGroup) ?
           gameObj.setDamping(true).setDrag(this.scene_settings.enemyBushDrag).setMaxVelocity(this.scene_settings.playerBushDrag * this.scene_settings.enemyMoveSpeed) :
-          gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.moveSpeed);
+          gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.enemyMoveSpeed);
       } else if (gameObj.type === "Sprite") {
         tween.pause();
       }

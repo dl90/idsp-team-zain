@@ -48,8 +48,8 @@ process.env.apiKey ? app.use(checkUrl) : null;
 
 app.use(express.static("public", { maxAge: "2h" }));
 
-const authLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }),
-  dataLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 5 })
+const authLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 10 }),
+  dataLimiter = rateLimit({ windowMs: 2 * 60 * 1000, max: 10 })
 
 firebase.initializeApp(fbConfig);
 admin.initializeApp({ credential: admin.credential.cert(fbService) });

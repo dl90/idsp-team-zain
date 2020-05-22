@@ -13,12 +13,16 @@ class Scene_select extends Phaser.Scene {
   // keeping data from previous scene
   init(data) {
     if (data) {
-      this.playerScene = data.scene;
-      this.playerScore = data.score;
-      this.playerBonus = data.bonus;
-      this.playerHealth = data.health;
-      this.playerTime_raw = data.time_raw;
       this.forwardData = data;
+
+      data.scene ? this.playerScene = data.scene : null;
+      data.score ? this.playerScore = data.score : null;
+      data.bonus > 0 ? this.playerBonus = data.bonus : this.playerBonus = 0;
+      data.health ? this.playerHealth = data.health : null;
+      data.time_raw ? this.playerTime_raw = data.time_raw : null;
+      typeof data.audioToggle === 'boolean' ? this.audioToggle = data.audioToggle : this.audioToggle = true;
+
+      data.audioRef ? this.audioRef = data.audioRef : null;
     }
 
     this.scene_settings = {
@@ -33,6 +37,9 @@ class Scene_select extends Phaser.Scene {
   preload() {
     this.load.image('back_button', '/assets/sprites/buttons/button_back.png');
     this.load.image('start_button', '/assets/sprites/buttons/button_start.png');
+    this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
+    this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
+    this.load.audio('intro_bgm', '/assets/bgm/Meme_intro.mp3');
 
     this.load.image('Scene_1', '/assets/sprites/overview/level_1.png');
     this.load.image('Scene_2', '/assets/sprites/overview/level_2.png');
@@ -131,11 +138,12 @@ class Scene_select extends Phaser.Scene {
         if (data[this.selectedScenesPreviousScene]) {
           this.sound.pauseAll();
           const forwardData = {
-            scene: this.selectedScenesPreviousScene,
-            score: data[this.selectedScenesPreviousScene].score,
-            bonus: data[this.selectedScenesPreviousScene].bonus_score,
-            health: data[this.selectedScenesPreviousScene].health,
-            time_raw: data[this.selectedScenesPreviousScene].time_raw
+            'scene': this.selectedScenesPreviousScene,
+            'score': data[this.selectedScenesPreviousScene].score,
+            'bonus': data[this.selectedScenesPreviousScene].bonus_score,
+            'health': data[this.selectedScenesPreviousScene].health,
+            'time_raw': data[this.selectedScenesPreviousScene].time_raw,
+            'audioToggle': this.audioToggle
           }
           this.scene.stop();
           this.scene.get(this.selectedScene).scene.restart(forwardData);
@@ -154,6 +162,32 @@ class Scene_select extends Phaser.Scene {
       });
 
     this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) { this.camera.scrollY += deltaY / 2 }, this);
+
+    this.sound.pauseOnBlur = false;
+    const emitter = new Phaser.Events.EventEmitter();
+    emitter.on('play_bgm', () => {
+      if (!this.audioRef.isPlaying && !this.audioRef.isPaused) {
+        this.audioRef.play();
+        audioButton.setTexture('audio_button_on').setScale(0.5);
+        this.audioToggle = true;
+      }
+    }, this);
+    emitter.on('pause_bgm', () => {
+      this.audioRef.pause();
+      audioButton.setTexture('audio_button_off').setScale(0.5);
+      this.audioToggle = false;
+    }, this);
+    emitter.on('resume_bgm', () => {
+      this.audioRef.resume();
+      audioButton.setTexture('audio_button_on').setScale(0.5);
+      this.audioToggle = true;
+    }, this);
+
+    const audioButton = this.add.sprite((config.width - 20), config.height - 20, this.audioToggle ? 'audio_button_on' : 'audio_button_off')
+      .setScale(0.5).setScrollFactor(0).setInteractive().setAlpha(0.5);
+    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
+    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
+    audioButton.on('pointerup', () => { this.audioRef.isPlaying ? emitter.emit('pause_bgm') : emitter.emit('resume_bgm') });
 
     backButton.on('pointerup', () => {
       this.scene.stop();

@@ -5,18 +5,22 @@
 /**
  * @author Don (dl90)
  * @date May 12, 2020
+ * @note park theme
+ * @TODO tile extruder
  */
 class Scene_11 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_11' }) }
 
   init(data) {
     if (data) {
-      this.playerScene = data.scene;
-      this.playerScore = data.score;
-      this.playerBonus = data.bonus;
-      this.playerHealth = data.health;
-      this.playerTime_raw = data.time_raw;
       this.forwardData = data;
+
+      data.scene ? this.playerScene = data.scene : null;
+      data.score ? this.playerScore = data.score : null;
+      data.bonus > 0 ? this.playerBonus = data.bonus : this.playerBonus = 0;
+      data.health ? this.playerHealth = data.health : null;
+      data.time_raw ? this.playerTime_raw = data.time_raw : null;
+      typeof data.audioToggle === 'boolean' ? this.audioToggle = data.audioToggle : this.audioToggle = true;
     }
 
     this.scene_settings = {
@@ -28,21 +32,31 @@ class Scene_11 extends Phaser.Scene {
       worldWidth: 32 * 161,
       worldHeight: 32 * 80,
 
+      levelTime: 400,
+      boneHealthRegen: 30,
+      coinScoreBonus: 1000,
+
+      playerSpawnPosition: [0, 3],
+      familySpawnPosition: [159, 78],
+
       moveSpeed: 100,
       movementHealthCostRatio: 0.000005,
       diagonalMoveSpeed: 70.71,
       twoKeyMultiplier: 0.707,
 
-      playerSpawnPosition: [0, 3],
-      familySpawnPosition: [159, 78],
+      enemyMoveSpeed: 85,
+      enemyChaseDistance: 100,
+      enemyHealthReduction: 0.1,
+      enemyTweenDurationMultiplier: 500,
+      enemyTweenLoopDelay: 20000,
 
-      levelTime: 400, // s
-      boneHealthRegen: 30,
-      coinScoreBonus: 1000,
+      playerPassthroughDrag: 0.4,
+      enemyPassthroughDrag: 0.2,
 
       backgroundDepth: -1,
       wallSpriteDepth: 1,
       playerSpriteDepth: 2,
+      enemySpriteDepth: 2,
       itemSpriteDepth: 2,
       treeSpriteDepth: 3,
       scoreTimerBackgroundDepth: 4,
@@ -52,12 +66,6 @@ class Scene_11 extends Phaser.Scene {
       deathBackgroundUnmaskDepth: 7,
       messageDepth: 10,
       buttonDepth: 10,
-
-      enemyMoveSpeed: 85,
-      enemyChaseDistance: 100,
-      enemyHealthReduction: 0.1, // per 16ms
-      enemyTweenDurationMultiplier: 500,
-      enemyTweenLoopDelay: 20000,
 
       enemy: [
         { "id": 1, "x": 26, "y": 11, "tweenX": 0, "tweenY": 7 },
@@ -80,10 +88,8 @@ class Scene_11 extends Phaser.Scene {
   preload() {
     gameFunctions.loading.call(this);
     gameFunctions.loadHealthTextures.call(this);
+    gameFunctions.loadPlayerSpritesheet.apply(this);
 
-    this.load.spritesheet('f_dog', './assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('b_dog', './assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('l_dog', './assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('s_catcher', './assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image('back_button', './assets/sprites/buttons/button_back.png');
@@ -97,14 +103,14 @@ class Scene_11 extends Phaser.Scene {
     this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
     this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
 
-    this.load.image('boy', './assets/sprites/family/boy.png');
+    this.load.image('house', './assets/sprites/family/house.png');
     this.load.image('coin', './assets/sprites/items/coin.png');
     this.load.image('bone', './assets/sprites/items/bone.png');
 
     // tilemap and tileset
     this.load.image('items', './assets/tileset/item.png');
     this.load.image('playground', './assets/tileset/Group 1.png');
-    this.load.tilemapTiledJSON('scene_14', './assets/tilemaps/level_14.json');
+    this.load.tilemapTiledJSON('level_11_tilemap', './assets/tilemaps/level_11.json');
   }
 
   create() {
@@ -131,10 +137,9 @@ class Scene_11 extends Phaser.Scene {
       'f_dog').setSize(30, 30).setDepth(this.scene_settings.playerSpriteDepth).setOrigin(0);
     gameState.player.setCollideWorldBounds(true).setBounce(1);
 
-    // healthBar
+    [this.bonusScore, this.coinCount, this.healthVal] = [0, 0, this.playerHealth];
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_settings.healthBarDepth);
-    this.scene_settings.debug ? this.healthVal = 1000 : this.healthVal = this.playerHealth; // gets health from passed value
-    [this.bonusScore, this.coinCount] = [0, 0];
+    this.scene_settings.debug ? this.healthVal = 1000 : null;
 
     // follows player
     this.cameras.main.startFollow(gameState.player, true, 0.05, 0.05);
@@ -156,26 +161,24 @@ class Scene_11 extends Phaser.Scene {
         targets: this.levelText,
         duration: 1000,
         alpha: 0,
-        onComplete: () => {
-          this.levelText.destroy();
-        }
+        onComplete: () => { this.levelText.destroy() }
       });
 
       this.time.addEvent({
         delay: 1000,
+        repeat: -1,
+        callbackScope: this,
         callback: () => {
           if (this.healthVal > 0) {
             this.levelTime--;
             this.timeText.setText(`Level time: ${this.levelTime}`);
           }
-        },
-        callbackScope: this,
-        repeat: -1
+        }
       });
     }, this);
 
     // score tracker
-    this.score = parseInt(this.levelTime * this.healthVal); // @TODO scene score || total score
+    this.score = parseInt(this.levelTime * this.healthVal);
     this.scoreText = this.add.text(
       this.scene_settings.canvasWidth / 2 + 150, 10,
       `Score: ${this.score}`,
@@ -183,35 +186,36 @@ class Scene_11 extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTextDepth);
 
     // scene transition
-    this.boy = this.physics.add.sprite(
+    this.house = this.physics.add.sprite(
       this.scene_settings.familySpawnPosition[0] * 32,
       this.scene_settings.familySpawnPosition[1] * 32,
-      'boy'
+      'house'
     ).setOrigin(0).setDepth(this.scene_settings.playerSpriteDepth);
-    this.physics.add.overlap(gameState.player, this.boy, () => {
+    this.physics.add.overlap(gameState.player, this.house, () => {
       this.sound.pauseAll();
 
       // timer (end of scene)
       gameState.emitter.emit('end_time');
-      audioPlaying ? this.sound.play('success_audio') : null
+      this.audioToggle ? this.sound.play('success_audio') : null
 
       // @TODO
       this.cumulativeScore = this.playerScore + this.score;
 
       // forwarded data
       const forwardData = {
-        scene: this.scene.key,
-        score: this.score,
-        bonus: this.bonusScore,
-        health: this.healthVal,
-        time_raw: this.scene_time_raw
+        "scene": this.scene.key,
+        "score": this.score,
+        "bonus": this.bonusScore,
+        "health": this.healthVal,
+        "time_raw": this.scene_time_raw,
+        "audioToggle": this.audioToggle
       }
       this.scene.stop();
       this.scene.get("Level_transition").scene.restart(forwardData);
     });
 
     // ------ map ------ //
-    const map = this.add.tilemap('scene_14'),
+    const map = this.add.tilemap('level_11_tilemap'),
       playground = map.addTilesetImage('playground'),
       items = map.addTilesetImage('items');
 
@@ -263,13 +267,14 @@ class Scene_11 extends Phaser.Scene {
       if (tile.properties.bone) {
         bonePhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'bone').setCircle(5, 10, 10).setDepth(this.scene_settings.itemSpriteDepth);
       }
+      tile.destroy();
     });
     bonePhysicsGroup.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         (this.healthVal + this.scene_settings.boneHealthRegen) > 100 ? this.healthVal = 100 : this.healthVal += this.scene_settings.boneHealthRegen;
 
         // play bone audio
-        audioPlaying ? boneClip.play() : null;
+        this.audioToggle ? boneClip.play() : null;
         gameObj.destroy();
         gameFunctions.activeHealthTextures(gameState);
       });
@@ -283,11 +288,12 @@ class Scene_11 extends Phaser.Scene {
       if (tile.properties.coin) {
         coinPhysicsGroup.create(tileWorldPos.x + 16, tileWorldPos.y + 16, 'coin').setCircle(30 / 2, 1, 1).setDepth(this.scene_settings.itemSpriteDepth);
       }
+      tile.destroy();
     });
     coinPhysicsGroup.getChildren().forEach(gameObj => {
       this.physics.add.overlap(gameState.player, gameObj, () => {
         this.bonusScore += this.scene_settings.coinScoreBonus;
-        this.coinCount += 1; // @TODO
+        this.coinCount += 1;
         gameObj.destroy();
       });
     });
@@ -295,14 +301,17 @@ class Scene_11 extends Phaser.Scene {
     // enemy
     const enemyPhysicsGroup = this.physics.add.group();
     this.scene_settings.enemy.forEach(function (obj) {
-      enemyPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
+      let face = false
+      obj.tweenX < 0 || obj.tweenY < 0 ? face = true : null;
+      const enemy = enemyPhysicsGroup.create(obj.x * 32 + 16, obj.y * 32 + 16, 's_catcher').setCollideWorldBounds(true)
         .setData({
           "id": obj.id,
           "x": obj.x,
           "y": obj.y,
           "tweenX": obj.tweenX,
           "tweenY": obj.tweenY
-        });
+        }).setDepth(this.scene_settings.enemySpriteDepth);
+      enemy.flipX = face;
     }, this);
     this.physics.add.collider(enemyPhysicsGroup, [enemyPhysicsGroup, staticBodyPhysicsGroup]);
 
@@ -316,8 +325,8 @@ class Scene_11 extends Phaser.Scene {
           repeat: -1,
           yoyo: true,
           loopDelay: this.scene_settings.enemyTweenLoopDelay,
-          onYoyo: () => { gameObj.flipX = true },
-          onRepeat: () => { gameObj.flipX = false }
+          onYoyo: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true }
         });
       } else if (gameObj.getData("tweenY") !== 0) {
         this.tweens.add({
@@ -328,8 +337,8 @@ class Scene_11 extends Phaser.Scene {
           repeat: -1,
           yoyo: true,
           loopDelay: this.scene_settings.enemyTweenLoopDelay,
-          onYoyo: () => { gameObj.flipX = true },
-          onRepeat: () => { gameObj.flipX = false }
+          onYoyo: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true },
+          onRepeat: () => { gameObj.flipX ? gameObj.flipX = false : gameObj.flipX = true }
         });
       }
     }, this);
@@ -340,46 +349,36 @@ class Scene_11 extends Phaser.Scene {
       mute: false,
       volume: 0.8,
       rate: 1,
-      detune: 0,
+      detune: -200,
       seek: 0,
       loop: true,
       delay: 0
-    }
-    const sceneBGM = this.sound.add('scene_1_bgm', sound_config),
+    },
+      sceneBGM = this.sound.add('scene_1_bgm', sound_config),
       deathBGM = this.sound.add('death_audio', sound_config),
       dangerBGM = this.sound.add('danger_audio', sound_config),
       boneClip = this.sound.add('bone_audio', sound_config.loop = false),
       deathClip = this.sound.add('death_event_audio', sound_config.loop = false);
 
     this.sound.pauseOnBlur = false;
-    let audioPlaying = true,
-      danger_bgm_toggle = true;
-
-    // audio button
-    const audioButton = this.add.sprite(
-      this.scene_settings.canvasWidth - 20,
-      this.scene_settings.canvasHeight - 20,
-      'audio_button_on').setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
-    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
-    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
-    audioButton.on('pointerup', () => { audioPlaying ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
+    let danger_bgm_toggle = true;
 
     gameState.emitter = new Phaser.Events.EventEmitter();
     gameState.emitter.once('play_bgm', () => { sceneBGM.play() }, this);
     gameState.emitter.on('pause_bgm', () => {
       this.sound.pauseAll()
-      audioPlaying = false;
+      this.audioToggle = false;
       audioButton.setTexture('audio_button_off').setScale(0.5);
     }, this);
     gameState.emitter.on('resume_bgm', () => {
       if (this.dangerState && dangerBGM.isPaused) {
         dangerBGM.resume();
       } else if (this.healthVal > 0 && !deathBGM.isPaused) {
-        sceneBGM.resume();
+        sceneBGM.isPaused ? sceneBGM.resume() : sceneBGM.play();
       } else {
         deathBGM.isPaused ? deathBGM.resume() : deathBGM.play();
       }
-      audioPlaying = true
+      this.audioToggle = true
       audioButton.setTexture('audio_button_on').setScale(0.5);
     }, this);
     gameState.emitter.once('death_bgm', () => {
@@ -421,7 +420,7 @@ class Scene_11 extends Phaser.Scene {
       });
 
       this.sound.pauseAll();
-      if (audioPlaying) {
+      if (this.audioToggle) {
         deathClip.play();
         deathBGM.setVolume(0).play();
         this.tweens.add({
@@ -433,7 +432,7 @@ class Scene_11 extends Phaser.Scene {
       }
     }, this);
     gameState.emitter.on('danger_bgm_play', () => {
-      if (danger_bgm_toggle && audioPlaying) {
+      if (danger_bgm_toggle && this.audioToggle) {
         sceneBGM.pause();
         dangerBGM.setVolume(0).play();
         this.tweens.add({
@@ -442,11 +441,11 @@ class Scene_11 extends Phaser.Scene {
           duration: 1000,
         });
         danger_bgm_toggle = false
-        audioPlaying = true
+        this.audioToggle = true
       }
     }, this);
     gameState.emitter.on('danger_bgm_stop', () => {
-      if (!danger_bgm_toggle && audioPlaying) {
+      if (!danger_bgm_toggle && this.audioToggle) {
         dangerBGM.stop();
         sceneBGM.setVolume(0).resume();
         this.tweens.add({
@@ -464,7 +463,17 @@ class Scene_11 extends Phaser.Scene {
       this.scene_time_raw = this.endTime - this.startTime;
     }, this)
 
-    gameState.emitter.emit('play_bgm');
+    this.audioToggle === true ? gameState.emitter.emit('play_bgm') : null;
+
+    // audio button
+    const audioButton = this.add.sprite(
+      this.scene_settings.canvasWidth - 20,
+      this.scene_settings.canvasHeight - 20,
+      this.audioToggle ? 'audio_button_on' : 'audio_button_off')
+      .setScale(0.5).setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setInteractive().setAlpha(0.5);
+    audioButton.on('pointerover', () => { audioButton.alpha = 1 });
+    audioButton.on('pointerout', () => { audioButton.alpha = 0.5 });
+    audioButton.on('pointerup', () => { this.audioToggle ? gameState.emitter.emit('pause_bgm') : gameState.emitter.emit('resume_bgm') });
 
     this.backButton = this.add.sprite(
       this.scene_settings.canvasWidth / 2,
@@ -477,7 +486,8 @@ class Scene_11 extends Phaser.Scene {
         duration: 1500,
         onComplete: () => {
           this.sound.stopAll();
-          this.scene.restart(this.forwardData); // restarts scene with previously passed data
+          this.forwardData.audioToggle = this.audioToggle;
+          this.scene.restart(this.forwardData);
         }
       });
     });
@@ -486,24 +496,7 @@ class Scene_11 extends Phaser.Scene {
   }
 
   animate() {
-    this.anims.create({
-      key: 'f_move',
-      frames: this.anims.generateFrameNumbers('f_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'b_move',
-      frames: this.anims.generateFrameNumbers('b_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'l_move',
-      frames: this.anims.generateFrameNumbers('l_dog', { start: 0, end: 2 }),
-      frameRate: Math.round(this.scene_settings.moveSpeed / 15),
-      repeat: -1
-    });
+    gameFunctions.animatePlayerSpritesheet.apply(this);
     this.anims.create({
       key: 's_catcher',
       frames: this.anims.generateFrameNumbers('s_catcher', { start: 0, end: 1 }),
@@ -514,8 +507,8 @@ class Scene_11 extends Phaser.Scene {
 
   update() {
     if (gameState.player) {
-      this.physics.overlap(gameState.player, this.flowersPhysicsGroup) ?
-        gameState.player.setDamping(true).setDrag(0.6).setMaxVelocity(50) :
+      this.physics.overlap(gameState.player, this.flowerPhysicsGroup) ?
+        gameState.player.setDamping(true).setDrag(this.scene_settings.playerPassthroughDrag).setMaxVelocity(this.scene_settings.playerPassthroughDrag * this.scene_settings.moveSpeed) :
         gameState.player.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.moveSpeed);
     }
 
@@ -547,28 +540,24 @@ class Scene_11 extends Phaser.Scene {
           }
         }
 
-        // enemy drag over semiWalls
         this.physics.overlap(gameObj, this.flowerPhysicsGroup) ?
-          gameObj.setDamping(true).setDrag(0.1).setMaxVelocity(20) :
+          gameObj.setDamping(true).setDrag(this.scene_settings.enemyPassthroughDrag).setMaxVelocity(this.scene_settings.enemyPassthroughDrag * this.scene_settings.enemyMoveSpeed) :
           gameObj.setDamping(false).setDrag(1).setMaxVelocity(this.scene_settings.enemyMoveSpeed);
       }
     });
 
-    // health check
     if (this.healthVal > 0) {
       this.healthVal = gameFunctions.control(gameState, this.scene_settings, this.healthVal);
       gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
-      // update score
       this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
       this.scoreText.setText(`Score: ${this.score}`);
-
-      // danger_bgm emitter @DISABLED
       // this.dangerState ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
-      // gameState.player.noStop = null;
+      this.physics.pause();
+      gameState.player.anims.pause();
       gameState.emitter.emit('end_time');
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
