@@ -35,7 +35,7 @@ class Scene_3 extends Phaser.Scene {
       boneHealthRegen: 30,
       coinScoreBonus: 1000,
 
-      playerSpawnPosition: [0, 0],
+      playerSpawnPosition: [0, 3],
       familySpawnPosition: [79, 79],
 
       moveSpeed: 100,
@@ -61,7 +61,9 @@ class Scene_3 extends Phaser.Scene {
       deathBackgroundMaskDepth: 6,
       deathBackgroundUnmaskDepth: 7,
       messageDepth: 10,
-      buttonDepth: 10,
+      storyMaskDepth: 11,
+      storyVideoDepth: 12,
+      buttonDepth: 13,
 
       enemy: [
         { "id": 1, "x": -28, "y": -15, "tweenX": 0, "tweenY": -7 },
@@ -107,6 +109,11 @@ class Scene_3 extends Phaser.Scene {
     this.load.image('office_tileset', './assets/tileset/Office_Tileset.png');
     this.load.image('things', './assets/tileset/things.png');
     this.load.tilemapTiledJSON('level_3', './assets/tilemaps/level_3.json');
+
+    this.load.video('office_1', '/assets/video/theme_2_office/office_1.mp4');
+    this.load.video('office_2', '/assets/video/theme_2_office/office_2.mp4');
+    this.load.video('office_3', '/assets/video/theme_2_office/office_3.mp4');
+    this.load.image('next_button', '/assets/sprites/buttons/button_next.png');
   }
 
   create() {
@@ -117,34 +124,43 @@ class Scene_3 extends Phaser.Scene {
     this.camera = this.cameras.main.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
     this.physics.world.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
 
-    // --- story element --- //
+    // --- story block --- //
     const introMask = this.add.rectangle(
       this.camera.centerX - 10,
       this.camera.centerY - 10,
       this.camera.displayWidth + 20,
-      this.camera.displayHeight + 20).setFillStyle(0x000000, 1).setScrollFactor(0).setDepth(11),
-      story_1 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_1`).setOrigin(0.5).setDepth(11).setVisible(true).setAlpha(0),
-      story_2 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_2`).setOrigin(0.5).setDepth(11).setVisible(false),
-      story_3 = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight / 2, `story_3`).setOrigin(0.5).setDepth(11).setVisible(false),
-      nextButton = this.add.image(this.scene_settings.canvasWidth / 2, this.scene_settings.canvasHeight - 40, 'next_button').setInteractive().setScrollFactor(0).setDepth(12).setAlpha(0);
+      this.camera.displayHeight + 20).setFillStyle(0x000000, 1).setScrollFactor(0).setDepth(this.scene_settings.storyMaskDepth),
+
+      story_1 = this.add.video(0, 0, 'office_1'),
+      story_2 = this.add.video(0, 0, 'office_2'),
+      story_3 = this.add.video(0, 0, 'office_3'),
+      nextButton = this.add.image(this.scene_settings.canvasWidth - 30, this.scene_settings.canvasHeight / 2, 'next_button')
+        .setInteractive().setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setAlpha(0.5);
+
+    story_1.setOrigin(0).setVisible(true).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(0).setScrollFactor(0);
+    story_2.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
+    story_3.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
+
     this.tweens.add({
-      targets: [story_1, nextButton],
-      duration: 1000,
-      alpha: 1
+      targets: story_1,
+      duration: 500,
+      alpha: 1,
+      onComplete: () => { story_1.play() }
     })
 
     let [story_arr, i] = [[story_1, story_2, story_3], 1];
-    nextButton.on('pointerover', () => { nextButton.alpha = 0.8 });
-    nextButton.on('pointerout', () => { nextButton.alpha = 1 });
+    nextButton.on('pointerover', () => { nextButton.alpha = 1 });
+    nextButton.on('pointerout', () => { nextButton.alpha = 0.5 });
     nextButton.on('pointerup', () => {
-      i > 0 ? story_arr[i - 1].setVisible(false) : null;
+      i > 0 ? story_arr[i - 1].setVisible(false).stop() : null;
 
       if (i < story_arr.length) {
         story_arr[i].setVisible(true);
+        story_arr[i].play();
         i++
       } else {
-        story_arr[i - 1].setVisible(false);
-        nextButton.setVisible(false)
+        story_arr[i - 1].setVisible(false); nextButton.setVisible(false)
+
         this.tweens.add({
           targets: introMask,
           duration: 4000,
@@ -153,11 +169,29 @@ class Scene_3 extends Phaser.Scene {
             introMask.destroy();
             nextButton.destroy();
             story_arr.forEach(ref => ref.destroy());
-            story_arr = null;
           }
         });
       }
     });
+
+    // skip story key
+    const escape_1 = this.input.keyboard.addKey('ENTER'),
+      escape_2 = this.input.keyboard.addKey('SPACE'),
+      escape_3 = this.input.keyboard.addKey('ESC'),
+      skipFunc = () => {
+        story_arr.forEach(ref => { ref.stop().setVisible(false) });
+        nextButton.destroy();
+        this.tweens.add({
+          targets: introMask,
+          duration: 4000,
+          fillAlpha: 0,
+          onComplete: () => { introMask.destroy() }
+        });
+      };
+
+    escape_1.on('down', skipFunc);
+    escape_2.on('down', skipFunc);
+    escape_3.on('down', skipFunc);
 
     this.levelText = this.add.text(
       this.scene_settings.canvasWidth / 2,
@@ -189,29 +223,6 @@ class Scene_3 extends Phaser.Scene {
       `Level time: ${this.levelTime}`,
       { fontSize: 12, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
-
-    // keydown event
-    this.input.keyboard.once('keydown', () => {
-      this.startTime = this.time.now;
-      this.tweens.add({
-        targets: this.levelText,
-        duration: 1000,
-        alpha: 0,
-        onComplete: () => { this.levelText.destroy() }
-      });
-
-      this.time.addEvent({
-        delay: 1000,
-        repeat: -1,
-        callbackScope: this,
-        callback: () => {
-          if (this.healthVal > 0) {
-            this.levelTime--;
-            this.timeText.setText(`Level time: ${this.levelTime}`);
-          }
-        }
-      });
-    }, this);
 
     // score tracker
     this.score = parseInt(this.levelTime * this.healthVal);
@@ -505,10 +516,32 @@ class Scene_3 extends Phaser.Scene {
       }
     }, this);
 
+    // emitter for time
+    [this.started, this.ended] = [false, false];
+    gameState.emitter.once('start_time', () => {
+      this.startTime = this.time.now;
+      this.tweens.add({
+        targets: this.levelText,
+        duration: 1000,
+        alpha: 0,
+        onComplete: () => { this.levelText.destroy() }
+      });
+      this.time.addEvent({
+        delay: 1000,
+        repeat: -1,
+        callbackScope: this,
+        callback: () => {
+          if (this.healthVal > 0 && this.levelTime > 0) {
+            this.levelTime--;
+            this.timeText.setText(`Level time: ${this.levelTime}`);
+          }
+        }
+      });
+    }, this);
     gameState.emitter.once('end_time', () => {
       this.endTime = this.time.now;
       this.scene_time_raw = this.endTime - this.startTime;
-    }, this)
+    }, this);
 
     this.audioToggle === true ? gameState.emitter.emit('play_bgm') : null;
 
@@ -586,15 +619,24 @@ class Scene_3 extends Phaser.Scene {
       this.healthVal = gameFunctions.control(gameState, this.scene_settings, this.healthVal);
       gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
-      this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
-      this.scoreText.setText(`Score: ${this.score}`);
+      if (gameState.cursors.up.isDown || gameState.cursors.down.isDown || gameState.cursors.left.isDown || gameState.cursors.right.isDown) {
+        !this.started ? (() => { gameState.emitter.emit('start_time'); this.started = true })() : null;
+      }
+
+      if (this.levelTime > 0) {
+        this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
+        this.scoreText.setText(`Score: ${this.score}`);
+      } else {
+        this.score = 1;
+        this.scoreText.setText(`Score: ${this.score}`);
+      }
       // this.dangerState ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
+      !this.ended ? (() => { gameState.emitter.emit('end_time'); this.ended = true })() : null;
       this.physics.pause();
       gameState.player.anims.pause();
-      gameState.emitter.emit('end_time');
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }

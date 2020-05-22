@@ -5,7 +5,7 @@
 /**
  * @author Don (dl90)
  * @date May 12, 2020
- * @note park theme
+ * @note playground theme
  * @TODO tile extruder
  */
 class Scene_11 extends Phaser.Scene {
@@ -64,7 +64,7 @@ class Scene_11 extends Phaser.Scene {
       healthBarDepth: 5,
       deathBackgroundMaskDepth: 6,
       deathBackgroundUnmaskDepth: 7,
-      messageDepth: 10,
+      messageDepth: 9,
       buttonDepth: 10,
 
       enemy: [
@@ -153,29 +153,6 @@ class Scene_11 extends Phaser.Scene {
       `Level time: ${this.levelTime}`,
       { fontSize: 12, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
-
-    // keydown event
-    this.input.keyboard.once('keydown', () => {
-      this.startTime = this.time.now;
-      this.tweens.add({
-        targets: this.levelText,
-        duration: 1000,
-        alpha: 0,
-        onComplete: () => { this.levelText.destroy() }
-      });
-
-      this.time.addEvent({
-        delay: 1000,
-        repeat: -1,
-        callbackScope: this,
-        callback: () => {
-          if (this.healthVal > 0) {
-            this.levelTime--;
-            this.timeText.setText(`Level time: ${this.levelTime}`);
-          }
-        }
-      });
-    }, this);
 
     // score tracker
     this.score = parseInt(this.levelTime * this.healthVal);
@@ -458,10 +435,31 @@ class Scene_11 extends Phaser.Scene {
     }, this);
 
     // emitter for time
+    [this.started, this.ended] = [false, false];
+    gameState.emitter.once('start_time', () => {
+      this.startTime = this.time.now;
+      this.tweens.add({
+        targets: this.levelText,
+        duration: 1000,
+        alpha: 0,
+        onComplete: () => { this.levelText.destroy() }
+      });
+      this.time.addEvent({
+        delay: 1000,
+        repeat: -1,
+        callbackScope: this,
+        callback: () => {
+          if (this.healthVal > 0 && this.levelTime > 0) {
+            this.levelTime--;
+            this.timeText.setText(`Level time: ${this.levelTime}`);
+          }
+        }
+      });
+    }, this);
     gameState.emitter.once('end_time', () => {
       this.endTime = this.time.now;
       this.scene_time_raw = this.endTime - this.startTime;
-    }, this)
+    }, this);
 
     this.audioToggle === true ? gameState.emitter.emit('play_bgm') : null;
 
@@ -550,15 +548,24 @@ class Scene_11 extends Phaser.Scene {
       this.healthVal = gameFunctions.control(gameState, this.scene_settings, this.healthVal);
       gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
-      this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
-      this.scoreText.setText(`Score: ${this.score}`);
+      if (gameState.cursors.up.isDown || gameState.cursors.down.isDown || gameState.cursors.left.isDown || gameState.cursors.right.isDown) {
+        !this.started ? (() => { gameState.emitter.emit('start_time'); this.started = true })() : null;
+      }
+
+      if (this.levelTime > 0) {
+        this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
+        this.scoreText.setText(`Score: ${this.score}`);
+      } else {
+        this.score = 1;
+        this.scoreText.setText(`Score: ${this.score}`);
+      }
       // this.dangerState ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
+      !this.ended ? (() => { gameState.emitter.emit('end_time'); this.ended = true })() : null;
       this.physics.pause();
       gameState.player.anims.pause();
-      gameState.emitter.emit('end_time');
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }

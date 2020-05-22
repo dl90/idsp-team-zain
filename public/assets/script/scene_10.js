@@ -5,8 +5,8 @@
 /**
  * @author Don (dl90)
  * @date May 11, 2020
- * @note park theme
- * @TODO tile extruder
+ * @note playground theme
+ * @TODO tile extruder // npx tile-extruder --tileWidth 32 --tileHeight 32 --input /public/assets/tileset/Group 1.png --output /public/assets/tileset/extruded_Group_1.png
  */
 class Scene_10 extends Phaser.Scene {
   constructor() { super({ key: 'Scene_10' }) }
@@ -65,7 +65,9 @@ class Scene_10 extends Phaser.Scene {
       deathBackgroundMaskDepth: 6,
       deathBackgroundUnmaskDepth: 7,
       messageDepth: 9,
-      buttonDepth: 10,
+      storyMaskDepth: 11,
+      storyVideoDepth: 12,
+      buttonDepth: 13,
 
       enemy: [
         { "id": 1, "x": 14, "y": -27, "tweenX": 7, "tweenY": 0 },
@@ -115,6 +117,12 @@ class Scene_10 extends Phaser.Scene {
     this.load.image('item', './assets/tileset/item.png');
     this.load.image('playground', './assets/tileset/Group 1.png');
     this.load.tilemapTiledJSON('level_10_tilemap', './assets/tilemaps/level_10.json');
+
+    // story element
+    this.load.video('playground_1', '/assets/video/theme_5_playground/playground_1.mp4');
+    this.load.video('playground_2', '/assets/video/theme_5_playground/playground_2.mp4');
+    this.load.video('playground_3', '/assets/video/theme_5_playground/playground_3.mp4');
+    this.load.image('next_button', '/assets/sprites/buttons/button_next.png');
   }
 
   create() {
@@ -124,6 +132,75 @@ class Scene_10 extends Phaser.Scene {
 
     this.camera = this.cameras.main.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
     this.physics.world.setBounds(0, 0, this.scene_settings.worldWidth, this.scene_settings.worldHeight);
+
+    // --- story block --- //
+    const introMask = this.add.rectangle(
+      this.camera.centerX - 10,
+      this.camera.centerY - 10,
+      this.camera.displayWidth + 20,
+      this.camera.displayHeight + 20).setFillStyle(0x000000, 1).setScrollFactor(0).setDepth(this.scene_settings.storyMaskDepth),
+
+      story_1 = this.add.video(0, 0, 'playground_1'),
+      story_2 = this.add.video(0, 0, 'playground_2'),
+      story_3 = this.add.video(0, 0, 'playground_3'),
+      nextButton = this.add.image(this.scene_settings.canvasWidth - 30, this.scene_settings.canvasHeight / 2, 'next_button')
+        .setInteractive().setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setAlpha(0.5);
+
+    story_1.setOrigin(0).setVisible(true).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(0).setScrollFactor(0);
+    story_2.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
+    story_3.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
+
+    this.tweens.add({
+      targets: story_1,
+      duration: 500,
+      alpha: 1,
+      onComplete: () => { story_1.play() }
+    })
+
+    let [story_arr, i] = [[story_1, story_2, story_3], 1];
+    nextButton.on('pointerover', () => { nextButton.alpha = 1 });
+    nextButton.on('pointerout', () => { nextButton.alpha = 0.5 });
+    nextButton.on('pointerup', () => {
+      i > 0 ? story_arr[i - 1].setVisible(false).stop() : null;
+
+      if (i < story_arr.length) {
+        story_arr[i].setVisible(true);
+        story_arr[i].play();
+        i++
+      } else {
+        story_arr[i - 1].setVisible(false); nextButton.setVisible(false)
+
+        this.tweens.add({
+          targets: introMask,
+          duration: 4000,
+          fillAlpha: 0,
+          onComplete: () => {
+            introMask.destroy();
+            nextButton.destroy();
+            story_arr.forEach(ref => ref.destroy());
+          }
+        });
+      }
+    });
+
+    // skip story key
+    const escape_1 = this.input.keyboard.addKey('ENTER'),
+      escape_2 = this.input.keyboard.addKey('SPACE'),
+      escape_3 = this.input.keyboard.addKey('ESC'),
+      skipFunc = () => {
+        story_arr.forEach(ref => { ref.stop().setVisible(false) });
+        nextButton.destroy();
+        this.tweens.add({
+          targets: introMask,
+          duration: 4000,
+          fillAlpha: 0,
+          onComplete: () => { introMask.destroy() }
+        });
+      };
+
+    escape_1.on('down', skipFunc);
+    escape_2.on('down', skipFunc);
+    escape_3.on('down', skipFunc);
 
     // level title
     this.levelText = this.add.text(
@@ -157,29 +234,6 @@ class Scene_10 extends Phaser.Scene {
       `Level time: ${this.levelTime}`,
       { fontSize: 12, color: '#000000' }
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.messageDepth);
-
-    // keydown event
-    this.input.keyboard.once('keydown', () => {
-      this.startTime = this.time.now;
-      this.tweens.add({
-        targets: this.levelText,
-        duration: 1000,
-        alpha: 0,
-        onComplete: () => { this.levelText.destroy() }
-      });
-
-      this.time.addEvent({
-        delay: 1000,
-        repeat: -1,
-        callbackScope: this,
-        callback: () => {
-          if (this.healthVal > 0) {
-            this.levelTime--;
-            this.timeText.setText(`Level time: ${this.levelTime}`);
-          }
-        }
-      });
-    }, this);
 
     // score tracker
     this.score = parseInt(this.levelTime * this.healthVal);
@@ -480,10 +534,31 @@ class Scene_10 extends Phaser.Scene {
     }, this);
 
     // emitter for time
+    [this.started, this.ended] = [false, false];
+    gameState.emitter.once('start_time', () => {
+      this.startTime = this.time.now;
+      this.tweens.add({
+        targets: this.levelText,
+        duration: 1000,
+        alpha: 0,
+        onComplete: () => { this.levelText.destroy() }
+      });
+      this.time.addEvent({
+        delay: 1000,
+        repeat: -1,
+        callbackScope: this,
+        callback: () => {
+          if (this.healthVal > 0 && this.levelTime > 0) {
+            this.levelTime--;
+            this.timeText.setText(`Level time: ${this.levelTime}`);
+          }
+        }
+      });
+    }, this);
     gameState.emitter.once('end_time', () => {
       this.endTime = this.time.now;
       this.scene_time_raw = this.endTime - this.startTime;
-    }, this)
+    }, this);
 
     this.audioToggle === true ? gameState.emitter.emit('play_bgm') : null;
 
@@ -572,15 +647,24 @@ class Scene_10 extends Phaser.Scene {
       this.healthVal = gameFunctions.control(gameState, this.scene_settings, this.healthVal);
       gameFunctions.activeHealthTextures(gameState, this.healthVal);
 
-      this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
-      this.scoreText.setText(`Score: ${this.score}`);
+      if (gameState.cursors.up.isDown || gameState.cursors.down.isDown || gameState.cursors.left.isDown || gameState.cursors.right.isDown) {
+        !this.started ? (() => { gameState.emitter.emit('start_time'); this.started = true })() : null;
+      }
+
+      if (this.levelTime > 0) {
+        this.score = this.bonusScore + parseInt(this.levelTime * this.healthVal);
+        this.scoreText.setText(`Score: ${this.score}`);
+      } else {
+        this.score = 1;
+        this.scoreText.setText(`Score: ${this.score}`);
+      }
       // this.dangerState ? gameState.emitter.emit('danger_bgm_play') : gameState.emitter.emit('danger_bgm_stop');
     } else {
       this.score = 0;
       this.scoreText.setText(`Score: ${this.score}`);
+      !this.ended ? (() => { gameState.emitter.emit('end_time'); this.ended = true })() : null;
       this.physics.pause();
       gameState.player.anims.pause();
-      gameState.emitter.emit('end_time');
       gameState.emitter.emit('death_bgm');
       this.backButton.setVisible(true);
     }
