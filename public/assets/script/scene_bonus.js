@@ -24,7 +24,7 @@ class Scene_bonus extends Phaser.Scene {
     }
 
     this.scene_settings = {
-      debug: false,
+      debug: true,
       introText: 'Bonus',
 
       canvasWidth: 480,
@@ -64,17 +64,8 @@ class Scene_bonus extends Phaser.Scene {
     gameFunctions.loading.call(this);
     gameFunctions.loadHealthTextures.call(this);
     gameFunctions.loadPlayerSpritesheet.apply(this);
-
-    this.load.audio('scene_1_bgm', './assets/bgm/Zain_bgm_01.mp3');
-    this.load.audio('success_audio', './assets/bgm/clips/Meme_success.mp3');
-    // this.load.audio('danger_audio', './assets/bgm/Meme_action.mp3');
-    this.load.audio('death_audio', './assets/bgm/Zain_death.mp3');
-    // this.load.audio('bone_audio', './assets/bgm/clips/Zain_bone.mp3');
-    this.load.audio('death_event_audio', './assets/bgm/clips/Zain_death_clip.mp3');
-
-    this.load.image('back_button', './assets/sprites/buttons/button_back.png');
-    this.load.image('audio_button_on', './assets/sprites/buttons/sound_on.png');
-    this.load.image('audio_button_off', './assets/sprites/buttons/sound_off.png');
+    gameFunctions.loadCommonButtons.apply(this);
+    gameFunctions.loadCommonAudio.apply(this);
 
     this.load.image('girl', './assets/sprites/family/girl.png');
     this.load.image('face', './assets/sprites/testing/face.png');
@@ -121,23 +112,15 @@ class Scene_bonus extends Phaser.Scene {
       nextButton = this.add.image(this.scene_settings.canvasWidth - 30, this.scene_settings.canvasHeight / 2, 'next_button')
         .setInteractive().setScrollFactor(0).setDepth(this.scene_settings.buttonDepth).setAlpha(0.5);
 
-    story_1.setOrigin(0).setVisible(true).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(0).setScrollFactor(0);
-    story_2.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    story_3.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    story_4.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    story_5.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    story_6.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    story_7.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
-    credits.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setInteractive().setAlpha(1).setScrollFactor(0);
+    story_1.setOrigin(0).setVisible(true).setDepth(this.scene_settings.storyVideoDepth).setAlpha(0).setScrollFactor(0);
+    story_2.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    story_3.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    story_4.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    story_5.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    story_6.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    story_7.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
+    credits.setOrigin(0).setVisible(false).setDepth(this.scene_settings.storyVideoDepth).setAlpha(1).setScrollFactor(0);
 
-    // this.tweens.add({
-    //   targets: credits,
-    //   duration: 500,
-    //   alpha: 1,
-    //   onComplete: () => { credits.play() }
-    // })
-    // credits.scale = 0.25;
-    // credits.setVolume(0.7).setVisible(true).play()
     this.tweens.add({
       targets: story_1,
       duration: 500,
@@ -145,20 +128,19 @@ class Scene_bonus extends Phaser.Scene {
       onComplete: () => { story_1.play() }
     })
 
-    let [story_arr, i] = [[story_1, story_2, story_3, story_4, story_5, story_6, story_7], 1];
+    let [story_arr, i] = [[story_1, story_2, story_3, story_4, story_5, story_6, story_7, credits], 1];
     nextButton.on('pointerover', () => { nextButton.alpha = 1 });
     nextButton.on('pointerout', () => { nextButton.alpha = 0.5 });
     nextButton.on('pointerup', () => {
-      i > 0 ? story_arr[i - 1].setVisible(false).stop() : null;
+      story_arr[i - 1].stop().setVisible(false);
+      story_arr[i - 1].active = false;
+      // console.log(story_arr[i - 1]);
 
       if (i < story_arr.length) {
-        story_arr[i].setVisible(true);
-        story_arr[i].play();
-        i++
+        story_arr[i].setVisible(true).setVolume(0).play();
+        i++;
       } else {
-        story_arr[i - 1].setVisible(false); nextButton.setVisible(false);
-        // this.audioToggle ? credits.setVolume(0.7).setVisible(true).play() : credits.setVolume(0).setVisible(true).play();
-        // gameState.emitter.emit('pause_bgm');
+        story_arr[i - 1].setVisible(false); nextButton.setVisible(false)
 
         this.tweens.add({
           targets: introMask,
@@ -235,29 +217,34 @@ class Scene_bonus extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(this.scene_settings.scoreTextDepth);
 
     // scene transition
+    let onceToggle = true
     this.girl = this.physics.add.sprite(this.scene_settings.familySpawnPosition[0] * 32, this.scene_settings.familySpawnPosition[1] * 32, 'girl').setOrigin(0);
     this.physics.add.overlap(gameState.player, this.girl, () => {
-      this.sound.pauseAll();
+      if (onceToggle) {
+        this.sound.pauseAll();
 
-      gameState.emitter.emit('end_time');
-      // this.audioToggle ? this.sound.play('success_audio') : null
+        gameState.emitter.emit('end_time');
+        // this.audioToggle ? this.sound.play('success_audio') : null
 
-      this.cumulativeScore = this.playerScore + this.score;
-
-      const forwardData = {
-        "scene": this.scene.key,
-        "score": this.score,
-        "bonus": this.bonusScore,
-        "health": this.healthVal,
-        "time_raw": this.scene_time_raw,
-        "audioToggle": this.audioToggle
-      };
-      this.scene.stop();
-      this.scene.get("Level_transition").scene.restart(forwardData);
-      // credits.once('complete', () => {
-      //   this.scene.stop(this.scene.key);
-      //   this.scene.get("Level_transition").scene.restart(forwardData);
-      // })
+        this.cumulativeScore = this.playerScore + this.score;
+        const forwardData = {
+          "scene": this.scene.key,
+          "score": this.score,
+          "bonus": this.bonusScore,
+          "health": this.healthVal,
+          "time_raw": this.scene_time_raw,
+          "audioToggle": this.audioToggle
+        };
+        // this.audioToggle ? credits.setVolume(0.7).setVisible(true).play() : credits.setVolume(0).setVisible(true).play();
+        // gameState.emitter.emit('pause_bgm');
+        this.scene.stop();
+        this.scene.get("Level_transition").scene.restart(forwardData);
+        // credits.once('complete', () => {
+        //   onceToggle = false
+        //   this.scene.stop();
+        //   this.scene.get("Level_transition").scene.restart(forwardData);
+        // });
+      }
 
     });
 

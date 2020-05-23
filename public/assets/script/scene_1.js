@@ -78,20 +78,13 @@ class Scene_1 extends Phaser.Scene {
     gameFunctions.loading.apply(this);
     gameFunctions.loadHealthTextures.apply(this);
     gameFunctions.loadPlayerSpritesheet.apply(this);
+    gameFunctions.loadCommonButtons.apply(this);
+    gameFunctions.loadCommonAudio.apply(this);
 
+    // enemy spritesheet
     this.load.spritesheet('s_catcher', '/assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
 
-    this.load.image('back_button', '/assets/sprites/buttons/button_back.png');
-    this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
-    this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
-
-    this.load.audio('scene_1_bgm', '/assets/bgm/Zain_bgm_01.mp3');
-    this.load.audio('success_audio', '/assets/bgm/clips/Meme_success.mp3');
-    this.load.audio('danger_audio', '/assets/bgm/Meme_action.mp3');
-    this.load.audio('death_audio', '/assets/bgm/Zain_death.mp3');
-    this.load.audio('bone_audio', '/assets/bgm/clips/Zain_bone.mp3');
-    this.load.audio('death_event_audio', '/assets/bgm/clips/Zain_death_clip.mp3');
-
+    // game assets
     this.load.image('girl', '/assets/sprites/family/girl.png');
     this.load.image('coin', '/assets/sprites/items/coin.png');
     this.load.image('bone', '/assets/sprites/items/bone.png');
@@ -190,9 +183,9 @@ class Scene_1 extends Phaser.Scene {
         });
       };
 
-    escape_1.on('down', skipFunc);
-    escape_2.on('down', skipFunc);
-    escape_3.on('down', skipFunc);
+    escape_1.once('down', skipFunc);
+    escape_2.once('down', skipFunc);
+    escape_3.once('down', skipFunc);
     // --- story block --- //
 
     // level title
@@ -214,11 +207,11 @@ class Scene_1 extends Phaser.Scene {
     // initialize health
     [this.bonusScore, this.coinCount, this.healthVal] = [0, 0, this.scene_settings.playerStartingHealth];
 
-    // healthBar
+    // initialize healthBar
     gameState.healthBar = this.add.sprite(40, 20, 'health_100').setScrollFactor(0).setDepth(this.scene_settings.healthBarDepth);
     this.scene_settings.debug ? this.healthVal = 1000 : null;
 
-    // follows player
+    // camera follows player
     this.camera.startFollow(gameState.player, false, 0.05, 0.05);
 
     // time tracker

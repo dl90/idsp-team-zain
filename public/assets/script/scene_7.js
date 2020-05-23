@@ -69,19 +69,10 @@ class Scene_7 extends Phaser.Scene {
     gameFunctions.loading.call(this);
     gameFunctions.loadHealthTextures.call(this);
     gameFunctions.loadPlayerSpritesheet.apply(this);
+    gameFunctions.loadCommonButtons.apply(this);
+    gameFunctions.loadCommonAudio.apply(this);
 
     this.load.spritesheet('s_catcher', '/assets/sprites/catcher/s_sheet.png', { frameWidth: 32, frameHeight: 32 });
-
-    this.load.image('back_button', '/assets/sprites/buttons/button_back.png');
-    this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
-    this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
-
-    this.load.audio('scene_1_bgm', '/assets/bgm/Zain_bgm_01.mp3');
-    this.load.audio('success_audio', '/assets/bgm/clips/Meme_success.mp3');
-    this.load.audio('danger_audio', '/assets/bgm/Meme_action.mp3');
-    this.load.audio('death_audio', '/assets/bgm/Zain_death.mp3');
-    this.load.audio('bone_audio', '/assets/bgm/clips/Zain_bone.mp3');
-    this.load.audio('death_event_audio', '/assets/bgm/clips/Zain_death_clip.mp3');
 
     this.load.image('mother', '/assets/sprites/family/mother.png');
     this.load.image('coin', '/assets/sprites/items/coin.png');
