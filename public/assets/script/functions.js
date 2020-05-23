@@ -33,7 +33,11 @@ const gameFunctions = {
     this.load.on('complete', () => { this.loadingText.destroy(); this.percentText.destroy(); this.assetText.destroy() });
   },
 
-  // loads health textures
+  /**
+   * Loads health textures with associated key and asset:
+   * - 'health_100' : '/assets/sprites/health-bar/health_100.png'
+   * - ...
+   */
   "loadHealthTextures": function loadHealthTextures() {
     const healthPath = '/assets/sprites/health-bar'
     this.load.image('health_100', healthPath + '/health_100.png');
@@ -53,6 +57,18 @@ const gameFunctions = {
   },
 
   /**
+   * Loads common game buttons:
+   * - 'back_button' : '/assets/sprites/buttons/button_back.png'
+   * - 'audio_button_on' : '/assets/sprites/buttons/sound_on.png'
+   * - 'audio_button_off' : '/assets/sprites/buttons/sound_off.png'
+   */
+  "loadCommonButtons": function loadCommonButtons() {
+    this.load.image('back_button', '/assets/sprites/buttons/button_back.png');
+    this.load.image('audio_button_on', '/assets/sprites/buttons/sound_on.png');
+    this.load.image('audio_button_off', '/assets/sprites/buttons/sound_off.png');
+  },
+
+  /**
    * Loads player spritesheet:
    * - 'f_dog' : '/assets/sprites/dog/re_f_sheet.png'
    * - 'b_dog' : '/assets/sprites/dog/re_b_sheet.png'
@@ -62,6 +78,24 @@ const gameFunctions = {
     this.load.spritesheet('f_dog', '/assets/sprites/dog/re_f_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('b_dog', '/assets/sprites/dog/re_b_sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('l_dog', '/assets/sprites/dog/re_l_sheet.png', { frameWidth: 32, frameHeight: 32 });
+  },
+
+  /**
+   * Loads level audio files:
+   * - 'scene_1_bgm' : '/assets/bgm/Zain_bgm_01.mp3'
+   * - 'success_audio' : '/assets/bgm/clips/Meme_success.mp3'
+   * - 'danger_audio' : '/assets/bgm/Meme_action.mp3'
+   * - 'death_audio' : '/assets/bgm/Zain_death.mp3'
+   * - 'bone_audio' : '/assets/bgm/clips/Zain_bone.mp3'
+   * - 'death_event_audio' : '/assets/bgm/clips/Zain_death_clip.mp3'
+   */
+  "loadCommonAudio": function loadCommonAudio() {
+    this.load.audio('scene_1_bgm', '/assets/bgm/Zain_bgm_01.mp3');
+    this.load.audio('success_audio', '/assets/bgm/clips/Meme_success.mp3');
+    this.load.audio('danger_audio', '/assets/bgm/Meme_action.mp3');
+    this.load.audio('death_audio', '/assets/bgm/Zain_death.mp3');
+    this.load.audio('bone_audio', '/assets/bgm/clips/Zain_bone.mp3');
+    this.load.audio('death_event_audio', '/assets/bgm/clips/Zain_death_clip.mp3');
   },
 
   /**
@@ -282,5 +316,4 @@ const gameFunctions = {
       visible ? tile.destroy() : null;
     });
   }
-
 }

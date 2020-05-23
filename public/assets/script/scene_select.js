@@ -194,8 +194,4 @@ class Scene_select extends Phaser.Scene {
       this.scene.get('Menu').scene.restart();
     })
   }
-
-  update() {
-    null;
-  }
 }
